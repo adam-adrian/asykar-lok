@@ -104,7 +104,11 @@ function doPost(e) {
     // B. MODUL KLASEMEN
     // ==========================================
     else if (action === "save_klasemen") {
-      const sheet = ss.getSheetByName("Klasemen");
+      let sheet = ss.getSheetByName("Klasemen");
+      if (!sheet) {
+        sheet = ss.insertSheet("Klasemen");
+        sheet.appendRow(["id", "tanggal", "sakan", "kebersihan", "kedisiplinan", "bahasa", "totalPoin"]);
+      }
       const rows = sheet.getDataRange().getValues();
       let rowIndex = -1;
       
@@ -137,21 +141,26 @@ function doPost(e) {
     } 
     else if (action === "delete_klasemen") {
       const sheet = ss.getSheetByName("Klasemen");
-      const rows = sheet.getDataRange().getValues();
-      for (let i = 1; i < rows.length; i++) {
-        const rowDate = formatDateStr(rows[i][1]);
-        if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
-          sheet.deleteRow(i + 1);
-          break;
+      if (sheet) {
+        const rows = sheet.getDataRange().getValues();
+        for (let i = 1; i < rows.length; i++) {
+          const rowDate = formatDateStr(rows[i][1]);
+          if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
+            sheet.deleteRow(i + 1);
+            break;
+          }
         }
       }
     }
-
     // ==========================================
     // C. MODUL LIGA / MATCH BOLA
     // ==========================================
     else if (action === "save_match") {
-      const sheet = ss.getSheetByName("Liga");
+      let sheet = ss.getSheetByName("Liga");
+      if (!sheet) {
+        sheet = ss.insertSheet("Liga");
+        sheet.appendRow(["id", "round", "tanggal", "timA", "timB", "skorA", "skorB"]);
+      }
       sheet.appendRow([
         payload.id || Date.now().toString(),
         payload.round,
@@ -165,7 +174,6 @@ function doPost(e) {
     else if (action === "delete_match") {
       deleteRowById(ss.getSheetByName("Liga"), payload.id);
     }
-
     // ==========================================
     // D. MODUL EVENT & FOTO KEGIATAN
     // ==========================================
@@ -176,6 +184,13 @@ function doPost(e) {
       if (payload.fotoBase64) {
         fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
       }
+      
+      let sheet = ss.getSheetByName("Event");
+      if (!sheet) {
+        sheet = ss.insertSheet("Event");
+        sheet.appendRow(["id", "kategori", "tanggal", "waktu", "judul", "lokasi", "deskripsi", "foto"]);
+      }
+      
       sheet.appendRow([
         payload.id || Date.now().toString(),
         payload.kategori,
@@ -190,7 +205,6 @@ function doPost(e) {
     else if (action === "delete_event") {
       deleteRowById(ss.getSheetByName("Event"), payload.id);
     }
-
     return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
       .setMimeType(ContentService.MimeType.JSON);
 
