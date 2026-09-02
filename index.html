@@ -636,7 +636,40 @@ function loadSession(){try{const s=sessionStorage.getItem(KEY_SESSION);return s?
 function saveSession(){try{sessionStorage.setItem(KEY_SESSION,JSON.stringify({user:currentUser,role:currentRole,label:currentLabel,token:currentAuthToken,view:currentView}));}catch(e){}}
 function clearSession(){try{sessionStorage.removeItem(KEY_SESSION);}catch(e){}}
 
-function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+function normalizeDateStr(val){
+  if(!val) return "";
+  let s = String(val).trim();
+  if(s.includes("T")) s = s.split("T")[0];
+  s = s.replace(/[\/\.]/g, "-");
+  
+  // Tangani format DD-MM-YYYY -> YYYY-MM-DD
+  const ddmmyyyy = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(s);
+  if(ddmmyyyy){
+    s = `${ddmmyyyy[3]}-${ddmmyyyy[2].padStart(2,"0")}-${ddmmyyyy[1].padStart(2,"0")}`;
+  }
+  
+  // Validasi ISO YYYY-MM-DD
+  const isIso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if(!isIso) return "";
+  
+  const y = parseInt(isIso[1], 10);
+  const m = parseInt(isIso[2], 10);
+  const d = parseInt(isIso[3], 10);
+  
+  if(y < 2000 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return "";
+  
+  // Validasi kalender asli (kabisat, jumlah hari per bulan)
+  const chk = new Date(y, m - 1, d);
+  if(chk.getFullYear() !== y || chk.getMonth() !== (m - 1) || chk.getDate() !== d) return "";
+  
+  return `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+}
+
 function formatWaktu(w){
   if(!w) return "Sepanjang Hari";
   const str = String(w).trim();
@@ -651,7 +684,7 @@ function formatWaktu(w){
   return str;
 }
 
-function formatTanggal(t){
+function formatTanggal(t, includeDay = true){
   if(!t) return "–";
   let str = String(t).trim();
   if(str.includes("T")) str = str.split("T")[0];
@@ -662,9 +695,12 @@ function formatTanggal(t){
     const d = parseInt(parts[2], 10);
     const dateObj = new Date(y, m, d);
     if(!isNaN(dateObj.getTime())){
-      const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-      const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-      return days[dateObj.getDay()] + ", " + d + " " + months[m] + " " + y;
+      return dateObj.toLocaleDateString("id-ID", {
+        weekday: includeDay ? "long" : undefined,
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+      });
     }
   }
   return str;
@@ -1039,8 +1075,11 @@ function editKlasemen(t,s){
 }
 
 async function simpanKlasemen(){
-  const t=document.getElementById("kTanggal").value, s=document.getElementById("kSakan").value;
-  if(!t||!s){showToast("Pilih tanggal dan sakan.",true);return;}
+  const rawT = document.getElementById("kTanggal").value;
+  const s = document.getElementById("kSakan").value;
+  const t = normalizeDateStr(rawT);
+  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).",true);return;}
+  if(!s){showToast("Pilih sakan.",true);return;}
   const rd=(id)=>{const inp=document.getElementById(id);const v=inp.value.trim();return v===""?null:parseInt(v);};
   const nk=rd("fKebersihan"), nd=rd("fKedisiplinan"), nb=rd("fBahasa");
   for(const v of[nk,nd,nb]){if(v!==undefined&&v!==null&&(isNaN(v)||v<0||v>100)){showToast("Poin harus bernilai 0–100.",true);return;}}
@@ -1202,9 +1241,11 @@ function openMatchModal(){
 
 async function simpanMatch(){
   const round=document.getElementById("mRound").value;
-  const t=document.getElementById("mTanggal").value, a=document.getElementById("mTimA").value, b=document.getElementById("mTimB").value;
+  const rawT=document.getElementById("mTanggal").value, a=document.getElementById("mTimA").value, b=document.getElementById("mTimB").value;
+  const t=normalizeDateStr(rawT);
+  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).",true);return;}
   const sa=parseInt(document.getElementById("mSkorA").value), sb=parseInt(document.getElementById("mSkorB").value);
-  if(!t||!a||!b||isNaN(sa)||isNaN(sb)){showToast("Lengkapi semua isian.",true);return;}
+  if(!a||!b||isNaN(sa)||isNaN(sb)){showToast("Lengkapi semua isian.",true);return;}
   if(a===b){showToast("Tim tidak boleh sama.",true);return;}
   if(sa===sb){showToast("Sistem gugur tidak boleh seri. Harus ada pemenang.",true);return;}
   if(sa<0||sb<0){showToast("Skor tidak boleh negatif.",true);return;}
@@ -1253,9 +1294,14 @@ function renderEvent(){
     if(strDate.includes("T")) strDate = strDate.split("T")[0];
     const parts = strDate.split("-");
     if(parts.length === 3){
-      dNum = parseInt(parts[2], 10);
-      const mIdx = parseInt(parts[1], 10) - 1;
-      dMonth = months[mIdx] || "–";
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const dateObj = new Date(y, m, d);
+      if(!isNaN(dateObj.getTime())){
+        dNum = dateObj.toLocaleDateString("id-ID", { day: "numeric" });
+        dMonth = dateObj.toLocaleDateString("id-ID", { month: "short" });
+      }
     }
 
     const st=eventStatus(e.tanggal);
@@ -1352,9 +1398,11 @@ function openEventModal(){
 
 async function simpanEvent(){
   const kat=document.getElementById("eKategori").value;
-  const t=document.getElementById("eTanggal").value, w=document.getElementById("eWaktu").value;
+  const rawT=document.getElementById("eTanggal").value, w=document.getElementById("eWaktu").value;
+  const t=normalizeDateStr(rawT);
+  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).",true);return;}
   const j=document.getElementById("eJudul").value.trim(), l=document.getElementById("eLokasi").value.trim(), d=document.getElementById("eDeskripsi").value.trim();
-  if(!t||!j){showToast("Tanggal dan judul wajib diisi.",true);return;}
+  if(!j){showToast("Judul kegiatan wajib diisi.",true);return;}
   
   const btn = document.getElementById("btnSaveEvent");
   btn.disabled = true; btn.textContent = "Menyimpan...";
