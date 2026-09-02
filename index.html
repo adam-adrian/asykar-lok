@@ -759,6 +759,12 @@ async function sendToCloud(action, payload){
       body: JSON.stringify({ action, payload })
     });
     const json = await res.json();
+    if(json && json.code === "unauthorized"){
+      updateSyncStatus("local", "Sesi berakhir");
+      resetToLogin();
+      showToast("Sesi berakhir. Silakan masuk kembali.", true);
+      return json;
+    }
     updateSyncStatus("online", json.local ? "Mode Lokal" : "Cloud Terhubung");
     return json;
   } catch(err) {
@@ -864,14 +870,18 @@ function closeAgendaModal(){
   switchView("homepage");
 }
 
-function logout(){
-  if(!confirm("Yakin ingin keluar?"))return;
+function resetToLogin(){
   currentUser="";currentRole="";currentLabel="";currentAuthToken="";
   clearSession();
   document.getElementById("dashboard").classList.add("hidden");
   document.getElementById("loginModal").classList.add("show");
-  document.getElementById("usernameInput").value="";
   document.getElementById("passwordInput").value="";
+}
+
+function logout(){
+  if(!confirm("Yakin ingin keluar?"))return;
+  resetToLogin();
+  document.getElementById("usernameInput").value="";
 }
 
 function switchView(view){

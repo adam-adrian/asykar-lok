@@ -39,13 +39,27 @@ export default async function handler(req, res) {
 
     // 2. POST Request: Teruskan mutasi (simpan/hapus) ke Google Sheets
     if (req.method === 'POST') {
+      // Apps Script tidak dapat membaca header HTTP, jadi token sesi dipindahkan
+      // dari header Authorization ke dalam body. Token ditaruh paling akhir agar
+      // nilai token yang diselipkan klien di body tidak bisa menimpanya.
+      const auth = req.headers.authorization || '';
+      const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
+
+      let body = req.body;
+      if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch (err) { body = {}; }
+      }
+      if (!body || typeof body !== 'object' || Array.isArray(body)) body = {};
+
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(req.body)
+        body: JSON.stringify({ ...body, token })
       });
       const data = await response.json();
-      return res.status(200).json(data);
+      const code = data && data.code;
+      const httpStatus = code === 'unauthorized' ? 401 : code === 'forbidden' ? 403 : 200;
+      return res.status(httpStatus).json(data);
     }
 
     return res.status(405).json({ status: 'error', message: 'Method tidak diizinkan.' });

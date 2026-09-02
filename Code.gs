@@ -24,6 +24,91 @@ function getDb() {
 }
 
 /**
+ * Helper: Bungkus respons JSON Apps Script.
+ */
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// =========================================================================
+// SESI & OTORISASI SERVER-SIDE
+// =========================================================================
+// Token sesi disimpan di ScriptCache. Batas CacheService adalah 6 jam,
+// jadi pengguna login ulang paling lama sehari sekali.
+//
+// ACTION_ROLES mencerminkan gate di index.html:
+//   "*"  -> setiap sesi non-tamu (cermin dari canEditKlasemenAny())
+//   [..] -> hanya peran yang disebut
+// Aksi yang tidak terdaftar di sini DITOLAK, bukan diabaikan.
+const SESSION_TTL_SECONDS = 21600;
+const ACTION_ROLES = {
+  save_klasemen:   "*",
+  delete_klasemen: ["admin_utama"],
+  save_match:      ["admin_utama"],
+  delete_match:    ["admin_utama"],
+  save_event:      ["admin_utama"],
+  delete_event:    ["admin_utama"]
+};
+
+function issueSession(user) {
+  const token = "tok_" + Utilities.getUuid();
+  CacheService.getScriptCache().put(
+    "sess_" + token,
+    JSON.stringify({ username: user.username, role: user.role }),
+    SESSION_TTL_SECONDS
+  );
+  return token;
+}
+
+function getSession(token) {
+  const key = String(token || "").trim();
+  if (!key) return null;
+  const raw = CacheService.getScriptCache().get("sess_" + key);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
+ * Mengembalikan null jika aksi boleh dijalankan, atau objek respons error
+ * jika ditolak. Apps Script tidak dapat membaca header HTTP, sehingga token
+ * dibaca dari body — proxy Vercel yang memindahkannya dari header Authorization.
+ */
+function denyIfUnauthorized(action, token) {
+  const allowed = ACTION_ROLES[action];
+  if (!allowed) {
+    return { status: "error", message: "Aksi tidak dikenal: " + String(action) };
+  }
+
+  const session = getSession(token);
+  if (!session) {
+    return {
+      status: "error",
+      code: "unauthorized",
+      message: "Sesi tidak valid atau sudah berakhir. Silakan masuk kembali."
+    };
+  }
+
+  const role = String(session.role || "").toLowerCase();
+  const ok = allowed === "*"
+    ? role !== "" && role !== "tamu"
+    : allowed.indexOf(role) > -1;
+
+  if (!ok) {
+    return {
+      status: "error",
+      code: "forbidden",
+      message: "Peran Anda tidak berhak melakukan aksi ini."
+    };
+  }
+  return null;
+}
+
+/**
  * 1. GET: Mengambil data PUBLIK saja (Klasemen, Liga, Event).
  * CATATAN KEAMANAN: Data akun di Tab "Users" TIDAK PERNAH dikirim via GET!
  */
@@ -36,11 +121,9 @@ function doGet(e) {
       event: sheetToObjects(ss.getSheetByName("Event"))
     };
     
-    return ContentService.createTextOutput(JSON.stringify({ status: "success", data: result }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ status: "success", data: result });
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ status: "error", message: err.toString() });
   }
 }
 
@@ -53,6 +136,12 @@ function doPost(e) {
     const action = postData.action;
     const payload = postData.payload;
     const ss = getDb();
+
+    // Setiap aksi selain login WAJIB membawa token sesi yang sah.
+    if (action !== "login") {
+      const denial = denyIfUnauthorized(action, postData.token);
+      if (denial) return jsonOut(denial);
+    }
     
     // ==========================================
     // A. AUTENTIKASI LOGIN (Cek Tab "Users")
@@ -77,26 +166,22 @@ function doPost(e) {
 
       if (matched) {
         if (matched.status && String(matched.status).toLowerCase() === "inactive") {
-          return ContentService.createTextOutput(JSON.stringify({
-            status: "error",
-            message: "Akun ini telah dinonaktifkan."
-          })).setMimeType(ContentService.MimeType.JSON);
+          return jsonOut({ status: "error", message: "Akun ini telah dinonaktifkan." });
         }
 
-        return ContentService.createTextOutput(JSON.stringify({
+        const sessionUser = {
+          username: matched.username,
+          role: matched.role || "admin_utama",
+          label: matched.label || "Admin"
+        };
+
+        return jsonOut({
           status: "success",
-          user: {
-            username: matched.username,
-            role: matched.role || "admin_utama",
-            label: matched.label || "Admin"
-          },
-          token: "tok_" + Utilities.getUuid()
-        })).setMimeType(ContentService.MimeType.JSON);
+          user: sessionUser,
+          token: issueSession(sessionUser)
+        });
       } else {
-        return ContentService.createTextOutput(JSON.stringify({
-          status: "error",
-          message: "Username atau password salah."
-        })).setMimeType(ContentService.MimeType.JSON);
+        return jsonOut({ status: "error", message: "Username atau password salah." });
       }
     }
 
@@ -205,12 +290,10 @@ function doPost(e) {
     else if (action === "delete_event") {
       deleteRowById(ss.getSheetByName("Event"), payload.id);
     }
-    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ status: "success" });
 
   } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return jsonOut({ status: "error", message: err.toString() });
   }
 }
 
