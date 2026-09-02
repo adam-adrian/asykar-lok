@@ -637,18 +637,38 @@ function saveSession(){try{sessionStorage.setItem(KEY_SESSION,JSON.stringify({us
 function clearSession(){try{sessionStorage.removeItem(KEY_SESSION);}catch(e){}}
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function formatWaktu(w){
+  if(!w) return "Sepanjang Hari";
+  const str = String(w).trim();
+  if(str === "1899-12-30" || str === "1899-12-31") return "–";
+  if(str.includes("T")){
+    const parts = str.split("T")[1];
+    if(parts) return parts.substring(0, 5) + " WIB";
+  }
+  if(/^\d{1,2}:\d{2}/.test(str)){
+    return str.substring(0, 5) + " WIB";
+  }
+  return str;
+}
+
 function formatTanggal(t){
   if(!t) return "–";
-  const d=new Date(t+"T00:00:00");
-  if(isNaN(d.getTime())) return t;
-  const days=["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-  const months=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  return days[d.getDay()]+", "+d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();
+  let str = String(t).trim();
+  if(str.includes("T")) str = str.split("T")[0];
+  const parts = str.split("-");
+  if(parts.length === 3){
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const dateObj = new Date(y, m, d);
+    if(!isNaN(dateObj.getTime())){
+      const days = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+      const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+      return days[dateObj.getDay()] + ", " + d + " " + months[m] + " " + y;
+    }
+  }
+  return str;
 }
-function escapeHtml(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
-function showToast(m,e){const t=document.getElementById("toast");t.textContent=m;t.className=e?"show err":"show";clearTimeout(t._timer);t._timer=setTimeout(()=>t.className="",2800);}
-function closeModal(id){document.getElementById(id).classList.remove("show");}
-
 /* ===== CLOUD SYNC & API CALLS ===== */
 function updateSyncStatus(status, text){
   const dots = [document.getElementById("syncDotTop"), document.getElementById("syncDotSub")];
@@ -789,7 +809,7 @@ function proceedToAgendaCheck(){
       <div class="agenda-item-card">
         <div class="agenda-item-title">${escapeHtml(ev.judul)}</div>
         <div class="agenda-item-meta">
-          <span>🕒 ${ev.waktu || "Sepanjang Hari"}</span>
+          <span>🕒 ${formatWaktu(ev.waktu)}</span>
           <span>📍 ${escapeHtml(ev.lokasi || "Lokasi utama")}</span>
         </div>
       </div>
@@ -1075,7 +1095,7 @@ function renderligaMenu(){
       const st = eventStatus(item.tanggal);
       return `
         <tr>
-          <td>${formatTanggal(item.tanggal)}<br><span style="font-size:11.5px; color:var(--ink-faint);">${item.waktu||"–"}</span></td>
+          <td>${formatTanggal(item.tanggal)}<br><span style="font-size:11.5px; color:var(--ink-faint);">${formatWaktu(item.waktu)}</span></td>
           <td><strong>${escapeHtml(item.judul)}</strong>${item.deskripsi?'<br><span style="font-size:12px; color:var(--ink-soft);">'+escapeHtml(item.deskripsi)+'</span>':''}</td>
           <td>${escapeHtml(item.lokasi||"–")}</td>
           <td class="center"><span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold)":st.cls==="upcoming"?"#E7EFE9":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};">${st.label}</span></td>
@@ -1223,10 +1243,18 @@ function renderEvent(){
   const el=document.getElementById("eventList");
   const ce=canEditEvent();
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink-faint);">Belum ada jadwal event atau jadwal bola.</div>';return;}
-  
   const months=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
   el.innerHTML=list.map((e)=>{
-    const d=new Date(e.tanggal+"T00:00:00");
+    let dNum = "–", dMonth = "–";
+    let strDate = String(e.tanggal || "").trim();
+    if(strDate.includes("T")) strDate = strDate.split("T")[0];
+    const parts = strDate.split("-");
+    if(parts.length === 3){
+      dNum = parseInt(parts[2], 10);
+      const mIdx = parseInt(parts[1], 10) - 1;
+      dMonth = months[mIdx] || "–";
+    }
+
     const st=eventStatus(e.tanggal);
     const isBola = e.kategori === "Jadwal Bola";
     const badgeColor = isBola ? "background:var(--ink);color:var(--gold-light);" : "background:var(--parchment-dim);color:var(--ink-soft);";
@@ -1236,13 +1264,13 @@ function renderEvent(){
     return `
       <div class="event-card">
         <div class="event-date-box">
-          <div class="event-date-num">${d.getDate()}</div>
-          <div class="event-date-month">${months[d.getMonth()]}</div>
+          <div class="event-date-num">${dNum}</div>
+          <div class="event-date-month">${dMonth}</div>
         </div>
         <div style="flex:1;">
           <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
             <span style="font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:999px; ${badgeColor}">${katLabel}</span>
-            <span style="font-size:12px;color:var(--ink-faint);">🕒 ${e.waktu||"–"} • 📍 ${escapeHtml(e.lokasi||"–")}</span>
+            <span style="font-size:12px;color:var(--ink-faint);">🕒 ${formatWaktu(e.waktu)} • 📍 ${escapeHtml(e.lokasi||"–")}</span>
           </div>
           <strong style="font-size:15px; color:var(--ink);">${escapeHtml(e.judul)}</strong>
           ${e.deskripsi?'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">'+escapeHtml(e.deskripsi)+'</div>':''}

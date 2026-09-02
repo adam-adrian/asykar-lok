@@ -270,8 +270,13 @@ function sheetToObjects(sheet) {
     const obj = {};
     for (let j = 0; j < headers.length; j++) {
       let val = row[j];
+      const headerKey = String(headers[j] || "").toLowerCase();
       if (val instanceof Date) {
-        val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        if (headerKey === "waktu" || headerKey === "time" || headerKey === "jam") {
+          val = Utilities.formatDate(val, Session.getScriptTimeZone(), "HH:mm");
+        } else {
+          val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        }
       }
       obj[headers[j]] = val;
     }
