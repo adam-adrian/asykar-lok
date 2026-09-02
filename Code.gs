@@ -173,10 +173,9 @@ function doPost(e) {
       let fotoUrl = "";
       const folderId = getFolderId();
       
-      if (payload.fotoBase64 && folderId) {
+      if (payload.fotoBase64) {
         fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
       }
-      const sheet = ss.getSheetByName("Event");
       sheet.appendRow([
         payload.id || Date.now().toString(),
         payload.kategori,
@@ -207,14 +206,33 @@ function doPost(e) {
 function uploadImageToDrive(base64Data, filename, folderId) {
   try {
     const targetFolderId = folderId || getFolderId();
-    if (!targetFolderId) return "";
-    const folder = DriveApp.getFolderById(targetFolderId);
-    const contentType = splitData[0].match(/:(.*?);/)[1];
-    const rawBase64 = splitData[1];
+    let folder;
+    if (targetFolderId) {
+      try {
+        folder = DriveApp.getFolderById(targetFolderId);
+      } catch(e) {
+        folder = DriveApp.getRootFolder();
+      }
+    } else {
+      folder = DriveApp.getRootFolder();
+    }
+
+    if (!base64Data) return "";
+    
+    let contentType = "image/jpeg";
+    let rawBase64 = base64Data;
+    
+    if (base64Data.indexOf(",") > -1) {
+      const splitData = base64Data.split(",");
+      const match = splitData[0].match(/:(.*?);/);
+      if (match) contentType = match[1];
+      rawBase64 = splitData[1];
+    }
     
     const blob = Utilities.newBlob(Utilities.base64Decode(rawBase64), contentType, filename);
     const file = folder.createFile(blob);
     
+    // Set agar bisa dilihat publik
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     return "https://lh3.googleusercontent.com/d/" + file.getId();
   } catch (err) {
@@ -222,7 +240,6 @@ function uploadImageToDrive(base64Data, filename, folderId) {
     return "";
   }
 }
-
 /**
  * Helper: Convert entire sheet data to Array of Objects
  */
