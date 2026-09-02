@@ -23,20 +23,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ status: 'error', message: 'Username dan password wajib diisi.' });
     }
 
-    // Jika GOOGLE_SCRIPT_URL belum diset, gunakan default fallback untuk initial setup
+    // Jika GOOGLE_SCRIPT_URL belum diset di Vercel Environment Variables
     if (!GOOGLE_SCRIPT_URL) {
-      if (username.toLowerCase() === 'asykar' && password === '1234') {
-        return res.status(200).json({
-          status: 'success',
-          user: {
-            username: 'asykar',
-            role: 'admin_utama',
-            label: 'Admin Utama'
-          },
-          token: 'demo-token-' + Date.now()
-        });
-      }
-      return res.status(401).json({ status: 'error', message: 'Username atau password salah (Mode Demo).' });
+      return res.status(503).json({
+        status: 'error',
+        message: 'GOOGLE_SCRIPT_URL belum dikonfigurasi di Environment Variables Vercel.'
+      });
     }
 
     // Teruskan verifikasi ke Google Apps Script (Tab 'Users')

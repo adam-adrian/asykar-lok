@@ -60,11 +60,10 @@ function doPost(e) {
     if (action === "login") {
       let sheetUsers = ss.getSheetByName("Users");
       
-      // Buat tab Users otomatis jika belum ada
+      // Buat tab Users otomatis jika belum ada (tanpa hardcoded password)
       if (!sheetUsers) {
         sheetUsers = ss.insertSheet("Users");
         sheetUsers.appendRow(["username", "password", "role", "label", "status"]);
-        sheetUsers.appendRow(["asykar", "1234", "admin_utama", "Admin Utama", "active"]);
       }
 
       const users = sheetToObjects(sheetUsers);

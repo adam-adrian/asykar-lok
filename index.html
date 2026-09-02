@@ -746,17 +746,8 @@ async function login(){
       document.getElementById("passwordInput").value = "";
     }
   } catch(ex) {
-    // Fallback offline untuk demo awal jika backend belum ready
-    if(u.toLowerCase() === "asykar" && p === "1234"){
-      currentUser = "asykar";
-      currentRole = "admin_utama";
-      currentLabel = "Admin Utama";
-      currentAuthToken = "local-token";
-      enterDashboard(true);
-    } else {
-      err.textContent = "Gagal menghubungi server autentikasi.";
-      err.style.display = "block";
-    }
+    err.textContent = "Gagal menghubungi server autentikasi. Pastikan koneksi internet aktif.";
+    err.style.display = "block";
   } finally {
     btn.disabled = false; btn.textContent = "Masuk";
   }
