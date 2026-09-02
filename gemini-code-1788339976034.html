@@ -27,15 +27,10 @@ button{font-family:inherit;cursor:pointer;}
 
 @keyframes fadeInUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ===== SYNC BANNER & STATUS ===== */
-.sync-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.1); color:var(--gold-light); transition:all .2s;}
-.sync-dot{width:7px; height:7px; border-radius:50%; background:var(--gold-light);}
-.sync-dot.online{background:#48bb78;}
-.sync-dot.loading{background:var(--gold-light); animation:spin 1s linear infinite;}
+@keyframes pulseBadge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 
 /* ===== POP-UP LOGIN UTAMA ===== */
 .login-veil{display:none; position:fixed; inset:0; background:rgba(22,48,42,.85); z-index:3000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);}
@@ -77,19 +72,19 @@ button{font-family:inherit;cursor:pointer;}
 }
 .pub-logo{display:flex; align-items:center; gap:12px; font-family:'Fraunces',serif; font-size:18px; font-weight:600; color:var(--parchment);}
 .pub-logo-mark{width:36px; height:36px; border-radius:50%; border:1.5px solid var(--gold-light); display:flex; align-items:center; justify-content:center; color:var(--gold-light); font-weight:700;}
-.pub-nav{display:flex; align-items:center; gap:16px;}
+.pub-nav{display:flex; align-items:center; gap:20px;}
 .pub-nav a{color:var(--parchment); text-decoration:none; font-size:14px; font-weight:500; transition:color .15s;}
 .pub-nav a:hover{color:var(--gold-light);}
 .user-badge-top{font-size:12px; background:rgba(255,255,255,.12); padding:5px 12px; border-radius:999px; color:var(--gold-light); font-weight:600;}
 
 .pub-hero{
-  background:var(--card); padding:70px 20px 50px; text-align:center; border-bottom:1px solid var(--line);
+  background:var(--card); padding:80px 20px 60px; text-align:center; border-bottom:1px solid var(--line);
 }
 .pub-hero-sub{color:var(--gold); font-size:11.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px;}
 .pub-hero h1{font-size:clamp(36px, 5vw, 52px); font-weight:600; color:var(--ink); margin-bottom:14px;}
-.pub-hero p{color:var(--ink-faint); font-size:15px; max-width:540px; margin:0 auto 40px; line-height:1.6;}
+.pub-hero p{color:var(--ink-faint); font-size:15px; max-width:540px; margin:0 auto 50px; line-height:1.6;}
 
-.pub-cards-grid{max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:24px; text-align:left; padding:0 20px;}
+.pub-cards-grid{max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:24px; text-align:left; padding:0 20px;}
 .pub-card{
   background:var(--card); border:1.5px solid var(--line); border-radius:18px; padding:32px 28px;
   box-shadow:0 10px 30px rgba(22,48,42,.03); transition:transform .2s var(--ease), border-color .2s var(--ease), box-shadow .2s var(--ease);
@@ -101,11 +96,12 @@ button{font-family:inherit;cursor:pointer;}
   display:flex; align-items:center; justify-content:center; margin-bottom:20px;
 }
 .pub-card-icon svg{width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+
 .pub-card h3{font-size:20px; font-weight:600; color:var(--ink); margin-bottom:10px;}
 .pub-card p{font-size:13.5px; color:var(--ink-faint); line-height:1.6;}
 
 .pub-footer-section{
-  background:var(--ink); color:var(--parchment); padding:70px 20px; text-align:center; position:relative;
+  background:var(--ink); color:var(--parchment); padding:80px 20px; text-align:center; position:relative;
 }
 .pub-footer-section h2{font-size:clamp(28px, 4vw, 40px); font-weight:600; margin-bottom:14px; color:var(--parchment);}
 .pub-footer-section p{color:#A9BDB4; font-size:15px; max-width:600px; margin:0 auto 36px; line-height:1.6;}
@@ -132,14 +128,14 @@ button{font-family:inherit;cursor:pointer;}
 .nav-pill-btn:hover{color:#fff; background:rgba(255,255,255,.08);}
 .nav-pill-btn.active{background:var(--gold); color:#fff; font-weight:600; box-shadow:0 2px 10px rgba(176,138,46,.3);}
 
-.topbar-right{display:flex; align-items:center; gap:12px;}
+.topbar-right{display:flex; align-items:center; gap:14px;}
 .role-chip{font-size:10.5px; font-weight:700; letter-spacing:.03em; padding:3px 10px; border-radius:999px; background:var(--gold); color:#fff;}
 
 .page{max-width:1180px; margin:0 auto; padding:26px 24px 60px;}
 .page-panel{animation:fadeIn .35s var(--ease);}
 
 /* ===== KLASEMEN & OTHERS ===== */
-.info-note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:22px;font-size:13.5px;color:var(--ink-soft); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+.info-note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:22px;font-size:13.5px;color:var(--ink-soft);}
 .toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-bottom:22px;}
 .toolbar .field{margin:0;display:flex;align-items:center;gap:10px;}
 .toolbar label{font-size:12.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;}
@@ -179,9 +175,9 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
 .pill.empty{color:var(--ink-faint);font-weight:500;}
 .pill.total{background:var(--ink);color:var(--parchment);font-family:'Fraunces',serif;font-size:13px;}
 .row-actions{display:flex;gap:6px;justify-content:center;}
-.icon-btn{border:none;background:var(--parchment-dim);color:var(--ink-soft);width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.icon-btn{border:none;background:var(--parchment-dim);color:var(--ink-soft);width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
 .icon-btn:hover{background:var(--ink);color:#fff;}
-.icon-btn.danger:hover{background:var(--clay);color:#fff;}
+.icon-btn.danger:hover{background:var(--clay);}
 .empty-row td{padding:38px 10px;text-align:center;color:var(--ink-faint);font-size:13.5px;}
 
 /* ===== BAGAN AKAR TURNAMEN (BRACKET TREE) ===== */
@@ -197,34 +193,14 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
 .champion-box h3{font-size:16px; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px;}
 .champion-name{font-family:'Fraunces',serif; font-size:24px; font-weight:700; text-shadow:0 2px 4px rgba(0,0,0,0.15);}
 
-/* ===== EVENT CARD WITH THUMBNAIL ===== */
-.event-card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; margin-bottom:14px; display:flex; gap:16px; align-items:center; transition:border-color .15s;}
-.event-card:hover{border-color:var(--gold);}
-.event-date-box{background:var(--ink); color:var(--parchment); border-radius:10px; padding:10px 12px; text-align:center; min-width:60px; flex-shrink:0;}
-.event-date-num{font-family:'Fraunces',serif; font-size:20px; font-weight:700; line-height:1;}
-.event-date-month{font-size:10px; color:var(--gold-light); margin-top:4px;}
-.event-thumb-img{width:76px; height:76px; object-fit:cover; border-radius:10px; cursor:pointer; border:1px solid var(--line); flex-shrink:0; transition:transform .2s;}
-.event-thumb-img:hover{transform:scale(1.05);}
-
-/* ===== MODALS & FIELD ROWS ===== */
+/* ===== MODALS TAMBAH DATA ===== */
 .modal-veil{display:none; position:fixed; inset:0; background:rgba(22,48,42,.65); z-index:3000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px);}
 .modal-veil.show{display:flex;}
-.modal-box{background:var(--card); border-radius:18px; max-width:440px; width:100%; padding:30px 28px; animation:modalIn .25s var(--ease); box-shadow:0 20px 40px rgba(0,0,0,.3); max-height:90vh; overflow-y:auto;}
+.modal-box{background:var(--card); border-radius:18px; max-width:400px; width:100%; padding:30px 28px; animation:modalIn .25s var(--ease); box-shadow:0 20px 40px rgba(0,0,0,.3); max-height:90vh; overflow-y:auto;}
 .modal-box h3{font-size:20px; margin-bottom:4px; font-weight:600; color:var(--ink);}
 
-.field-row{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;}
-.field{margin-bottom:16px;}
-.field-row .field{margin-bottom:0;}
-.field label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
-.field input,.field select,.field textarea{
-  width:100%; padding:11px 13px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
-  font-size:14px; font-family:'Inter',sans-serif; background:#fff; color:var(--ink);
-}
-.field textarea{resize:vertical; min-height:60px;}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(176,138,46,.15);}
-
-/* ===== BUTTONS ===== */
-.btn{border:none; border-radius:999px; cursor:pointer; padding:10px 20px; font-size:13.5px; font-weight:600; display:inline-flex; align-items:center; gap:8px; transition:transform .18s var(--ease), box-shadow .18s var(--ease); white-space:nowrap; justify-content:center;}
+/* ===== BUTTONS & FIELDS ===== */
+.btn{border:none; border-radius:999px; cursor:pointer; padding:11px 22px; font-size:13.5px; font-weight:600; display:inline-flex; align-items:center; gap:8px; transition:transform .18s var(--ease), box-shadow .18s var(--ease); white-space:nowrap; justify-content:center;}
 .btn:active{transform:translateY(1px);}
 .btn-primary{background:var(--ink); color:var(--parchment);}
 .btn-primary:hover{background:var(--ink-soft); box-shadow:0 6px 18px rgba(22,48,42,.25);}
@@ -233,12 +209,14 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
 .btn-ghost{background:transparent; color:var(--ink); border:1.5px solid var(--line);}
 .btn-ghost:hover{border-color:var(--ink);}
 .btn-block{width:100%;}
-
-/* ===== LIGHTBOX MODAL ===== */
-#imageLightbox{display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:9999; align-items:center; justify-content:center; padding:20px; cursor:pointer; backdrop-filter:blur(5px);}
-#imageLightbox img{max-width:90vw; max-height:85vh; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,.5); border:2px solid rgba(255,255,255,.2); animation:modalIn .2s var(--ease);}
-
-#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--parchment);padding:12px 22px;border-radius:999px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s var(--ease),transform .25s var(--ease);z-index:4000;}
+.field{margin-bottom:16px;}
+.field label{display:block; font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
+.field input,.field select{
+  width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:var(--radius-sm);
+  font-size:14.5px; font-family:'Inter',sans-serif; background:#fff; color:var(--ink);
+}
+.field input:focus,.field select:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(176,138,46,.15);}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--parchment);padding:12px 20px;border-radius:999px;font-size:13.5px;font-weight:600;box-shadow:0 12px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .25s var(--ease),transform .25s var(--ease);z-index:4000;}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 #toast.err{background:var(--clay);}
 
@@ -248,8 +226,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
   .topbar{padding:12px 18px;}
   .page{padding:20px 14px 50px;}
   .podium-slot{width:104px;}
-  .field-row{grid-template-columns:1fr; gap:16px;}
-  .event-card{flex-wrap:wrap;}
+  .field-row{grid-template-columns:1fr;}
 }
 </style>
 </head>
@@ -259,7 +236,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
 <div class="login-veil show" id="loginModal">
   <div class="login-modal-box">
     <h3>Masuk ke Sistem</h3>
-    <p class="sub">Gunakan akun Pengurus / Admin atau lanjutkan sebagai tamu.</p>
+    <p class="sub">Gunakan akun <strong>Admin Utama</strong> (asykar / 1234) atau lanjutkan sebagai tamu.</p>
     <div class="login-error" id="loginError"></div>
     <div class="field">
       <label>Username</label>
@@ -269,7 +246,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
       <label>Password</label>
       <input type="password" id="passwordInput" placeholder="Masukkan password" maxlength="30">
     </div>
-    <button class="btn btn-gold btn-block" id="btnLoginSubmit" onclick="login()">Masuk</button>
+    <button class="btn btn-gold btn-block" onclick="login()">Masuk</button>
     <div class="or-divider">atau</div>
     <button class="btn btn-ghost btn-block" onclick="loginAsTamu()">Masuk sebagai Tamu</button>
   </div>
@@ -316,10 +293,6 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
         <span>League Of Kindness</span>
       </div>
       <nav class="pub-nav">
-        <div class="sync-badge" id="syncStatusBadgeTop">
-          <span class="sync-dot" id="syncDotTop"></span>
-          <span id="syncTextTop">Menghubungkan...</span>
-        </div>
         <a href="javascript:void(0)" onclick="switchView('homepage')">Fitur</a>
         <a href="javascript:void(0)" onclick="scrollToSakan()">Sakan</a>
         <span class="user-badge-top" id="displayUsernameTop"></span>
@@ -330,7 +303,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
     <section class="pub-hero" id="fitur">
       <div class="pub-hero-sub">LEAGUE OF KINDNESS</div>
       <h1 class="brand-word" style="font-size:clamp(40px, 6vw, 64px); color:var(--ink); margin-bottom:12px;">League Of Kindness</h1>
-      <p>Pusat penilaian kebaikan sakan harian, bagan turnamen sistem gugur, dan agenda pesantren secara transparan.</p>
+      <p>Dibangun untuk memudahkan pengurus memantau dan menilai setiap sakan secara transparan.</p>
 
       <div class="pub-cards-grid">
         <div class="pub-card" onclick="switchView('klasemen')">
@@ -338,21 +311,21 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
             <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
           </div>
           <h3>Klasemen Kebaikan</h3>
-          <p>Penilaian harian kebersihan, kedisiplinan, dan bahasa per sakan dengan rekap rata-rata otomatis.</p>
+          <p>Penilaian harian kebersihan, kedisiplinan, dan bahasa. Data tersusun rapi per sakan dan per tanggal tanpa duplikasi.</p>
         </div>
         <div class="pub-card" onclick="switchView('liga')">
           <div class="pub-card-icon">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m4.93 19.07 4.24-4.24"></path><circle cx="12" cy="12" r="3"></circle></svg>
           </div>
-          <h3>Turnamen Bola (Sistem Akar)</h3>
-          <p>Bagan alur pertandingan sepak bola antar sakan dengan sistem gugur hingga babak final.</p>
+          <h3>Turnamen Bola (Sistem Akar / Gugur)</h3>
+          <p>Bagan pohon turnamen sepak bola antar sakan menggunakan sistem gugur menuju babak puncak.</p>
         </div>
         <div class="pub-card" onclick="switchView('event')">
           <div class="pub-card-icon">
             <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
           </div>
-          <h3>Jadwal &amp; Dokumentasi Event</h3>
-          <p>Kelola seluruh agenda pesantren, jadwal match, lengkap dengan foto/poster kegiatan.</p>
+          <h3>Jadwal Event</h3>
+          <p>Kelola dan pantau seluruh kegiatan pesantren dengan status keterangan waktu: Akan Datang, Hari Ini, atau Selesai.</p>
         </div>
       </div>
     </section>
@@ -360,7 +333,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
     <section class="pub-footer-section" id="sakanSection">
       <div style="font-size:11.5px; font-weight:700; letter-spacing:.12em; color:var(--gold-light); text-transform:uppercase; margin-bottom:12px;">SAKAN-SAKAN KAMI</div>
       <h2>Nama-Nama Bersejarah</h2>
-      <p>Terinspirasi dari kota-kota peradaban Islam: Qazvin, Naisabur, Bukhara, Hamadan, dan lainnya.</p>
+      <p>Terinspirasi dari kota-kota besar peradaban Islam: Qazvin, Naisabur, Bukhara, dan lainnya.</p>
 
       <div class="pub-sakan-pills">
         <div class="pub-pill">QAZVIN ATAS</div>
@@ -405,10 +378,6 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
       </nav>
 
       <div class="topbar-right">
-        <div class="sync-badge" id="syncStatusBadgeSub" onclick="syncDataFromCloud(true)" style="cursor:pointer;" title="Klik untuk refresh dari cloud">
-          <span class="sync-dot" id="syncDotSub"></span>
-          <span id="syncTextSub">Cloud Sync</span>
-        </div>
         <span class="role-chip" id="roleChip"></span>
         <button class="btn btn-ghost" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:7px 16px; font-size:12.5px;" onclick="logout()">Keluar</button>
       </div>
@@ -475,12 +444,12 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
     <div class="page page-panel hidden" id="page-liga">
       <div class="info-note" id="ligaAccessNote"></div>
       
-      <!-- TABEL JADWAL BOLA DARI EVENT -->
+      <!-- TABEL / DAFTAR JADWAL BOLA YANG DIAMBIL DARI EVENT -->
       <div class="ledger">
         <div class="ledger-head">
           <div class="ledger-title">Jadwal Pertandingan Bola (Dari Menu Event)</div>
         </div>
-        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:12px;">Daftar jadwal pertandingan bola yang tersinkron otomatis dari menu Event.</p>
+        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:12px;">Daftar jadwal pertandingan bola yang telah dijadwalkan melalui menu Event.</p>
         <table>
           <thead><tr><th>Tanggal &amp; Waktu</th><th>Pertandingan / Keterangan</th><th>Lokasi</th><th class="center">Status</th></tr></thead>
           <tbody id="jadwalBolaTbody"></tbody>
@@ -492,7 +461,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
           <div class="ledger-title">Bagan Pohon Turnamen (Sistem Akar / Gugur)</div>
           <button class="btn btn-primary hidden" id="addMatchBtn" onclick="openMatchModal()">+ Input Hasil Pertandingan</button>
         </div>
-        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:16px;">Bagan visual alur pertandingan dari babak penyisihan, semifinal, hingga juara puncak.</p>
+        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:16px;">Bagan visual alur pertandingan dari babak penyisihan, semifinal, hingga juara utama.</p>
         
         <div class="bracket-tree-wrap" id="bracketTreeContainer">
           <!-- Rendered via JS -->
@@ -512,7 +481,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
     <div class="page page-panel hidden" id="page-event">
       <div class="info-note" id="eventAccessNote"></div>
       <div class="ledger-head" style="padding-top:0;">
-        <div class="ledger-title" style="font-size:22px; margin-bottom:14px;">Daftar Jadwal &amp; Dokumentasi Event</div>
+        <div class="ledger-title" style="font-size:22px; margin-bottom:14px;">Daftar Jadwal Event</div>
         <button class="btn btn-primary hidden" id="addEventBtn" onclick="openEventModal()">+ Tambah Event / Jadwal Bola</button>
       </div>
       <div id="eventList"></div>
@@ -531,9 +500,9 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
     <div class="field"><label>Poin Kebersihan (0–100)</label><input type="number" id="fKebersihan" min="0" max="100" placeholder="Belum diisi"></div>
     <div class="field"><label>Poin Kedisiplinan (0–100)</label><input type="number" id="fKedisiplinan" min="0" max="100" placeholder="Belum diisi"></div>
     <div class="field"><label>Poin Bahasa (0–100)</label><input type="number" id="fBahasa" min="0" max="100" placeholder="Belum diisi"></div>
-    <div id="dupeNote" style="display:none;color:var(--green-ok);font-size:12px;font-weight:600;margin-bottom:10px;">Data sakan &amp; tanggal ini sudah ada — nilai akan diperbarui.</div>
+    <div id="dupeNote" style="display:none;color:var(--green-ok);font-size:12px;font-weight:600;">Data sakan &amp; tanggal ini sudah ada — nilai akan diperbarui.</div>
     <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
-      <button class="btn btn-primary" id="btnSaveKlasemen" onclick="simpanKlasemen()">Simpan</button>
+      <button class="btn btn-primary" onclick="simpanKlasemen()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalKlasemen')">Batal</button>
     </div>
   </div>
@@ -559,7 +528,7 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
       <div class="field"><label>Skor B</label><input type="number" id="mSkorB" min="0" placeholder="0"></div>
     </div>
     <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
-      <button class="btn btn-primary" id="btnSaveLiga" onclick="simpanMatch()">Simpan</button>
+      <button class="btn btn-primary" onclick="simpanMatch()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalLiga')">Batal</button>
     </div>
   </div>
@@ -580,59 +549,33 @@ tbody td{padding:13px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vert
     </div>
     <div class="field"><label>Judul / Keterangan Match</label><input type="text" id="eJudul" placeholder="Contoh: Qazvin Atas vs Bukhara Atas"></div>
     <div class="field"><label>Lokasi / Lapangan</label><input type="text" id="eLokasi" placeholder="Contoh: Lapangan Utama"></div>
-    <div class="field"><label>Deskripsi Tambahan</label><textarea id="eDeskripsi" placeholder="Detail kegiatan (opsional)"></textarea></div>
-    
-    <!-- Upload Foto / Poster -->
-    <div class="field">
-      <label>Foto / Poster Dokumentasi (Opsional)</label>
-      <input type="file" id="eFotoFile" accept="image/*" onchange="handleImagePreview(event)">
-      <div id="imgPreviewWrapper" style="display:none; margin-top:8px; position:relative;">
-        <img id="imgPreview" src="" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px; border:1px solid var(--line);">
-        <button type="button" class="btn btn-ghost" style="position:absolute; top:6px; right:6px; padding:3px 8px; font-size:11px; background:#fff;" onclick="clearImageUpload()">Hapus</button>
-      </div>
-    </div>
-
+    <div class="field"><label>Deskripsi Tambahan</label><input type="text" id="eDeskripsi" placeholder="Detail (opsional)"></div>
     <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
-      <button class="btn btn-primary" id="btnSaveEvent" onclick="simpanEvent()">Simpan</button>
+      <button class="btn btn-primary" onclick="simpanEvent()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalEvent')">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- LIGHTBOX MODAL UNTUK PERBESAR GAMBAR -->
-<div id="imageLightbox" onclick="closeLightbox()">
-  <img id="lightboxImg" src="" alt="Perbesar Gambar">
-</div>
-
 <div id="toast"></div>
 
 <script>
-/* =========================================================================
-   KONFIGURASI ENDPOINT VERCEL PROXY (AMAN, TANPA HARDCODED SECRET)
-   ========================================================================= */
-const API_URL = "/api/sync";
-const AUTH_URL = "/api/login";
+const ACCOUNTS = {
+  "asykar": { password:"1234", role:"admin_utama", label:"Admin Utama" }
+};
+const SAKAN_LIST = ["QAZVIN ATAS","QAZVIN BAWAH","NAISABUR ATAS","NAISABUR BAWAH","SIJISTAN ATAS","SIJISTAN BAWAH","HAMADAN ATAS","HAMADAN BAWAH","HAMADAN LORONG","TIRMIDZ ATAS","TIRMIDZ BAWAH","BUKHARA ATAS","BUKHARA BAWAH","SAGARAS","ASGARD","MCAVA","XRERA","LOBBY","ZARAGOZA"];
 
-const SAKAN_LIST = [
-  "QAZVIN ATAS","QAZVIN BAWAH","NAISABUR ATAS","NAISABUR BAWAH",
-  "SIJISTAN ATAS","SIJISTAN BAWAH","HAMADAN ATAS","HAMADAN BAWAH",
-  "HAMADAN LORONG","TIRMIDZ ATAS","TIRMIDZ BAWAH","BUKHARA ATAS",
-  "BUKHARA BAWAH","SAGARAS","ASGARD","MCAVA","XRERA","LOBBY","ZARAGOZA"
-];
-
-let currentUser="", currentRole="", currentLabel="", currentAuthToken="";
+let currentUser="",currentRole="",currentLabel="";
 let currentView="homepage";
-let dataKlasemen=[], dataLiga=[], dataEvent=[];
+let dataKlasemen=[],dataLiga=[],dataEvent=[];
 let editingKlasemenKey=null;
-let tempBase64Image = "";
 
-const KEY_DATA="lok-klasemen-v5", KEY_LIGA="lok-liga-v5", KEY_EVENT="lok-event-v5", KEY_SESSION="lok-session-v5";
+const KEY_DATA="lok-klasemen-v5",KEY_LIGA="lok-liga-v5",KEY_EVENT="lok-event-v5",KEY_SESSION="lok-session-v5";
 
-/* ===== LOCAL STORAGE HELPERS ===== */
 function loadData(k){try{const d=localStorage.getItem(k);return d?JSON.parse(d):[];}catch(e){return[];}}
 function saveData(k,d){try{localStorage.setItem(k,JSON.stringify(d));}catch(e){}}
 function loadSession(){try{const s=sessionStorage.getItem(KEY_SESSION);return s?JSON.parse(s):null;}catch(e){return null;}}
-function saveSession(){try{sessionStorage.setItem(KEY_SESSION,JSON.stringify({user:currentUser,role:currentRole,label:currentLabel,token:currentAuthToken,view:currentView}));}catch(e){}}
+function saveSession(){try{sessionStorage.setItem(KEY_SESSION,JSON.stringify({user:currentUser,role:currentRole,label:currentLabel,view:currentView}));}catch(e){}}
 function clearSession(){try{sessionStorage.removeItem(KEY_SESSION);}catch(e){}}
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -645,126 +588,32 @@ function formatTanggal(t){
   return days[d.getDay()]+", "+d.getDate()+" "+months[d.getMonth()]+" "+d.getFullYear();
 }
 function escapeHtml(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
-function showToast(m,e){const t=document.getElementById("toast");t.textContent=m;t.className=e?"show err":"show";clearTimeout(t._timer);t._timer=setTimeout(()=>t.className="",2800);}
+function showToast(m,e){const t=document.getElementById("toast");t.textContent=m;t.className=e?"show err":"show";clearTimeout(t._timer);t._timer=setTimeout(()=>t.className="",2600);}
 function closeModal(id){document.getElementById(id).classList.remove("show");}
 
-/* ===== CLOUD SYNC & API CALLS ===== */
-function updateSyncStatus(status, text){
-  const dots = [document.getElementById("syncDotTop"), document.getElementById("syncDotSub")];
-  const texts = [document.getElementById("syncTextTop"), document.getElementById("syncTextSub")];
-  dots.forEach(d => { if(d) d.className = "sync-dot " + status; });
-  texts.forEach(t => { if(t) t.textContent = text; });
-}
-
-async function syncDataFromCloud(isManual = false){
-  updateSyncStatus("loading", "Sinkronisasi...");
-  if(isManual) showToast("Mengambil data terbaru...");
-
-  try {
-    const res = await fetch(API_URL);
-    const json = await res.json();
-    if(json.status === "success" && json.data){
-      dataKlasemen = json.data.klasemen || [];
-      dataLiga = json.data.liga || [];
-      dataEvent = json.data.event || [];
-
-      // Update cache lokal
-      saveData(KEY_DATA, dataKlasemen);
-      saveData(KEY_LIGA, dataLiga);
-      saveData(KEY_EVENT, dataEvent);
-
-      updateSyncStatus("online", json.local ? "Mode Lokal" : "Cloud Terhubung");
-      if(isManual) showToast(json.local ? "Data lokal dimuat." : "Data berhasil disinkronkan!");
-
-      if(currentView === "klasemen") renderKlasemen();
-      if(currentView === "liga") renderligaMenu();
-      if(currentView === "event") renderEvent();
-    }
-  } catch(err) {
-    console.warn("Gagal sync data:", err);
-    updateSyncStatus("local", "Cache Offline");
-    if(isManual) showToast("Gagal sync ke server. Menggunakan data lokal.", true);
-  }
-}
-
-async function sendToCloud(action, payload){
-  updateSyncStatus("loading", "Menyimpan...");
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": currentAuthToken ? "Bearer " + currentAuthToken : ""
-      },
-      body: JSON.stringify({ action, payload })
-    });
-    const json = await res.json();
-    updateSyncStatus("online", json.local ? "Mode Lokal" : "Cloud Terhubung");
-    return json;
-  } catch(err) {
-    console.error("Cloud Error:", err);
-    updateSyncStatus("local", "Gagal Simpan");
-    return { status: "error", message: "Gagal terhubung ke server." };
-  }
-}
-
-/* ===== AUTENTIKASI SERVERLESS ===== */
-function canEditField(f){return currentRole==="admin_utama";}
+function canEditField(f){if(currentRole==="admin_utama")return true;return false;}
 function canEditKlasemenAny(){return currentRole&&currentRole!=="tamu";}
 function canDeleteKlasemen(){return currentRole==="admin_utama";}
 function canEditLiga(){return currentRole==="admin_utama";}
 function canEditEvent(){return currentRole==="admin_utama";}
 
-async function login(){
+function findAccount(u){const key=Object.keys(ACCOUNTS).find(k=>k.toLowerCase()===u.trim().toLowerCase());return key?{key,...ACCOUNTS[key]}:null;}
+
+function login(){
   const u=document.getElementById("usernameInput").value.trim();
   const p=document.getElementById("passwordInput").value.trim();
   const err=document.getElementById("loginError");
-  const btn=document.getElementById("btnLoginSubmit");
-  
   if(!u||!p){err.textContent="Mohon lengkapi username dan password.";err.style.display="block";return;}
-
-  btn.disabled = true; btn.textContent = "Memverifikasi...";
-  err.style.display = "none";
-
-  try {
-    const res = await fetch(AUTH_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: u, password: p })
-    });
-    const json = await res.json();
-
-    if(json.status === "success" && json.user){
-      currentUser = json.user.username;
-      currentRole = json.user.role || "admin_utama";
-      currentLabel = json.user.label || "Admin";
-      currentAuthToken = json.token || "";
-      enterDashboard(true);
-    } else {
-      err.textContent = json.message || "Username atau password salah.";
-      err.style.display = "block";
-      document.getElementById("passwordInput").value = "";
-    }
-  } catch(ex) {
-    // Fallback offline untuk demo awal jika backend belum ready
-    if(u.toLowerCase() === "asykar" && p === "1234"){
-      currentUser = "asykar";
-      currentRole = "admin_utama";
-      currentLabel = "Admin Utama";
-      currentAuthToken = "local-token";
-      enterDashboard(true);
-    } else {
-      err.textContent = "Gagal menghubungi server autentikasi.";
-      err.style.display = "block";
-    }
-  } finally {
-    btn.disabled = false; btn.textContent = "Masuk";
+  const acc=findAccount(u);
+  if(acc&&acc.password===p){
+    currentUser=acc.label;currentRole=acc.role;currentLabel=acc.label;err.style.display="none";enterDashboard(true);
+  } else {
+    err.textContent="Username atau password salah.";err.style.display="block";document.getElementById("passwordInput").value="";
   }
 }
 
 function loginAsTamu(){
-  currentUser="Tamu";currentRole="tamu";currentLabel="Tamu";currentAuthToken="";
-  enterDashboard(true);
+  currentUser="Tamu";currentRole="tamu";currentLabel="Tamu";enterDashboard(true);
 }
 
 function enterDashboard(showWelcome = false){
@@ -787,6 +636,8 @@ function enterDashboard(showWelcome = false){
 
 function proceedToAgendaCheck(){
   document.getElementById("welcomeModal").classList.remove("show");
+  
+  // Cek apakah ada agenda / event untuk hari ini (todayStr())
   const today = todayStr();
   const todayEvents = dataEvent.filter(e => e.tanggal === today);
 
@@ -813,9 +664,13 @@ function closeAgendaModal(){
   switchView("homepage");
 }
 
+function closeWelcomeModal(){
+  proceedToAgendaCheck();
+}
+
 function logout(){
   if(!confirm("Yakin ingin keluar?"))return;
-  currentUser="";currentRole="";currentLabel="";currentAuthToken="";
+  currentUser="";currentRole="";currentLabel="";
   clearSession();
   document.getElementById("dashboard").classList.add("hidden");
   document.getElementById("loginModal").classList.add("show");
@@ -862,21 +717,18 @@ function switchTab(tab){
 
 function applyAccessNotes(){
   const k=document.getElementById("klasemenAccessNote");
-  let accessText = currentRole==="admin_utama" ? "Anda masuk sebagai Admin Utama — dapat mengelola semua data." : "Anda masuk sebagai Tamu — hanya dapat melihat data.";
-  k.innerHTML = `<span>${accessText}</span> <span style="font-size:11px; opacity:.8;">[Database Terintegrasi]</span>`;
+  if(currentRole==="admin_utama")k.textContent="Anda masuk sebagai Admin Utama — dapat mengubah semua kolom poin.";
+  else if(currentRole==="tamu")k.textContent="Anda masuk sebagai Tamu — hanya dapat melihat data.";
   
   document.getElementById("addKlasemenBtn").classList.toggle("hidden",!canEditKlasemenAny());
   document.getElementById("actionHead").classList.toggle("hidden",!canEditKlasemenAny());
-  document.getElementById("ligaAccessNote").innerHTML=`<span>${canEditLiga()?"Anda dapat mengelola bagan turnamen sistem akar dan melihat jadwal bola.":"Anda hanya dapat melihat jadwal dan bagan turnamen bola."}</span>`;
+  document.getElementById("ligaAccessNote").textContent=canEditLiga()?"Anda dapat melihat jadwal bola dari menu event dan mengelola bagan turnamen sistem akar.":"Anda hanya dapat melihat jadwal dan bagan turnamen bola.";
   document.getElementById("addMatchBtn").classList.toggle("hidden",!canEditLiga());
   document.getElementById("matchActionHead").classList.toggle("hidden",!canEditLiga());
-  document.getElementById("eventAccessNote").innerHTML=`<span>${canEditEvent()?"Anda dapat menambah agenda kegiatan, jadwal pertandingan bola, dan mengupload foto kegiatan.":"Anda hanya dapat melihat agenda dan foto event."}</span>`;
+  document.getElementById("eventAccessNote").textContent=canEditEvent()?"Anda dapat menambah jadwal event atau jadwal pertandingan bola baru.":"Anda hanya dapat melihat jadwal event.";
   document.getElementById("addEventBtn").classList.toggle("hidden",!canEditEvent());
 }
 
-/* =========================================================================
-   MODUL 1: KLASEMEN KEBAIKAN
-   ========================================================================= */
 function findKlasemenRecord(t,s){return dataKlasemen.find(i=>i.tanggal===t&&i.sakan===s);}
 function resetFilter(){document.getElementById("filterTanggal").value="";document.getElementById("searchInput").value="";renderKlasemen();}
 
@@ -892,9 +744,9 @@ function renderKlasemen(){
     if(!map[item.sakan])map[item.sakan]={sakan:item.sakan,jumlah:0,keb:0,ked:0,bah:0};
     const r=map[item.sakan];
     r.jumlah++;
-    r.keb+=(Number(item.kebersihan)||0);
-    r.ked+=(Number(item.kedisiplinan)||0);
-    r.bah+=(Number(item.bahasa)||0);
+    r.keb+=(item.kebersihan||0);
+    r.ked+=(item.kedisiplinan||0);
+    r.bah+=(item.bahasa||0);
   });
 
   const listRekap=Object.values(map).map(r=>{
@@ -915,9 +767,9 @@ function renderKlasemen(){
   const count = rows.length;
   let sumKeb = 0, sumKed = 0, sumBah = 0;
   rows.forEach(i => {
-    sumKeb += (Number(i.kebersihan) || 0);
-    sumKed += (Number(i.kedisiplinan) || 0);
-    sumBah += (Number(i.bahasa) || 0);
+    sumKeb += (i.kebersihan || 0);
+    sumKed += (i.kedisiplinan || 0);
+    sumBah += (i.bahasa || 0);
   });
 
   const gAvgKeb = count ? sumKeb / count : 0;
@@ -943,8 +795,8 @@ function renderKlasemen(){
   }
   
   const sortedHarian=[...rows].sort((a,b)=>{
-    const avgA = (((Number(a.kebersihan)||0) + (Number(a.kedisiplinan)||0) + (Number(a.bahasa)||0)) / 3);
-    const avgB = (((Number(b.kebersihan)||0) + (Number(b.kedisiplinan)||0) + (Number(b.bahasa)||0)) / 3);
+    const avgA = (( (a.kebersihan||0) + (a.kedisiplinan||0) + (a.bahasa||0) ) / 3);
+    const avgB = (( (b.kebersihan||0) + (b.kedisiplinan||0) + (b.bahasa||0) ) / 3);
     return avgB - avgA;
   });
   
@@ -953,9 +805,9 @@ function renderKlasemen(){
   if(!sortedHarian.length){tbody.innerHTML='<tr class="empty-row"><td colspan="'+(isAdmin?8:7)+'">Tidak ada data.</td></tr>';}
   else{
     tbody.innerHTML=sortedHarian.map((item,i)=>{
-      const keb=item.kebersihan==null||item.kebersihan===""?null:Number(item.kebersihan);
-      const ked=item.kedisiplinan==null||item.kedisiplinan===""?null:Number(item.kedisiplinan);
-      const bah=item.bahasa==null||item.bahasa===""?null:Number(item.bahasa);
+      const keb=item.kebersihan==null?null:item.kebersihan;
+      const ked=item.kedisiplinan==null?null:item.kedisiplinan;
+      const bah=item.bahasa==null?null:item.bahasa;
       
       const validCount = [keb, ked, bah].filter(v => v !== null).length;
       const rowAvg = validCount > 0 ? (( (keb||0) + (ked||0) + (bah||0) ) / validCount).toFixed(1) : "–";
@@ -966,7 +818,7 @@ function renderKlasemen(){
       const avgStr = rowAvg==="–"?'<span class="pill empty">–</span>':'<span class="pill total">'+rowAvg+'</span>';
 
       const sakanEsc = item.sakan.replace(/'/g, "\\'");
-      return '<tr><td class="center"><span class="rank-num">'+(i+1)+'</span></td><td>'+formatTanggal(item.tanggal)+'</td><td class="sakan-name">'+escapeHtml(item.sakan)+'</td><td class="center">'+kebStr+'</td><td class="center">'+kedStr+'</td><td class="center">'+bahStr+'</td><td class="center">'+avgStr+'</td>'+(isAdmin?'<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\''+item.tanggal+'\',\''+sakanEsc+'\')">✏️</button>'+(canDeleteKlasemen()?'<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\''+item.tanggal+'\',\''+sakanEsc+'\')">🗑️</button>':'')+'</div></td>':'')+'</tr>';
+      return '<tr><td class="center"><span class="rank-num">'+(i+1)+'</span></td><td>'+formatTanggal(item.tanggal)+'</td><td class="sakan-name">'+escapeHtml(item.sakan)+'</td><td class="center">'+kebStr+'</td><td class="center">'+kedStr+'</td><td class="center">'+bahStr+'</td><td class="center">'+avgStr+'</td>'+(isAdmin?'<td class="center"><div class="row-actions"><button class="icon-btn" onclick="editKlasemen(\''+item.tanggal+'\',\''+sakanEsc+'\')">✏️</button>'+(canDeleteKlasemen()?'<button class="icon-btn danger" onclick="hapusKlasemen(\''+item.tanggal+'\',\''+sakanEsc+'\')">🗑️</button>':'')+'</div></td>':'')+'</tr>';
     }).join("");
   }
   
@@ -974,7 +826,7 @@ function renderKlasemen(){
   if(!listRekap.length){rt.innerHTML='<tr class="empty-row"><td colspan="7">Belum ada rekap.</td></tr>';}
   else{
     rt.innerHTML=listRekap.map((r,i)=>
-      '<tr>'+
+      '<tr class="'+(i===0?'top1':i===1?'top2':i===2?'top3':'')+'">'+
       '<td class="center"><span class="rank-num">'+(i+1)+'</span></td>'+
       '<td class="sakan-name">'+escapeHtml(r.sakan)+'</td>'+
       '<td class="center">'+r.jumlah+'×</td>'+
@@ -987,11 +839,11 @@ function renderKlasemen(){
   }
 }
 
-function fillSakanSelect(){const sel=document.getElementById("kSakan");sel.innerHTML='<option value="">— Pilih Sakan —</option>'+SAKAN_LIST.map(s=>'<option value="'+s+'">'+s+'</option>').join("");}
-function fillTeamSelects(){const opts='<option value="">— Pilih Tim —</option>'+SAKAN_LIST.map(s=>'<option value="'+s+'">'+s+'</option>').join("");document.getElementById("mTimA").innerHTML=opts;document.getElementById("mTimB").innerHTML=opts;}
+function fillSakanSelect(){const sel=document.getElementById("kSakan");sel.innerHTML='<option value="">— Pilih —</option>'+SAKAN_LIST.map(s=>'<option value="'+s+'">'+s+'</option>').join("");}
+function fillTeamSelects(){const opts='<option value="">— Pilih —</option>'+SAKAN_LIST.map(s=>'<option value="'+s+'">'+s+'</option>').join("");document.getElementById("mTimA").innerHTML=opts;document.getElementById("mTimB").innerHTML=opts;}
 
 function onKlasemenKeyChange(){
-  const t=document.getElementById("kTanggal").value, s=document.getElementById("kSakan").value;
+  const t=document.getElementById("kTanggal").value,s=document.getElementById("kSakan").value;
   const ex=(t&&s)?findKlasemenRecord(t,s):null;
   document.getElementById("dupeNote").style.display=(ex&&(!editingKlasemenKey||(editingKlasemenKey.tanggal!==t||editingKlasemenKey.sakan!==s)))?"block":"none";
   fillKlasemenFields(ex);
@@ -1022,62 +874,39 @@ function editKlasemen(t,s){
   document.getElementById("dupeNote").style.display="none";fillKlasemenFields(rec);
   document.getElementById("modalKlasemen").classList.add("show");
 }
-
-async function simpanKlasemen(){
-  const t=document.getElementById("kTanggal").value, s=document.getElementById("kSakan").value;
+function simpanKlasemen(){
+  const t=document.getElementById("kTanggal").value,s=document.getElementById("kSakan").value;
   if(!t||!s){showToast("Pilih tanggal dan sakan.",true);return;}
   const rd=(id)=>{const inp=document.getElementById(id);const v=inp.value.trim();return v===""?null:parseInt(v);};
-  const nk=rd("fKebersihan"), nd=rd("fKedisiplinan"), nb=rd("fBahasa");
+  const nk=rd("fKebersihan"),nd=rd("fKedisiplinan"),nb=rd("fBahasa");
   for(const v of[nk,nd,nb]){if(v!==undefined&&v!==null&&(isNaN(v)||v<0||v>100)){showToast("Poin harus bernilai 0–100.",true);return;}}
   
-  const btn = document.getElementById("btnSaveKlasemen");
-  btn.disabled = true; btn.textContent = "Menyimpan...";
-
-  // Optimistic update lokal
   let rec=findKlasemenRecord(t,s);
-  if(!rec){rec={id:Date.now(),tanggal:t,sakan:s,kebersihan:null,kedisiplinan:null,bahasa:null,totalPoin:0};dataKlasemen.push(rec);}
+  if(!rec){rec={no:Date.now(),tanggal:t,sakan:s,kebersihan:null,kedisiplinan:null,bahasa:null,totalPoin:0};dataKlasemen.push(rec);}
   if(nk!==undefined)rec.kebersihan=nk;
   if(nd!==undefined)rec.kedisiplinan=nd;
   if(nb!==undefined)rec.bahasa=nb;
   rec.totalPoin=(rec.kebersihan||0)+(rec.kedisiplinan||0)+(rec.bahasa||0);
-  saveData(KEY_DATA,dataKlasemen);
   
-  closeModal("modalKlasemen");
+  saveData(KEY_DATA,dataKlasemen);closeModal("modalKlasemen");
   renderKlasemen();
-
-  // Kirim ke proxy Vercel
-  const payload = { tanggal:t, sakan:s, kebersihan:nk, kedisiplinan:nd, bahasa:nb };
-  const res = await sendToCloud("save_klasemen", payload);
-  btn.disabled = false; btn.textContent = "Simpan";
-  
-  if(res.status === "success"){
-    showToast(res.local ? "Data tersimpan di penyimpanan lokal." : "Tersimpan & tersinkron ke Google Sheets.");
-  } else {
-    showToast(res.message || "Gagal sinkron ke Google Sheets", true);
-  }
+  showToast("Data tersimpan.");
 }
-
-async function hapusKlasemen(t,s){
+function hapusKlasemen(t,s){
   if(!confirm("Hapus data poin ini?"))return;
   dataKlasemen=dataKlasemen.filter(i=>!(i.tanggal===t&&i.sakan===s));
-  saveData(KEY_DATA,dataKlasemen);
-  renderKlasemen();
-
-  const res = await sendToCloud("delete_klasemen", { tanggal:t, sakan:s });
-  showToast(res.status==="success" ? "Data dihapus." : "Gagal menghapus di cloud", res.status!=="success");
+  saveData(KEY_DATA,dataKlasemen);renderKlasemen();showToast("Dihapus.");
 }
 
-/* =========================================================================
-   MODUL 2: TURNAMEN BOLA & SISTEM AKAR / BRACKET
-   ========================================================================= */
+/* ===== RENDER MENU TURNAMEN BOLA & JADWAL BOLA ===== */
 function renderligaMenu(){
   applyAccessNotes();
 
-  // 1. Jadwal Bola tersinkron dari dataEvent
+  // 1. Render Tabel Jadwal Bola yang bersumber dari dataEvent dengan kategori "Jadwal Bola"
   const jadwalBolaList = dataEvent.filter(e => e.kategori === "Jadwal Bola").sort((a,b)=>(a.tanggal+a.waktu).localeCompare(b.tanggal+b.waktu));
   const jbTbody = document.getElementById("jadwalBolaTbody");
   if(!jadwalBolaList.length){
-    jbTbody.innerHTML='<tr class="empty-row"><td colspan="4">Belum ada jadwal bola. Silakan input dari menu Event.</td></tr>';
+    jbTbody.innerHTML='<tr class="empty-row"><td colspan="4">Belum ada jadwal bola yang diinput dari menu Event.</td></tr>';
   } else {
     jbTbody.innerHTML = jadwalBolaList.map(item => {
       const st = eventStatus(item.tanggal);
@@ -1092,16 +921,16 @@ function renderligaMenu(){
     }).join("");
   }
 
-  // 2. Render Bagan Pohon Turnamen
+  // 2. Render Bagan Pohon Turnamen Sistem Akar
   const penyisihan = dataLiga.filter(m => m.round === "Penyisihan");
   const semifinal = dataLiga.filter(m => m.round === "Semifinal");
   const final = dataLiga.filter(m => m.round === "Final");
 
   const container = document.getElementById("bracketTreeContainer");
   
-  let finalWinner = "Menunggu Pertandingan Final";
-  if(final.length > 0 && Number(final[0].skorA) !== Number(final[0].skorB)){
-    finalWinner = Number(final[0].skorA) > Number(final[0].skorB) ? final[0].timA : final[0].timB;
+  let finalWinner = "Belum Diketahui";
+  if(final.length > 0 && final[0].skorA !== final[0].skorB){
+    finalWinner = final[0].skorA > final[0].skorB ? final[0].timA : final[0].timB;
   }
 
   container.innerHTML = `
@@ -1109,8 +938,8 @@ function renderligaMenu(){
       <div class="bracket-col-title">Babak Penyisihan</div>
       ${penyisihan.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px;">Belum ada pertandingan</div>' : 
         penyisihan.map(m => {
-          const isAWin = Number(m.skorA) > Number(m.skorB);
-          const isBWin = Number(m.skorB) > Number(m.skorA);
+          const isAWin = m.skorA > m.skorB;
+          const isBWin = m.skorB > m.skorA;
           return `
             <div class="bracket-match-box">
               <div class="bracket-team ${isAWin?'winner':''}"><span>${escapeHtml(m.timA)}</span><span class="bracket-score">${m.skorA}</span></div>
@@ -1125,8 +954,8 @@ function renderligaMenu(){
       <div class="bracket-col-title">Semifinal</div>
       ${semifinal.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px;">Menunggu Penyisihan</div>' : 
         semifinal.map(m => {
-          const isAWin = Number(m.skorA) > Number(m.skorB);
-          const isBWin = Number(m.skorB) > Number(m.skorA);
+          const isAWin = m.skorA > m.skorB;
+          const isBWin = m.skorB > m.skorA;
           return `
             <div class="bracket-match-box">
               <div class="bracket-team ${isAWin?'winner':''}"><span>${escapeHtml(m.timA)}</span><span class="bracket-score">${m.skorA}</span></div>
@@ -1141,8 +970,8 @@ function renderligaMenu(){
       <div class="bracket-col-title">Final &amp; Juara</div>
       ${final.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px;">Menunggu Semifinal</div>' : 
         final.map(m => {
-          const isAWin = Number(m.skorA) > Number(m.skorB);
-          const isBWin = Number(m.skorB) > Number(m.skorA);
+          const isAWin = m.skorA > m.skorB;
+          const isBWin = m.skorB > m.skorA;
           return `
             <div class="bracket-match-box" style="border-color:var(--gold);">
               <div class="bracket-team ${isAWin?'winner':''}"><span>🏆 ${escapeHtml(m.timA)}</span><span class="bracket-score">${m.skorA}</span></div>
@@ -1162,7 +991,7 @@ function renderligaMenu(){
   const matches=[...dataLiga].sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
   const mt=document.getElementById("matchTbody");
   const ce=canEditLiga();
-  if(!matches.length){mt.innerHTML='<tr class="empty-row"><td colspan="'+(ce?5:4)+'">Belum ada hasil pertandingan.</td></tr>';}
+  if(!matches.length){mt.innerHTML='<tr class="empty-row"><td colspan="'+(ce?5:4)+'">Belum ada daftar pertandingan.</td></tr>';}
   else{
     mt.innerHTML=matches.map(m=>`
       <tr>
@@ -1170,7 +999,7 @@ function renderligaMenu(){
         <td>${formatTanggal(m.tanggal)}</td>
         <td>${escapeHtml(m.timA)} vs ${escapeHtml(m.timB)}</td>
         <td class="center"><span class="pill total">${m.skorA} - ${m.skorB}</span></td>
-        ${ce?'<td class="center"><button class="icon-btn danger" title="Hapus" onclick="hapusMatch(\''+m.id+'\')">🗑️</button></td>':''}
+        ${ce?'<td class="center"><button class="icon-btn danger" onclick="hapusMatch('+m.no+')">🗑️</button></td>':''}
       </tr>
     `).join("");
   }
@@ -1185,44 +1014,30 @@ function openMatchModal(){
   document.getElementById("modalLiga").classList.add("show");
 }
 
-async function simpanMatch(){
+function simpanMatch(){
   const round=document.getElementById("mRound").value;
-  const t=document.getElementById("mTanggal").value, a=document.getElementById("mTimA").value, b=document.getElementById("mTimB").value;
-  const sa=parseInt(document.getElementById("mSkorA").value), sb=parseInt(document.getElementById("mSkorB").value);
-  if(!t||!a||!b||isNaN(sa)||isNaN(sb)){showToast("Lengkapi semua isian.",true);return;}
+  const t=document.getElementById("mTanggal").value,a=document.getElementById("mTimA").value,b=document.getElementById("mTimB").value;
+  const sa=parseInt(document.getElementById("mSkorA").value),sb=parseInt(document.getElementById("mSkorB").value);
+  if(!t||!a||!b||isNaN(sa)||isNaN(sb)){showToast("Lengkapi semua bidang.",true);return;}
   if(a===b){showToast("Tim tidak boleh sama.",true);return;}
-  if(sa===sb){showToast("Sistem gugur tidak boleh seri. Harus ada pemenang.",true);return;}
+  if(sa===sb){showToast("Sistem gugur (akar) tidak boleh seri. Harus ada pemenang.",true);return;}
   if(sa<0||sb<0){showToast("Skor tidak boleh negatif.",true);return;}
   
-  const btn = document.getElementById("btnSaveLiga");
-  btn.disabled = true; btn.textContent = "Menyimpan...";
-
-  const newId = Date.now().toString();
-  const matchObj = { id:newId, round:round, tanggal:t, timA:a, timB:b, skorA:sa, skorB:sb };
-  dataLiga.push(matchObj);
+  dataLiga.push({no:Date.now(),round:round,tanggal:t,timA:a,timB:b,skorA:sa,skorB:sb});
   saveData(KEY_LIGA,dataLiga);
-  
   closeModal("modalLiga");
   renderligaMenu();
-
-  const res = await sendToCloud("save_match", matchObj);
-  btn.disabled = false; btn.textContent = "Simpan";
-  showToast(res.status==="success" ? "Pertandingan tersimpan!" : "Tersimpan lokal, gagal sync cloud.", res.status!=="success");
+  showToast("Pertandingan tersimpan.");
 }
 
-async function hapusMatch(id){
+function hapusMatch(no){
   if(!confirm("Hapus hasil pertandingan ini?"))return;
-  dataLiga=dataLiga.filter(i=>String(i.id)!==String(id));
+  dataLiga=dataLiga.filter(i=>i.no!==no);
   saveData(KEY_LIGA,dataLiga);
   renderligaMenu();
-
-  const res = await sendToCloud("delete_match", { id: id });
-  showToast(res.status==="success" ? "Dihapus." : "Gagal menghapus di cloud.", res.status!=="success");
+  showToast("Dihapus.");
 }
 
-/* =========================================================================
-   MODUL 3: EVENT & JADWAL BOLA LENGKAP DENGAN GAMBAR
-   ========================================================================= */
 function eventStatus(t){const today=todayStr();if(t===today)return{cls:"today",label:"Hari Ini"};return t>today?{cls:"upcoming",label:"Akan Datang"}:{cls:"past",label:"Selesai"};}
 
 function renderEvent(){
@@ -1231,70 +1046,33 @@ function renderEvent(){
   const el=document.getElementById("eventList");
   const ce=canEditEvent();
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink-faint);">Belum ada jadwal event atau jadwal bola.</div>';return;}
-  
   const months=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  el.innerHTML=list.map((e)=>{
+  el.innerHTML=list.map((e,i)=>{
     const d=new Date(e.tanggal+"T00:00:00");
     const st=eventStatus(e.tanggal);
     const isBola = e.kategori === "Jadwal Bola";
     const badgeColor = isBola ? "background:var(--ink);color:var(--gold-light);" : "background:var(--parchment-dim);color:var(--ink-soft);";
     const katLabel = e.kategori || "Event Umum";
-    const photoTag = e.foto ? `<img src="${e.foto}" class="event-thumb-img" alt="Poster Kegiatan" title="Klik untuk perbesar" onclick="openLightbox('${e.foto}')">` : '';
 
     return `
-      <div class="event-card">
-        <div class="event-date-box">
-          <div class="event-date-num">${d.getDate()}</div>
-          <div class="event-date-month">${months[d.getMonth()]}</div>
+      <div style="background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;display:flex;gap:14px;align-items:center;">
+        <div style="background:var(--ink);color:var(--parchment);border-radius:10px;padding:10px 12px;text-align:center;min-width:60px;">
+          <div style="font-family:Fraunces,serif;font-size:20px;font-weight:700;">${d.getDate()}</div>
+          <div style="font-size:10px;color:var(--gold-light);">${months[d.getMonth()]}</div>
         </div>
         <div style="flex:1;">
-          <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
+          <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
             <span style="font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:999px; ${badgeColor}">${katLabel}</span>
-            <span style="font-size:12px;color:var(--ink-faint);">🕒 ${e.waktu||"–"} • 📍 ${escapeHtml(e.lokasi||"–")}</span>
+            <span style="font-size:12px;color:var(--ink-faint);">${e.waktu||"–"} • ${escapeHtml(e.lokasi||"–")}</span>
           </div>
           <strong style="font-size:15px; color:var(--ink);">${escapeHtml(e.judul)}</strong>
           ${e.deskripsi?'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">'+escapeHtml(e.deskripsi)+'</div>':''}
         </div>
-        ${photoTag}
-        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold)":st.cls==="upcoming"?"#E7EFE9":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};">${st.label}</span>
-        ${ce?'<button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent(\''+e.id+'\')">🗑️</button>':''}
+        <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:'+(st.cls==="today"?"var(--gold)":st.cls==="upcoming"?"#E7EFE9":"var(--parchment-dim)")+';color:'+(st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)")+';">'+st.label+'</span>
+        ${ce?'<button class="icon-btn danger" onclick="hapusEvent('+e.no+')">🗑️</button>':''}
       </div>
     `;
   }).join("");
-}
-
-function handleImagePreview(e){
-  const file = e.target.files[0];
-  if(!file){ clearImageUpload(); return; }
-  
-  if(file.size > 3 * 1024 * 1024){ // Batas 3MB
-    showToast("Ukuran foto maksimal 3MB", true);
-    clearImageUpload();
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = function(evt){
-    tempBase64Image = evt.target.result;
-    document.getElementById("imgPreview").src = tempBase64Image;
-    document.getElementById("imgPreviewWrapper").style.display = "block";
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearImageUpload(){
-  tempBase64Image = "";
-  document.getElementById("eFotoFile").value = "";
-  document.getElementById("imgPreview").src = "";
-  document.getElementById("imgPreviewWrapper").style.display = "none";
-}
-
-function openLightbox(src){
-  document.getElementById("lightboxImg").src = src;
-  document.getElementById("imageLightbox").style.display = "flex";
-}
-function closeLightbox(){
-  document.getElementById("imageLightbox").style.display = "none";
 }
 
 function openEventModal(){
@@ -1304,90 +1082,40 @@ function openEventModal(){
   document.getElementById("eJudul").value="";
   document.getElementById("eLokasi").value="";
   document.getElementById("eDeskripsi").value="";
-  clearImageUpload();
   document.getElementById("modalEvent").classList.add("show");
 }
 
-async function simpanEvent(){
+function simpanEvent(){
   const kat=document.getElementById("eKategori").value;
-  const t=document.getElementById("eTanggal").value, w=document.getElementById("eWaktu").value;
-  const j=document.getElementById("eJudul").value.trim(), l=document.getElementById("eLokasi").value.trim(), d=document.getElementById("eDeskripsi").value.trim();
+  const t=document.getElementById("eTanggal").value,w=document.getElementById("eWaktu").value,j=document.getElementById("eJudul").value.trim(),l=document.getElementById("eLokasi").value.trim(),d=document.getElementById("eDeskripsi").value.trim();
   if(!t||!j){showToast("Tanggal dan judul wajib diisi.",true);return;}
   
-  const btn = document.getElementById("btnSaveEvent");
-  btn.disabled = true; btn.textContent = "Menyimpan...";
-
-  const newId = Date.now().toString();
-  const eventObj = {
-    id: newId,
-    kategori: kat,
-    tanggal: t,
-    waktu: w,
-    judul: j,
-    lokasi: l,
-    deskripsi: d,
-    foto: tempBase64Image || ""
-  };
-
-  dataEvent.push(eventObj);
-  saveData(KEY_EVENT, dataEvent);
-  
+  dataEvent.push({no:Date.now(),kategori:kat,tanggal:t,waktu:w,judul:j,lokasi:l,deskripsi:d});
+  saveData(KEY_EVENT,dataEvent);
   closeModal("modalEvent");
   renderEvent();
-
-  const payload = {
-    id: newId,
-    kategori: kat,
-    tanggal: t,
-    waktu: w,
-    judul: j,
-    lokasi: l,
-    deskripsi: d,
-    fotoBase64: tempBase64Image || ""
-  };
-
-  const res = await sendToCloud("save_event", payload);
-  btn.disabled = false; btn.textContent = "Simpan";
-  
-  if(res.status === "success"){
-    showToast("Event berhasil disimpan!");
-    syncDataFromCloud();
-  } else {
-    showToast(res.message || "Tersimpan lokal, gagal sync cloud.", true);
-  }
+  showToast("Jadwal/Event tersimpan.");
 }
 
-async function hapusEvent(id){
-  if(!confirm("Hapus agenda/event ini?"))return;
-  dataEvent=dataEvent.filter(i=>String(i.id)!==String(id));
+function hapusEvent(no){
+  if(!confirm("Hapus event ini?"))return;
+  dataEvent=dataEvent.filter(i=>i.no!==no);
   saveData(KEY_EVENT,dataEvent);
   renderEvent();
-
-  const res = await sendToCloud("delete_event", { id: id });
-  showToast(res.status==="success" ? "Dihapus." : "Gagal menghapus di cloud.", res.status!=="success");
+  showToast("Dihapus.");
 }
 
-/* =========================================================================
-   INISIALISASI APLIKASI
-   ========================================================================= */
 document.getElementById("passwordInput").addEventListener("keypress",e=>{if(e.key==="Enter")login();});
 document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.key==="Enter")document.getElementById("passwordInput").focus();});
 
-(async function init(){
-  // 1. Muat data awal dari localStorage (offline-first)
-  dataKlasemen=loadData(KEY_DATA);
-  dataLiga=loadData(KEY_LIGA);
-  dataEvent=loadData(KEY_EVENT);
-  
-  // 2. Cek session login
+(function init(){
+  dataKlasemen=loadData(KEY_DATA);dataLiga=loadData(KEY_LIGA);dataEvent=loadData(KEY_EVENT);
   const session=loadSession();
   if(session&&session.user){
-    currentUser=session.user;currentRole=session.role;currentLabel=session.label;currentAuthToken=session.token||"";currentView=session.view||"homepage";
+    currentUser=session.user;currentRole=session.role;currentLabel=session.label;currentView=session.view||"homepage";
     document.getElementById("displayUsernameTop").textContent=currentUser;
     document.getElementById("displayUsernameSub").textContent=currentUser;
-    const chip=document.getElementById("roleChip");
-    chip.textContent=currentLabel;
-    chip.className="role-chip r-"+currentRole;
+    defaultRoleChip();
     
     document.getElementById("dashboard").classList.remove("hidden");
     document.getElementById("loginModal").classList.remove("show");
@@ -1395,10 +1123,13 @@ document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.ke
   } else {
     document.getElementById("loginModal").classList.add("show");
   }
-
-  // 3. Sinkronkan dengan Cloud via Proxy Vercel
-  await syncDataFromCloud();
 })();
+
+function defaultRoleChip(){
+  const chip=document.getElementById("roleChip");
+  chip.textContent=currentLabel;
+  chip.className="role-chip r-"+currentRole;
+}
 </script>
 </body>
 </html>
