@@ -669,6 +669,9 @@ function formatTanggal(t){
   }
   return str;
 }
+function escapeHtml(s){const d=document.createElement("div");d.textContent=s==null?"":s;return d.innerHTML;}
+function showToast(m,e){const t=document.getElementById("toast");if(!t)return;t.textContent=m;t.className=e?"show err":"show";clearTimeout(t._timer);t._timer=setTimeout(()=>t.className="",2800);}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove("show");}
 /* ===== CLOUD SYNC & API CALLS ===== */
 function updateSyncStatus(status, text){
   const dots = [document.getElementById("syncDotTop"), document.getElementById("syncDotSub")];
@@ -1086,7 +1089,7 @@ function renderligaMenu(){
   applyAccessNotes();
 
   // 1. Jadwal Bola tersinkron dari dataEvent
-  const jadwalBolaList = dataEvent.filter(e => e.kategori === "Jadwal Bola").sort((a,b)=>(a.tanggal+a.waktu).localeCompare(b.tanggal+b.waktu));
+  const jadwalBolaList = dataEvent.filter(e => e.kategori === "Jadwal Bola").sort((a,b)=>(String(a.tanggal||'')+String(a.waktu||'')).localeCompare(String(b.tanggal||'')+String(b.waktu||'')));
   const jbTbody = document.getElementById("jadwalBolaTbody");
   if(!jadwalBolaList.length){
     jbTbody.innerHTML='<tr class="empty-row"><td colspan="4">Belum ada jadwal bola. Silakan input dari menu Event.</td></tr>';
@@ -1239,7 +1242,7 @@ function eventStatus(t){const today=todayStr();if(t===today)return{cls:"today",l
 
 function renderEvent(){
   applyAccessNotes();
-  const list=[...dataEvent].sort((a,b)=>(a.tanggal+a.waktu).localeCompare(b.tanggal+b.waktu));
+  const list=[...dataEvent].sort((a,b)=>(String(a.tanggal||'')+String(a.waktu||'')).localeCompare(String(b.tanggal||'')+String(b.waktu||'')));
   const el=document.getElementById("eventList");
   const ce=canEditEvent();
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink-faint);">Belum ada jadwal event atau jadwal bola.</div>';return;}
