@@ -14,9 +14,11 @@
  * tanpa perlu mengubah kode pemrograman apa pun!
  */
 
-// 💡 Folder ID Google Drive untuk upload foto (Opsional):
-const FOLDER_ID = "";
-
+// 💡 FOLDER_ID diambil secara aman dari Script Properties (Environment Variables Google Apps Script)
+// Cara setting: Buka Project Settings (⚙️) > Script Properties > Tambah: FOLDER_ID = [ID Folder Anda]
+function getFolderId() {
+  return PropertiesService.getScriptProperties().getProperty("FOLDER_ID") || "";
+}
 function getDb() {
   return SpreadsheetApp.getActiveSpreadsheet();
 }
@@ -170,11 +172,11 @@ function doPost(e) {
     // ==========================================
     else if (action === "save_event") {
       let fotoUrl = "";
+      const folderId = getFolderId();
       
-      if (payload.fotoBase64 && FOLDER_ID) {
-        fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg");
+      if (payload.fotoBase64 && folderId) {
+        fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
       }
-      
       const sheet = ss.getSheetByName("Event");
       sheet.appendRow([
         payload.id || Date.now().toString(),
@@ -203,10 +205,11 @@ function doPost(e) {
 /**
  * Helper: Upload Base64 Image to Google Drive and return direct public view URL
  */
-function uploadImageToDrive(base64Data, filename) {
+function uploadImageToDrive(base64Data, filename, folderId) {
   try {
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    const splitData = base64Data.split(",");
+    const targetFolderId = folderId || getFolderId();
+    if (!targetFolderId) return "";
+    const folder = DriveApp.getFolderById(targetFolderId);
     const contentType = splitData[0].match(/:(.*?);/)[1];
     const rawBase64 = splitData[1];
     
