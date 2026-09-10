@@ -26,7 +26,7 @@ const AUTH_URL = "/api/login";
 
 let currentUser="", currentRole="", currentLabel="", currentAuthToken="";
 let currentView="homepage";
-let dataKlasemen=[], dataLiga=[], dataEvent=[], dataSakan=[];
+let dataKlasemen=[], dataLiga=[], dataEvent=[], dataGedung=[], dataSakan=[];
 let editingKlasemenKey=null;
 let tempBase64Image = "";
 
@@ -184,6 +184,7 @@ async function syncDataFromCloud(isManual = false){
       dataLiga = json.data.liga || [];
       dataEvent = json.data.event || [];
 
+      dataGedung = Array.isArray(json.data.gedung) ? json.data.gedung : [];
       dataSakan = Array.isArray(json.data.sakan) ? json.data.sakan : [];
       fillSakanSelect();
       fillTeamSelects();
@@ -554,10 +555,22 @@ function renderKlasemen(){
   }
 }
 
+function getActiveGedungList() {
+  if (!Array.isArray(dataGedung) || dataGedung.length === 0) return [];
+  return dataGedung
+    .map(g => typeof g === "string" ? { id: g.toLowerCase().replace(/\s+/g, '-'), nama: g, urutan: 999, aktif: true } : g)
+    .filter(g => {
+      if (g.aktif === undefined || g.aktif === null || g.aktif === "") return true;
+      if (typeof g.aktif === "boolean") return g.aktif;
+      return String(g.aktif).toLowerCase() === "true";
+    })
+    .sort((a, b) => Number(a.urutan || 999) - Number(b.urutan || 999));
+}
+
 function getActiveSakanList() {
   if (!Array.isArray(dataSakan) || dataSakan.length === 0) return [];
   return dataSakan
-    .map(s => typeof s === "string" ? { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s, urutan: 999, aktif: true } : s)
+    .map(s => typeof s === "string" ? { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s, gedung: "", urutan: 999, aktif: true } : s)
     .filter(s => {
       if (s.aktif === undefined || s.aktif === null || s.aktif === "") return true;
       if (typeof s.aktif === "boolean") return s.aktif;
@@ -570,7 +583,10 @@ function renderSakanPills() {
   const container = document.getElementById("pubSakanPills");
   if (!container) return;
   const list = getActiveSakanList();
-  container.innerHTML = list.map(s => '<div class="pub-pill">' + escapeHtml(s.nama) + '</div>').join('');
+  container.innerHTML = list.map(s => {
+    const sub = s.gedung ? ' <span style="opacity:.6; font-size:11px;">(' + escapeHtml(s.gedung) + ')</span>' : '';
+    return '<div class="pub-pill">' + escapeHtml(s.nama) + sub + '</div>';
+  }).join('');
 }
 
 function fillSakanSelect() {
@@ -581,22 +597,43 @@ function fillSakanSelect() {
     sel.innerHTML = '<option value="">— Belum ada data sakan —</option>';
     return;
   }
-  sel.innerHTML = '<option value="">— Pilih Sakan —</option>' + 
-    list.map(s => '<option value="' + escapeHtml(s.nama) + '">' + escapeHtml(s.nama) + '</option>').join('');
+
+  // Jika ada sakan dengan informasi gedung, kelompokkan dengan optgroup
+  const hasGedung = list.some(s => s.gedung && String(s.gedung).trim());
+  if (!hasGedung) {
+    sel.innerHTML = '<option value="">— Pilih Sakan —</option>' + 
+      list.map(s => '<option value="' + escapeHtml(s.nama) + '">' + escapeHtml(s.nama) + '</option>').join('');
+    return;
+  }
+
+  const groups = {};
+  list.forEach(s => {
+    const g = String(s.gedung || 'Lainnya').trim();
+    if (!groups[g]) groups[g] = [];
+    groups[g].push(s);
+  });
+
+  let html = '<option value="">— Pilih Sakan —</option>';
+  Object.keys(groups).forEach(gName => {
+    html += '<optgroup label="Gedung ' + escapeHtml(gName) + '">';
+    html += groups[gName].map(s => '<option value="' + escapeHtml(s.nama) + '">' + escapeHtml(s.nama) + '</option>').join('');
+    html += '</optgroup>';
+  });
+  sel.innerHTML = html;
 }
 
 function fillTeamSelects() {
-  const list = getActiveSakanList();
+  const list = getActiveGedungList();
   const elA = document.getElementById('mTimA');
   const elB = document.getElementById('mTimB');
   if (list.length === 0) {
-    const emptyOpt = '<option value="">— Belum ada data sakan —</option>';
+    const emptyOpt = '<option value="">— Belum ada data gedung —</option>';
     if (elA) elA.innerHTML = emptyOpt;
     if (elB) elB.innerHTML = emptyOpt;
     return;
   }
-  const opts = '<option value="">— Pilih Tim —</option>' + 
-    list.map(s => '<option value="' + escapeHtml(s.nama) + '">' + escapeHtml(s.nama) + '</option>').join('');
+  const opts = '<option value="">— Pilih Gedung / Tim —</option>' + 
+    list.map(g => '<option value="' + escapeHtml(g.nama) + '">' + escapeHtml(g.nama) + '</option>').join('');
   if (elA) elA.innerHTML = opts;
   if (elB) elB.innerHTML = opts;
 }
@@ -1029,6 +1066,7 @@ document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.ke
   dataKlasemen=loadData(KEY_DATA);
   dataLiga=loadData(KEY_LIGA);
   dataEvent=loadData(KEY_EVENT);
+  dataGedung=[];
   dataSakan=[];
   fillSakanSelect();
   fillTeamSelects();

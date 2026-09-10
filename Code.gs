@@ -3,16 +3,18 @@
  * BACKEND API GOOGLE APPS SCRIPT - LEAGUE OF KINDNESS (VERCEL PROXY READY)
  * =========================================================================
  * 
- * STRUKTUR SPREADSHEET (5 Tab):
+ * STRUKTUR SPREADSHEET (6 Tab):
  * 1. Tab "Users"    : username | password | role | label | status
  * 2. Tab "Klasemen" : id | tanggal | sakan | kebersihan | kedisiplinan | bahasa | totalPoin
- * 3. Tab "Liga"     : id | round | tanggal | timA | timB | skorA | skorB
+ * 3. Tab "Liga"     : id | round | tanggal | timA | timB | skorA | skorB  (timA/timB = Gedung)
  * 4. Tab "Event"    : id | kategori | tanggal | waktu | judul | lokasi | deskripsi | foto
- * 5. Tab "Sakan"    : id | nama | urutan | aktif
+ * 5. Tab "Gedung"   : id | nama | urutan | aktif  (sumber pilihan Tim Liga)
+ * 6. Tab "Sakan"    : id | nama | gedung | urutan | aktif  (sumber pilihan Klasemen)
  * 
  * 💡 TIPS PENGURUS:
  * - Tab "Users": Tambah/ubah akun admin tanpa perlu mengubah kode.
- * - Tab "Sakan": Tambah nama sakan, atur urutan, atau aktifkan/nonaktifkan (aktif = TRUE/FALSE).
+ * - Tab "Gedung": Tambah nama gedung untuk tim turnamen liga.
+ * - Tab "Sakan": Tambah nama sakan dan tentukan masuk di gedung mana.
  */
 
 // 💡 FOLDER_ID diambil secara aman dari Script Properties (Environment Variables Google Apps Script)
@@ -49,7 +51,7 @@ const ACTION_ROLES = {
   save_match:      ["admin_utama"],
   delete_match:    ["admin_utama"],
   save_event:      ["admin_utama"],
-  delete_event:    ["admin_utama"]
+  delete_event:      ["admin_utama"]
 };
 
 function issueSession(user) {
@@ -110,22 +112,31 @@ function denyIfUnauthorized(action, token) {
 }
 
 /**
- * 1. GET: Mengambil data PUBLIK saja (Klasemen, Liga, Event, Sakan).
+ * 1. GET: Mengambil data PUBLIK saja (Klasemen, Liga, Event, Gedung, Sakan).
  * CATATAN KEAMANAN: Data akun di Tab "Users" TIDAK PERNAH dikirim via GET!
  */
 function doGet(e) {
   try {
     const ss = getDb();
+    let sheetGedung = ss.getSheetByName("Gedung");
+    if (!sheetGedung) {
+      sheetGedung = ss.insertSheet("Gedung");
+      sheetGedung.appendRow(["id", "nama", "urutan", "aktif"]);
+      sheetGedung.appendRow(["qazvin", "QAZVIN", 1, true]);
+    }
+
     let sheetSakan = ss.getSheetByName("Sakan");
     if (!sheetSakan) {
       sheetSakan = ss.insertSheet("Sakan");
-      sheetSakan.appendRow(["id", "nama", "urutan", "aktif"]);
+      sheetSakan.appendRow(["id", "nama", "gedung", "urutan", "aktif"]);
+      sheetSakan.appendRow(["qazvin-atas", "QAZVIN ATAS", "QAZVIN", 1, true]);
     }
 
     const result = {
       klasemen: sheetToObjects(ss.getSheetByName("Klasemen")),
       liga: sheetToObjects(ss.getSheetByName("Liga")),
       event: sheetToObjects(ss.getSheetByName("Event")),
+      gedung: sheetToObjects(sheetGedung),
       sakan: sheetToObjects(sheetSakan)
     };
     
@@ -395,22 +406,27 @@ function formatDateStr(val) {
 }
 
 // =========================================================================
-// TAB SAKAN & HELPER OTOMATISASI
+// TAB GEDUNG, SAKAN & HELPER OTOMATISASI
 // =========================================================================
+const DEFAULT_GEDUNG_DATA = [
+  { id: "qazvin", nama: "QAZVIN", urutan: 1, aktif: true }
+];
+
 const DEFAULT_SAKAN_DATA = [
-  { id: "qazvin-atas", nama: "QAZVIN ATAS", urutan: 1, aktif: true }
+  { id: "qazvin-atas", nama: "QAZVIN ATAS", gedung: "QAZVIN", urutan: 1, aktif: true }
 ];
 
 /**
  * =========================================================================
  * SETUP SPREADSHEET (Jalankan sekali di Apps Script Editor untuk inisialisasi awal)
  * =========================================================================
- * Menyiapkan 5 tab struktur database sesuai kebutuhan:
+ * Menyiapkan 6 tab struktur database sesuai kebutuhan:
  * 1. Users   : 1 admin awal (username: admin, password: admin123)
  * 2. Klasemen: header saja
- * 3. Liga    : header saja
+ * 3. Liga    : header saja (timA & timB = Gedung)
  * 4. Event   : header saja
- * 5. Sakan   : 1 entry sakan awal (QAZVIN ATAS)
+ * 5. Gedung  : 1 entry gedung awal (QAZVIN)
+ * 6. Sakan   : 1 entry sakan awal (QAZVIN ATAS, gedung: QAZVIN)
  */
 function setupDatabase() {
   const ss = getDb();
@@ -445,10 +461,16 @@ function setupDatabase() {
   // 4. Event (header saja)
   ensureSheet("Event", ["id", "kategori", "tanggal", "waktu", "judul", "lokasi", "deskripsi", "foto"]);
 
-  // 5. Sakan (1 sakan awal jika tab kosong)
-  ensureSheet("Sakan", 
+  // 5. Gedung (1 gedung awal jika tab kosong)
+  ensureSheet("Gedung", 
     ["id", "nama", "urutan", "aktif"],
-    [["qazvin-atas", "QAZVIN ATAS", 1, true]]
+    [["qazvin", "QAZVIN", 1, true]]
+  );
+
+  // 6. Sakan (1 sakan awal jika tab kosong)
+  ensureSheet("Sakan", 
+    ["id", "nama", "gedung", "urutan", "aktif"],
+    [["qazvin-atas", "QAZVIN ATAS", "QAZVIN", 1, true]]
   );
 
   // Hapus sheet default bawaan Google Sheets jika ada
@@ -465,52 +487,55 @@ function setupDatabase() {
 }
 
 /**
- * Fungsi utilitas mandiri: Jalankan sekali dari editor Apps Script
- * jika ingin men-seed tab 'Sakan' dengan data awal.
- */
-function seedSakanSheet() {
-  const ss = getDb();
-  let sheet = ss.getSheetByName("Sakan");
-  if (!sheet) {
-    sheet = ss.insertSheet("Sakan");
-    sheet.appendRow(["id", "nama", "urutan", "aktif"]);
-  }
-  
-  DEFAULT_SAKAN_DATA.forEach(s => {
-    sheet.appendRow([s.id, s.nama, s.urutan, s.aktif]);
-  });
-  return sheet;
-}
-
-/**
  * Trigger onEdit: Otomatis mengisi kolom 'id' (slug), 'urutan', dan 'aktif' (TRUE)
- * saat pengurus menambahkan nama sakan baru langsung di spreadsheet.
+ * saat pengurus menambahkan nama di tab 'Gedung' atau 'Sakan'.
  */
 function onEdit(e) {
   if (!e || !e.range) return;
   const sheet = e.range.getSheet();
-  if (sheet.getName() !== "Sakan") return;
-  
+  const sheetName = sheet.getName();
   const row = e.range.getRow();
   if (row <= 1) return; // Lewati header
-  
-  const idVal = sheet.getRange(row, 1).getValue();
-  const namaVal = sheet.getRange(row, 2).getValue();
-  
-  if (namaVal && !idVal) {
-    const slug = String(namaVal).trim().toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "");
-    sheet.getRange(row, 1).setValue(slug);
+
+  // Otomatisasi Tab Gedung: id | nama | urutan | aktif
+  if (sheetName === "Gedung") {
+    const idVal = sheet.getRange(row, 1).getValue();
+    const namaVal = sheet.getRange(row, 2).getValue();
+    
+    if (namaVal && !idVal) {
+      const slug = String(namaVal).trim().toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      sheet.getRange(row, 1).setValue(slug);
+    }
+    const urutanVal = sheet.getRange(row, 3).getValue();
+    if (namaVal && !urutanVal) {
+      sheet.getRange(row, 3).setValue(row - 1);
+    }
+    const aktifVal = sheet.getRange(row, 4).getValue();
+    if (namaVal && (aktifVal === "" || aktifVal === null || aktifVal === undefined)) {
+      sheet.getRange(row, 4).setValue(true);
+    }
   }
-  
-  const urutanVal = sheet.getRange(row, 3).getValue();
-  if (namaVal && !urutanVal) {
-    sheet.getRange(row, 3).setValue(row - 1);
-  }
-  
-  const aktifVal = sheet.getRange(row, 4).getValue();
-  if (namaVal && (aktifVal === "" || aktifVal === null || aktifVal === undefined)) {
-    sheet.getRange(row, 4).setValue(true);
+
+  // Otomatisasi Tab Sakan: id | nama | gedung | urutan | aktif
+  if (sheetName === "Sakan") {
+    const idVal = sheet.getRange(row, 1).getValue();
+    const namaVal = sheet.getRange(row, 2).getValue();
+    
+    if (namaVal && !idVal) {
+      const slug = String(namaVal).trim().toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      sheet.getRange(row, 1).setValue(slug);
+    }
+    const urutanVal = sheet.getRange(row, 4).getValue();
+    if (namaVal && !urutanVal) {
+      sheet.getRange(row, 4).setValue(row - 1);
+    }
+    const aktifVal = sheet.getRange(row, 5).getValue();
+    if (namaVal && (aktifVal === "" || aktifVal === null || aktifVal === undefined)) {
+      sheet.getRange(row, 5).setValue(true);
+    }
   }
 }

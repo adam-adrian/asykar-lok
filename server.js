@@ -46,8 +46,11 @@ function initDb() {
       { username: 'admin', password: 'admin123', role: 'admin_utama', label: 'Admin Utama', status: 'active' },
       { username: 'admin', password: 'admin', role: 'admin_utama', label: 'Admin Utama', status: 'active' }
     ],
+    gedung: [
+      { id: 'qazvin', nama: 'QAZVIN', urutan: 1, aktif: true }
+    ],
     sakan: [
-      { id: 'qazvin-atas', nama: 'QAZVIN ATAS', urutan: 1, aktif: true }
+      { id: 'qazvin-atas', nama: 'QAZVIN ATAS', gedung: 'QAZVIN', urutan: 1, aktif: true }
     ],
     klasemen: [],
     liga: [],
@@ -226,6 +229,7 @@ const server = http.createServer(async (req, res) => {
           klasemen: db.klasemen,
           liga: db.liga,
           event: db.event,
+          gedung: db.gedung,
           sakan: db.sakan
         }
       });

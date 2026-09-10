@@ -22,8 +22,11 @@ export default async function handler(req, res) {
           klasemen: [],
           liga: [],
           event: [],
+          gedung: [
+            { id: "qazvin", nama: "QAZVIN", urutan: 1, aktif: true }
+          ],
           sakan: [
-            { id: "qazvin-atas", nama: "QAZVIN ATAS", urutan: 1, aktif: true }
+            { id: "qazvin-atas", nama: "QAZVIN ATAS", gedung: "QAZVIN", urutan: 1, aktif: true }
           ]
         }
       });
@@ -39,7 +42,7 @@ export default async function handler(req, res) {
   try {
     // 1. GET Request: Ambil data publik dari Google Sheets
     if (req.method === 'GET') {
-      const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
+      const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET', redirect: 'follow' });
       const data = await response.json();
       return res.status(200).json(data);
     }
@@ -61,7 +64,8 @@ export default async function handler(req, res) {
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ ...body, token })
+        body: JSON.stringify({ ...body, token }),
+        redirect: 'follow'
       });
       const data = await response.json();
       const code = data && data.code;
