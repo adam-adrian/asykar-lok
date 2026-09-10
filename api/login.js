@@ -23,11 +23,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ status: 'error', message: 'Username dan password wajib diisi.' });
     }
 
-    // Jika GOOGLE_SCRIPT_URL belum diset di Vercel Environment Variables
+    // Jika GOOGLE_SCRIPT_URL belum diset (Mode offline demo)
     if (!GOOGLE_SCRIPT_URL) {
-      return res.status(503).json({
+      if (username === 'admin' && (password === 'admin123' || password === 'admin')) {
+        return res.status(200).json({
+          status: 'success',
+          local: true,
+          user: { username: 'admin', role: 'admin_utama', label: 'Admin Utama' },
+          token: 'demo_token_' + Date.now()
+        });
+      }
+      return res.status(401).json({
         status: 'error',
-        message: 'GOOGLE_SCRIPT_URL belum dikonfigurasi di Environment Variables Vercel.'
+        message: 'Username atau password salah (Demo offline: gunakan admin / admin123).'
       });
     }
 

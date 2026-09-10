@@ -398,30 +398,75 @@ function formatDateStr(val) {
 // TAB SAKAN & HELPER OTOMATISASI
 // =========================================================================
 const DEFAULT_SAKAN_DATA = [
-  { id: "qazvin-atas", nama: "QAZVIN ATAS", urutan: 1, aktif: true },
-  { id: "qazvin-bawah", nama: "QAZVIN BAWAH", urutan: 2, aktif: true },
-  { id: "naisabur-atas", nama: "NAISABUR ATAS", urutan: 3, aktif: true },
-  { id: "naisabur-bawah", nama: "NAISABUR BAWAH", urutan: 4, aktif: true },
-  { id: "sijistan-atas", nama: "SIJISTAN ATAS", urutan: 5, aktif: true },
-  { id: "sijistan-bawah", nama: "SIJISTAN BAWAH", urutan: 6, aktif: true },
-  { id: "hamadan-atas", nama: "HAMADAN ATAS", urutan: 7, aktif: true },
-  { id: "hamadan-bawah", nama: "HAMADAN BAWAH", urutan: 8, aktif: true },
-  { id: "hamadan-lorong", nama: "HAMADAN LORONG", urutan: 9, aktif: true },
-  { id: "tirmidz-atas", nama: "TIRMIDZ ATAS", urutan: 10, aktif: true },
-  { id: "tirmidz-bawah", nama: "TIRMIDZ BAWAH", urutan: 11, aktif: true },
-  { id: "bukhara-atas", nama: "BUKHARA ATAS", urutan: 12, aktif: true },
-  { id: "bukhara-bawah", nama: "BUKHARA BAWAH", urutan: 13, aktif: true },
-  { id: "sagaras", nama: "SAGARAS", urutan: 14, aktif: true },
-  { id: "asgard", nama: "ASGARD", urutan: 15, aktif: true },
-  { id: "mcava", nama: "MCAVA", urutan: 16, aktif: true },
-  { id: "xrera", nama: "XRERA", urutan: 17, aktif: true },
-  { id: "lobby", nama: "LOBBY", urutan: 18, aktif: true },
-  { id: "zaragoza", nama: "ZARAGOZA", urutan: 19, aktif: true }
+  { id: "qazvin-atas", nama: "QAZVIN ATAS", urutan: 1, aktif: true }
 ];
 
 /**
+ * =========================================================================
+ * SETUP SPREADSHEET (Jalankan sekali di Apps Script Editor untuk inisialisasi awal)
+ * =========================================================================
+ * Menyiapkan 5 tab struktur database sesuai kebutuhan:
+ * 1. Users   : 1 admin awal (username: admin, password: admin123)
+ * 2. Klasemen: header saja
+ * 3. Liga    : header saja
+ * 4. Event   : header saja
+ * 5. Sakan   : 1 entry sakan awal (QAZVIN ATAS)
+ */
+function setupDatabase() {
+  const ss = getDb();
+
+  function ensureSheet(name, headers, initialRows) {
+    let sheet = ss.getSheetByName(name);
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+    }
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(headers);
+      sheet.setFrozenRows(1);
+    }
+    if (sheet.getLastRow() === 1 && initialRows && initialRows.length > 0) {
+      initialRows.forEach(row => sheet.appendRow(row));
+    }
+    return sheet;
+  }
+
+  // 1. Users (1 admin awal jika tab kosong)
+  ensureSheet("Users", 
+    ["username", "password", "role", "label", "status"],
+    [["admin", "admin123", "admin_utama", "Admin Utama", "active"]]
+  );
+
+  // 2. Klasemen (header saja)
+  ensureSheet("Klasemen", ["id", "tanggal", "sakan", "kebersihan", "kedisiplinan", "bahasa", "totalPoin"]);
+
+  // 3. Liga (header saja)
+  ensureSheet("Liga", ["id", "round", "tanggal", "timA", "timB", "skorA", "skorB"]);
+
+  // 4. Event (header saja)
+  ensureSheet("Event", ["id", "kategori", "tanggal", "waktu", "judul", "lokasi", "deskripsi", "foto"]);
+
+  // 5. Sakan (1 sakan awal jika tab kosong)
+  ensureSheet("Sakan", 
+    ["id", "nama", "urutan", "aktif"],
+    [["qazvin-atas", "QAZVIN ATAS", 1, true]]
+  );
+
+  // Hapus sheet default bawaan Google Sheets jika ada
+  const defaultSheet = ss.getSheetByName("Sheet1") || ss.getSheetByName("Sheet 1");
+  if (defaultSheet && ss.getSheets().length > 1) {
+    try {
+      ss.deleteSheet(defaultSheet);
+    } catch (e) {
+      Logger.log("Sheet default tidak dihapus: " + e.toString());
+    }
+  }
+
+  Logger.log("Setup database berhasil diselesaikan!");
+}
+
+/**
  * Fungsi utilitas mandiri: Jalankan sekali dari editor Apps Script
- * jika ingin men-seed tab 'Sakan' dengan data awal 19 sakan.
+ * jika ingin men-seed tab 'Sakan' dengan data awal.
  */
 function seedSakanSheet() {
   const ss = getDb();
