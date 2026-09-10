@@ -117,8 +117,9 @@ function doGet(e) {
   try {
     const ss = getDb();
     let sheetSakan = ss.getSheetByName("Sakan");
-    if (!sheetSakan || sheetSakan.getLastRow() <= 1) {
-      sheetSakan = initSakanSheet(ss);
+    if (!sheetSakan) {
+      sheetSakan = ss.insertSheet("Sakan");
+      sheetSakan.appendRow(["id", "nama", "urutan", "aktif"]);
     }
 
     const result = {
@@ -419,21 +420,20 @@ const DEFAULT_SAKAN_DATA = [
 ];
 
 /**
- * Buat dan isi tab 'Sakan' secara otomatis jika belum ada atau masih kosong.
+ * Fungsi utilitas mandiri: Jalankan sekali dari editor Apps Script
+ * jika ingin men-seed tab 'Sakan' dengan data awal 19 sakan.
  */
-function initSakanSheet(ss) {
-  if (!ss) ss = getDb();
+function seedSakanSheet() {
+  const ss = getDb();
   let sheet = ss.getSheetByName("Sakan");
   if (!sheet) {
     sheet = ss.insertSheet("Sakan");
     sheet.appendRow(["id", "nama", "urutan", "aktif"]);
   }
   
-  if (sheet.getLastRow() <= 1) {
-    DEFAULT_SAKAN_DATA.forEach(s => {
-      sheet.appendRow([s.id, s.nama, s.urutan, s.aktif]);
-    });
-  }
+  DEFAULT_SAKAN_DATA.forEach(s => {
+    sheet.appendRow([s.id, s.nama, s.urutan, s.aktif]);
+  });
   return sheet;
 }
 
