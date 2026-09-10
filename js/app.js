@@ -24,20 +24,35 @@
 const API_URL = "/api/sync";
 const AUTH_URL = "/api/login";
 
-const SAKAN_LIST = [
-  "QAZVIN ATAS","QAZVIN BAWAH","NAISABUR ATAS","NAISABUR BAWAH",
-  "SIJISTAN ATAS","SIJISTAN BAWAH","HAMADAN ATAS","HAMADAN BAWAH",
-  "HAMADAN LORONG","TIRMIDZ ATAS","TIRMIDZ BAWAH","BUKHARA ATAS",
-  "BUKHARA BAWAH","SAGARAS","ASGARD","MCAVA","XRERA","LOBBY","ZARAGOZA"
+const DEFAULT_SAKAN_LIST = [
+  { id: "qazvin-atas", nama: "QAZVIN ATAS", urutan: 1, aktif: true },
+  { id: "qazvin-bawah", nama: "QAZVIN BAWAH", urutan: 2, aktif: true },
+  { id: "naisabur-atas", nama: "NAISABUR ATAS", urutan: 3, aktif: true },
+  { id: "naisabur-bawah", nama: "NAISABUR BAWAH", urutan: 4, aktif: true },
+  { id: "sijistan-atas", nama: "SIJISTAN ATAS", urutan: 5, aktif: true },
+  { id: "sijistan-bawah", nama: "SIJISTAN BAWAH", urutan: 6, aktif: true },
+  { id: "hamadan-atas", nama: "HAMADAN ATAS", urutan: 7, aktif: true },
+  { id: "hamadan-bawah", nama: "HAMADAN BAWAH", urutan: 8, aktif: true },
+  { id: "hamadan-lorong", nama: "HAMADAN LORONG", urutan: 9, aktif: true },
+  { id: "tirmidz-atas", nama: "TIRMIDZ ATAS", urutan: 10, aktif: true },
+  { id: "tirmidz-bawah", nama: "TIRMIDZ BAWAH", urutan: 11, aktif: true },
+  { id: "bukhara-atas", nama: "BUKHARA ATAS", urutan: 12, aktif: true },
+  { id: "bukhara-bawah", nama: "BUKHARA BAWAH", urutan: 13, aktif: true },
+  { id: "sagaras", nama: "SAGARAS", urutan: 14, aktif: true },
+  { id: "asgard", nama: "ASGARD", urutan: 15, aktif: true },
+  { id: "mcava", nama: "MCAVA", urutan: 16, aktif: true },
+  { id: "xrera", nama: "XRERA", urutan: 17, aktif: true },
+  { id: "lobby", nama: "LOBBY", urutan: 18, aktif: true },
+  { id: "zaragoza", nama: "ZARAGOZA", urutan: 19, aktif: true }
 ];
 
 let currentUser="", currentRole="", currentLabel="", currentAuthToken="";
 let currentView="homepage";
-let dataKlasemen=[], dataLiga=[], dataEvent=[];
+let dataKlasemen=[], dataLiga=[], dataEvent=[], dataSakan=[];
 let editingKlasemenKey=null;
 let tempBase64Image = "";
 
-const KEY_DATA="lok-klasemen-v5", KEY_LIGA="lok-liga-v5", KEY_EVENT="lok-event-v5", KEY_SESSION="lok-session-v5";
+const KEY_DATA="lok-klasemen-v5", KEY_LIGA="lok-liga-v5", KEY_EVENT="lok-event-v5", KEY_SAKAN="lok-sakan-v5", KEY_SESSION="lok-session-v5";
 
 /* ===== LOCAL STORAGE HELPERS ===== */
 function loadData(key) {
@@ -190,6 +205,14 @@ async function syncDataFromCloud(isManual = false){
       dataKlasemen = json.data.klasemen || [];
       dataLiga = json.data.liga || [];
       dataEvent = json.data.event || [];
+
+      if(Array.isArray(json.data.sakan) && json.data.sakan.length > 0){
+        dataSakan = json.data.sakan;
+        saveData(KEY_SAKAN, dataSakan);
+        fillSakanSelect();
+        fillTeamSelects();
+        renderSakanPills();
+      }
 
       // Update cache lokal
       saveData(KEY_DATA, dataKlasemen);
@@ -556,17 +579,41 @@ function renderKlasemen(){
   }
 }
 
+function getActiveSakanList() {
+  const source = (Array.isArray(dataSakan) && dataSakan.length > 0) ? dataSakan : DEFAULT_SAKAN_LIST;
+  return source
+    .map(s => typeof s === "string" ? { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s, urutan: 999, aktif: true } : s)
+    .filter(s => {
+      if (s.aktif === undefined || s.aktif === null || s.aktif === "") return true;
+      if (typeof s.aktif === "boolean") return s.aktif;
+      return String(s.aktif).toLowerCase() === "true";
+    })
+    .sort((a, b) => Number(a.urutan || 999) - Number(b.urutan || 999));
+}
+
+function renderSakanPills() {
+  const container = document.getElementById("pubSakanPills");
+  if (!container) return;
+  const list = getActiveSakanList();
+  container.innerHTML = list.map(s => '<div class="pub-pill">' + escapeHtml(s.nama) + '</div>').join('');
+}
+
 function fillSakanSelect() {
   const sel = document.getElementById('kSakan');
+  if (!sel) return;
+  const list = getActiveSakanList();
   sel.innerHTML = '<option value="">— Pilih Sakan —</option>' + 
-    SAKAN_LIST.map(s => '<option value="' + s + '">' + s + '</option>').join('');
+    list.map(s => '<option value="' + escapeHtml(s.nama) + '">' + escapeHtml(s.nama) + '</option>').join('');
 }
 
 function fillTeamSelects() {
+  const list = getActiveSakanList();
   const opts = '<option value="">— Pilih Tim —</option>' + 
-    SAKAN_LIST.map(s => '<option value="' + s + '">' + s + '</option>').join('');
-  document.getElementById('mTimA').innerHTML = opts;
-  document.getElementById('mTimB').innerHTML = opts;
+    list.map(s => '<option value="' + escapeHtml(s.nama) + '">' + escapeHtml(s.nama) + '</option>').join('');
+  const a = document.getElementById('mTimA');
+  const b = document.getElementById('mTimB');
+  if (a) a.innerHTML = opts;
+  if (b) b.innerHTML = opts;
 }
 
 function onKlasemenKeyChange(){
@@ -997,6 +1044,13 @@ document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.ke
   dataKlasemen=loadData(KEY_DATA);
   dataLiga=loadData(KEY_LIGA);
   dataEvent=loadData(KEY_EVENT);
+  dataSakan=loadData(KEY_SAKAN);
+  if(!dataSakan || dataSakan.length === 0){
+    dataSakan = DEFAULT_SAKAN_LIST;
+  }
+  fillSakanSelect();
+  fillTeamSelects();
+  renderSakanPills();
   
   // 2. Cek session login
   const session=loadSession();

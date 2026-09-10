@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         status: 'success',
         local: true,
         message: 'GOOGLE_SCRIPT_URL belum diset di Vercel. Berjalan dalam mode lokal.',
-        data: { klasemen: [], liga: [], event: [] }
+        data: { klasemen: [], liga: [], event: [], sakan: [] }
       });
     } else {
       return res.status(200).json({

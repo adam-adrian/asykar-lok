@@ -3,15 +3,16 @@
  * BACKEND API GOOGLE APPS SCRIPT - LEAGUE OF KINDNESS (VERCEL PROXY READY)
  * =========================================================================
  * 
- * STRUKTUR SPREADSHEET (4 Tab):
+ * STRUKTUR SPREADSHEET (5 Tab):
  * 1. Tab "Users"    : username | password | role | label | status
  * 2. Tab "Klasemen" : id | tanggal | sakan | kebersihan | kedisiplinan | bahasa | totalPoin
  * 3. Tab "Liga"     : id | round | tanggal | timA | timB | skorA | skorB
  * 4. Tab "Event"    : id | kategori | tanggal | waktu | judul | lokasi | deskripsi | foto
+ * 5. Tab "Sakan"    : id | nama | urutan | aktif
  * 
- * 💡 TIPS AKUN:
- * Pengurus dapat menambah/mengubah akun admin atau juri langsung di Tab "Users"
- * tanpa perlu mengubah kode pemrograman apa pun!
+ * 💡 TIPS PENGURUS:
+ * - Tab "Users": Tambah/ubah akun admin tanpa perlu mengubah kode.
+ * - Tab "Sakan": Tambah nama sakan, atur urutan, atau aktifkan/nonaktifkan (aktif = TRUE/FALSE).
  */
 
 // 💡 FOLDER_ID diambil secara aman dari Script Properties (Environment Variables Google Apps Script)
@@ -109,16 +110,22 @@ function denyIfUnauthorized(action, token) {
 }
 
 /**
- * 1. GET: Mengambil data PUBLIK saja (Klasemen, Liga, Event).
+ * 1. GET: Mengambil data PUBLIK saja (Klasemen, Liga, Event, Sakan).
  * CATATAN KEAMANAN: Data akun di Tab "Users" TIDAK PERNAH dikirim via GET!
  */
 function doGet(e) {
   try {
     const ss = getDb();
+    let sheetSakan = ss.getSheetByName("Sakan");
+    if (!sheetSakan || sheetSakan.getLastRow() <= 1) {
+      sheetSakan = initSakanSheet(ss);
+    }
+
     const result = {
       klasemen: sheetToObjects(ss.getSheetByName("Klasemen")),
       liga: sheetToObjects(ss.getSheetByName("Liga")),
-      event: sheetToObjects(ss.getSheetByName("Event"))
+      event: sheetToObjects(ss.getSheetByName("Event")),
+      sakan: sheetToObjects(sheetSakan)
     };
     
     return jsonOut({ status: "success", data: result });
@@ -384,4 +391,81 @@ function formatDateStr(val) {
     return Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
   }
   return String(val);
+}
+
+// =========================================================================
+// TAB SAKAN & HELPER OTOMATISASI
+// =========================================================================
+const DEFAULT_SAKAN_DATA = [
+  { id: "qazvin-atas", nama: "QAZVIN ATAS", urutan: 1, aktif: true },
+  { id: "qazvin-bawah", nama: "QAZVIN BAWAH", urutan: 2, aktif: true },
+  { id: "naisabur-atas", nama: "NAISABUR ATAS", urutan: 3, aktif: true },
+  { id: "naisabur-bawah", nama: "NAISABUR BAWAH", urutan: 4, aktif: true },
+  { id: "sijistan-atas", nama: "SIJISTAN ATAS", urutan: 5, aktif: true },
+  { id: "sijistan-bawah", nama: "SIJISTAN BAWAH", urutan: 6, aktif: true },
+  { id: "hamadan-atas", nama: "HAMADAN ATAS", urutan: 7, aktif: true },
+  { id: "hamadan-bawah", nama: "HAMADAN BAWAH", urutan: 8, aktif: true },
+  { id: "hamadan-lorong", nama: "HAMADAN LORONG", urutan: 9, aktif: true },
+  { id: "tirmidz-atas", nama: "TIRMIDZ ATAS", urutan: 10, aktif: true },
+  { id: "tirmidz-bawah", nama: "TIRMIDZ BAWAH", urutan: 11, aktif: true },
+  { id: "bukhara-atas", nama: "BUKHARA ATAS", urutan: 12, aktif: true },
+  { id: "bukhara-bawah", nama: "BUKHARA BAWAH", urutan: 13, aktif: true },
+  { id: "sagaras", nama: "SAGARAS", urutan: 14, aktif: true },
+  { id: "asgard", nama: "ASGARD", urutan: 15, aktif: true },
+  { id: "mcava", nama: "MCAVA", urutan: 16, aktif: true },
+  { id: "xrera", nama: "XRERA", urutan: 17, aktif: true },
+  { id: "lobby", nama: "LOBBY", urutan: 18, aktif: true },
+  { id: "zaragoza", nama: "ZARAGOZA", urutan: 19, aktif: true }
+];
+
+/**
+ * Buat dan isi tab 'Sakan' secara otomatis jika belum ada atau masih kosong.
+ */
+function initSakanSheet(ss) {
+  if (!ss) ss = getDb();
+  let sheet = ss.getSheetByName("Sakan");
+  if (!sheet) {
+    sheet = ss.insertSheet("Sakan");
+    sheet.appendRow(["id", "nama", "urutan", "aktif"]);
+  }
+  
+  if (sheet.getLastRow() <= 1) {
+    DEFAULT_SAKAN_DATA.forEach(s => {
+      sheet.appendRow([s.id, s.nama, s.urutan, s.aktif]);
+    });
+  }
+  return sheet;
+}
+
+/**
+ * Trigger onEdit: Otomatis mengisi kolom 'id' (slug), 'urutan', dan 'aktif' (TRUE)
+ * saat pengurus menambahkan nama sakan baru langsung di spreadsheet.
+ */
+function onEdit(e) {
+  if (!e || !e.range) return;
+  const sheet = e.range.getSheet();
+  if (sheet.getName() !== "Sakan") return;
+  
+  const row = e.range.getRow();
+  if (row <= 1) return; // Lewati header
+  
+  const idVal = sheet.getRange(row, 1).getValue();
+  const namaVal = sheet.getRange(row, 2).getValue();
+  
+  if (namaVal && !idVal) {
+    const slug = String(namaVal).trim().toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    sheet.getRange(row, 1).setValue(slug);
+  }
+  
+  const urutanVal = sheet.getRange(row, 3).getValue();
+  if (namaVal && !urutanVal) {
+    sheet.getRange(row, 3).setValue(row - 1);
+  }
+  
+  const aktifVal = sheet.getRange(row, 4).getValue();
+  if (namaVal && (aktifVal === "" || aktifVal === null || aktifVal === undefined)) {
+    sheet.getRange(row, 4).setValue(true);
+  }
 }
