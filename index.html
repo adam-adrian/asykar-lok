@@ -210,37 +210,48 @@
     <!-- TURNAMEN BOLA SISTEM AKAR / BRACKET -->
     <div class="page page-panel hidden" id="page-liga">
       <div class="info-note" id="ligaAccessNote"></div>
-      
-      <!-- TABEL JADWAL BOLA DARI EVENT -->
-      <div class="ledger">
-        <div class="ledger-head">
-          <div class="ledger-title">Jadwal Pertandingan Bola (Dari Menu Event)</div>
-        </div>
-        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:12px;">Daftar jadwal pertandingan bola yang tersinkron otomatis dari menu Event.</p>
-        <table>
-          <thead><tr><th>Tanggal &amp; Waktu</th><th>Pertandingan / Keterangan</th><th>Lokasi</th><th class="center">Status</th></tr></thead>
-          <tbody id="jadwalBolaTbody"></tbody>
-        </table>
+
+      <!-- TABS SUB-NAVIGASI LIGA: JADWAL vs HASIL -->
+      <div class="tabs">
+        <button class="tab active" id="tabLigaJadwal" onclick="switchLigaTab('jadwal')">📅 Jadwal Pertandingan</button>
+        <button class="tab" id="tabLigaHasil" onclick="switchLigaTab('hasil')">🏁 Hasil &amp; Babak Turnamen</button>
       </div>
 
-      <div class="ledger">
+      <!-- PANEL 1: JADWAL PERTANDINGAN -->
+      <div class="ledger" id="panelLigaJadwal">
         <div class="ledger-head">
-          <div class="ledger-title">Bagan Pohon Turnamen (Sistem Akar / Gugur)</div>
-          <button class="btn btn-primary hidden" id="addMatchBtn" onclick="openMatchModal()">+ Input Hasil Pertandingan</button>
+          <div>
+            <div class="ledger-title">Jadwal Pertandingan Mendatang</div>
+            <p style="font-size:13px; color:var(--ink-faint); margin-top:2px;">Daftar laga yang akan dan sedang berlangsung antar gedung.</p>
+          </div>
+          <button class="btn btn-primary hidden" id="addJadwalBolaBtn" onclick="openJadwalModal()">+ Tambah Jadwal Bola</button>
         </div>
-        <p style="font-size:13px; color:var(--ink-faint); margin-bottom:16px;">Bagan visual alur pertandingan dari babak penyisihan, semifinal, hingga juara puncak.</p>
-        
-        <div class="bracket-tree-wrap" id="bracketTreeContainer">
+        <div id="jadwalListContainer" style="margin-top:14px;">
           <!-- Rendered via JS -->
         </div>
       </div>
 
-      <div class="ledger">
-        <div class="ledger-head"><div class="ledger-title">Daftar Skor Pertandingan</div></div>
-        <table>
-          <thead><tr><th>Babak</th><th>Tanggal</th><th>Pertandingan</th><th class="center">Skor</th><th class="center hidden" id="matchActionHead">Aksi</th></tr></thead>
-          <tbody id="matchTbody"></tbody>
-        </table>
+      <!-- PANEL 2: HASIL & BABAK TURNAMEN (STYLE C VERTIKAL) -->
+      <div class="ledger hidden" id="panelLigaHasil">
+        <div class="ledger-head">
+          <div>
+            <div class="ledger-title">Hasil &amp; Alur Babak Turnamen</div>
+            <p style="font-size:13px; color:var(--ink-faint); margin-top:2px;">Skor resmi babak gugur hingga penentuan juara utama.</p>
+          </div>
+          <button class="btn btn-primary hidden" id="addMatchBtn" onclick="openMatchModal()">+ Input Hasil Laga</button>
+        </div>
+
+        <div class="bracket-tree-wrap" id="bracketTreeContainer" style="margin-top:14px;">
+          <!-- Rendered via JS (Penyisihan, Semifinal, Final & Juara) -->
+        </div>
+
+        <div style="margin-top:24px;">
+          <div class="ledger-title" style="font-size:16px; margin-bottom:10px;">Rekap Riwayat Skor</div>
+          <table>
+            <thead><tr><th>Babak</th><th>Tanggal</th><th>Pertandingan</th><th class="center">Skor</th><th class="center hidden" id="matchActionHead">Aksi</th></tr></thead>
+            <tbody id="matchTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -248,8 +259,8 @@
     <div class="page page-panel hidden" id="page-event">
       <div class="info-note" id="eventAccessNote"></div>
       <div class="ledger-head" style="padding-top:0;">
-        <div class="ledger-title" style="font-size:22px; margin-bottom:14px;">Daftar Jadwal &amp; Dokumentasi Event</div>
-        <button class="btn btn-primary hidden" id="addEventBtn" onclick="openEventModal()">+ Tambah Event / Jadwal Bola</button>
+        <div class="ledger-title" style="font-size:22px; margin-bottom:14px;">Daftar Agenda &amp; Dokumentasi Kegiatan</div>
+        <button class="btn btn-primary hidden" id="addEventBtn" onclick="openEventModal()">+ Tambah Event</button>
       </div>
       <div id="eventList"></div>
     </div>
@@ -297,23 +308,37 @@
 
 <div class="modal-veil" id="modalLiga">
   <div class="modal-box">
-    <h3>Input Pertandingan</h3>
+    <h3 id="modalLigaTitle">Jadwalkan Pertandingan</h3>
+    <input type="hidden" id="mMatchId">
+    <input type="hidden" id="mMode" value="jadwal">
+
     <div class="field"><label>Babak Turnamen</label>
       <select id="mRound">
-        <option value="Penyisihan">Babak Penyisihan</option>
-        <option value="Semifinal">Semifinal</option>
-        <option value="Final">Final</option>
+        <option value="Penyisihan">Babak Penyisihan (8 Besar)</option>
+        <option value="Semifinal">Semifinal (4 Besar)</option>
+        <option value="Final">Grand Final</option>
       </select>
     </div>
-    <div class="field"><label>Tanggal</label><input type="date" id="mTanggal"></div>
     <div class="field-row">
-      <div class="field"><label>Tim A</label><select id="mTimA"></select></div>
-      <div class="field"><label>Skor A</label><input type="number" id="mSkorA" min="0" placeholder="0"></div>
+      <div class="field"><label>Tanggal</label><input type="date" id="mTanggal"></div>
+      <div class="field"><label>Jam Kick-off</label><input type="text" id="mWaktu" placeholder="Contoh: 15:30 WIB"></div>
     </div>
+    <div class="field"><label>Lokasi / Lapangan</label><input type="text" id="mLokasi" placeholder="Contoh: Lapangan Utama" value="Lapangan Utama"></div>
     <div class="field-row">
-      <div class="field"><label>Tim B</label><select id="mTimB"></select></div>
-      <div class="field"><label>Skor B</label><input type="number" id="mSkorB" min="0" placeholder="0"></div>
+      <div class="field"><label>Tim A (Gedung)</label><select id="mTimA"></select></div>
+      <div class="field"><label>Tim B (Gedung)</label><select id="mTimB"></select></div>
     </div>
+
+    <!-- FIELD SKOR (Otomatis tampil saat input skor) -->
+    <div id="mSkorSection" style="display:none; background:var(--parchment); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:16px;">
+      <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:8px;">Hasil Skor Akhir</div>
+      <div class="field-row" style="margin-bottom:0;">
+        <div class="field"><label id="labelSkorA">Skor Tim A</label><input type="number" id="mSkorA" min="0" placeholder="0"></div>
+        <div class="field"><label id="labelSkorB">Skor Tim B</label><input type="number" id="mSkorB" min="0" placeholder="0"></div>
+      </div>
+      <p style="font-size:11px; color:var(--ink-faint); margin-top:6px;">* Sistem gugur: skor tidak boleh sama (harus ada pemenang).</p>
+    </div>
+
     <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
       <button class="btn btn-primary" id="btnSaveLiga" onclick="simpanMatch()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalLiga')">Batal</button>
@@ -323,19 +348,21 @@
 
 <div class="modal-veil" id="modalEvent">
   <div class="modal-box">
-    <h3>Tambah Event / Jadwal Bola</h3>
+    <h3>Tambah Agenda Event</h3>
     <div class="field"><label>Kategori Kegiatan</label>
       <select id="eKategori">
-        <option value="Event Umum">Event / Kegiatan Umum</option>
-        <option value="Jadwal Bola">Jadwal Pertandingan Bola</option>
+        <option value="Kajian">Kajian &amp; Taklim</option>
+        <option value="Rihlah">Rihlah / Outing</option>
+        <option value="Ujian">Ujian &amp; Akademik</option>
+        <option value="Event Umum">Kegiatan Umum Pesantren</option>
       </select>
     </div>
     <div class="field-row">
       <div class="field"><label>Tanggal</label><input type="date" id="eTanggal"></div>
       <div class="field"><label>Waktu</label><input type="time" id="eWaktu"></div>
     </div>
-    <div class="field"><label>Judul / Keterangan Match</label><input type="text" id="eJudul" placeholder="Contoh: Qazvin Atas vs Bukhara Atas"></div>
-    <div class="field"><label>Lokasi / Lapangan</label><input type="text" id="eLokasi" placeholder="Contoh: Lapangan Utama"></div>
+    <div class="field"><label>Nama / Judul Kegiatan</label><input type="text" id="eJudul" placeholder="Contoh: Kajian Akbar Akhir Pekan"></div>
+    <div class="field"><label>Lokasi / Tempat</label><input type="text" id="eLokasi" placeholder="Contoh: Masjid Utama"></div>
     <div class="field"><label>Deskripsi Tambahan</label><textarea id="eDeskripsi" placeholder="Detail kegiatan (opsional)"></textarea></div>
     
     <!-- Upload Foto / Poster -->

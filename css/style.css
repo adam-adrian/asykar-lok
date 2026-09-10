@@ -304,4 +304,14 @@ tbody td{padding:13px 10px;border-bottom:1px solid #E2E8F0;font-size:13.5px;vert
   .pub-hero{padding:40px 16px 30px;}
   .pub-cards-grid{padding:0; gap:14px;}
   .ledger{padding:4px 12px 14px;}
+  .bracket-tree-wrap{min-width:auto; flex-direction:column; padding:10px 0; gap:24px;}
+  .bracket-round-col{width:100%; gap:12px;}
 }
+
+/* ===== KARTU JADWAL LIGA BOLA ===== */
+.jadwal-match-card{background:var(--parchment); border:1.5px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:12px; display:flex; flex-direction:column; gap:8px; transition:border-color .15s;}
+.jadwal-match-card:hover{border-color:var(--gold);}
+.jadwal-match-header{display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:var(--ink-faint); border-bottom:1px solid var(--line); padding-bottom:6px;}
+.jadwal-match-teams{display:flex; justify-content:space-between; align-items:center; font-size:13.5px; font-weight:600; color:var(--ink); padding:4px 0;}
+.jadwal-match-actions{display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--line); padding-top:8px;}
+

@@ -428,10 +428,12 @@ function applyAccessNotes(){
   
   document.getElementById("addKlasemenBtn").classList.toggle("hidden",!canEditKlasemenAny());
   document.getElementById("actionHead").classList.toggle("hidden",!canEditKlasemenAny());
-  document.getElementById("ligaAccessNote").innerHTML=`<span>${canEditLiga()?"Anda dapat mengelola bagan turnamen sistem akar dan melihat jadwal bola.":"Anda hanya dapat melihat jadwal dan bagan turnamen bola."}</span>`;
+  document.getElementById("ligaAccessNote").innerHTML=`<span>${canEditLiga()?"Anda dapat mengelola jadwal pertandingan dan hasil turnamen bola.":"Anda hanya dapat melihat jadwal dan bagan turnamen bola."}</span>`;
+  const addJb = document.getElementById("addJadwalBolaBtn");
+  if(addJb) addJb.classList.toggle("hidden",!canEditLiga());
   document.getElementById("addMatchBtn").classList.toggle("hidden",!canEditLiga());
   document.getElementById("matchActionHead").classList.toggle("hidden",!canEditLiga());
-  document.getElementById("eventAccessNote").innerHTML=`<span>${canEditEvent()?"Anda dapat menambah agenda kegiatan, jadwal pertandingan bola, dan mengupload foto kegiatan.":"Anda hanya dapat melihat agenda dan foto event."}</span>`;
+  document.getElementById("eventAccessNote").innerHTML=`<span>${canEditEvent()?"Anda dapat menambah agenda kegiatan dan mengupload foto dokumentasi.":"Anda hanya dapat melihat agenda kegiatan dan foto kegiatan."}</span>`;
   document.getElementById("addEventBtn").classList.toggle("hidden",!canEditEvent());
 }
 
@@ -558,25 +560,40 @@ function renderKlasemen(){
 function getActiveGedungList() {
   if (!Array.isArray(dataGedung) || dataGedung.length === 0) return [];
   return dataGedung
-    .map(g => typeof g === "string" ? { id: g.toLowerCase().replace(/\s+/g, '-'), nama: g, urutan: 999, aktif: true } : g)
-    .filter(g => {
-      if (g.aktif === undefined || g.aktif === null || g.aktif === "") return true;
-      if (typeof g.aktif === "boolean") return g.aktif;
-      return String(g.aktif).toLowerCase() === "true";
+    .filter(g => g && (typeof g === "string" || (g.nama && String(g.nama).trim())))
+    .map(g => {
+      if (typeof g === "string") {
+        return { id: g.toLowerCase().replace(/\s+/g, '-'), nama: g.trim(), urutan: 999, aktif: true };
+      }
+      return {
+        id: g.id || String(g.nama).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        nama: String(g.nama).trim(),
+        urutan: Number(g.urutan) || 999,
+        aktif: g.aktif !== false && String(g.aktif).toLowerCase() !== "false"
+      };
     })
-    .sort((a, b) => Number(a.urutan || 999) - Number(b.urutan || 999));
+    .filter(g => g.aktif)
+    .sort((a, b) => a.urutan - b.urutan);
 }
 
 function getActiveSakanList() {
   if (!Array.isArray(dataSakan) || dataSakan.length === 0) return [];
   return dataSakan
-    .map(s => typeof s === "string" ? { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s, gedung: "", urutan: 999, aktif: true } : s)
-    .filter(s => {
-      if (s.aktif === undefined || s.aktif === null || s.aktif === "") return true;
-      if (typeof s.aktif === "boolean") return s.aktif;
-      return String(s.aktif).toLowerCase() === "true";
+    .filter(s => s && (typeof s === "string" || (s.nama && String(s.nama).trim())))
+    .map(s => {
+      if (typeof s === "string") {
+        return { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s.trim(), gedung: "", urutan: 999, aktif: true };
+      }
+      return {
+        id: s.id || String(s.nama).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        nama: String(s.nama).trim(),
+        gedung: String(s.gedung || "").trim(),
+        urutan: Number(s.urutan) || 999,
+        aktif: s.aktif !== false && String(s.aktif).toLowerCase() !== "false"
+      };
     })
-    .sort((a, b) => Number(a.urutan || 999) - Number(b.urutan || 999));
+    .filter(s => s.aktif)
+    .sort((a, b) => a.urutan - b.urutan);
 }
 
 function renderSakanPills() {
@@ -721,156 +738,296 @@ async function hapusKlasemen(t,s){
 /* =========================================================================
    MODUL 2: TURNAMEN BOLA & SISTEM AKAR / BRACKET
    ========================================================================= */
-function renderligaMenu(){
+let currentLigaTab = "jadwal";
+
+function switchLigaTab(tab) {
+  currentLigaTab = tab;
+  const btnJadwal = document.getElementById("tabLigaJadwal");
+  const btnHasil = document.getElementById("tabLigaHasil");
+  const panelJadwal = document.getElementById("panelLigaJadwal");
+  const panelHasil = document.getElementById("panelLigaHasil");
+  if (btnJadwal && btnHasil && panelJadwal && panelHasil) {
+    btnJadwal.classList.toggle("active", tab === "jadwal");
+    btnHasil.classList.toggle("active", tab === "hasil");
+    panelJadwal.classList.toggle("hidden", tab !== "jadwal");
+    panelHasil.classList.toggle("hidden", tab !== "hasil");
+  }
+}
+
+function renderligaMenu() {
   applyAccessNotes();
 
-  // 1. Jadwal Bola tersinkron dari dataEvent
-  const jadwalBolaList = dataEvent.filter(e => e.kategori === "Jadwal Bola").sort((a,b)=>(String(a.tanggal||'')+String(a.waktu||'')).localeCompare(String(b.tanggal||'')+String(b.waktu||'')));
-  const jbTbody = document.getElementById("jadwalBolaTbody");
-  if(!jadwalBolaList.length){
-    jbTbody.innerHTML='<tr class="empty-row"><td colspan="4">Belum ada jadwal bola. Silakan input dari menu Event.</td></tr>';
+  // Pisahkan Jadwal vs Hasil
+  const jadwalList = [];
+  const hasilList = [];
+
+  dataLiga.forEach(m => {
+    const hasSkor = m.skorA !== "" && m.skorA != null && m.skorB !== "" && m.skorB != null;
+    if (m.status === "SELESAI" || hasSkor) {
+      hasilList.push(m);
+    } else {
+      jadwalList.push(m);
+    }
+  });
+
+  // Urutkan jadwal: tanggal & waktu terdekat di atas
+  jadwalList.sort((a, b) => (String(a.tanggal || '') + String(a.waktu || '')).localeCompare(String(b.tanggal || '') + String(b.waktu || '')));
+  // Urutkan hasil: tanggal terbaru di atas
+  hasilList.sort((a, b) => (String(b.tanggal || '')).localeCompare(String(a.tanggal || '')));
+
+  // 1. Render Panel Jadwal
+  const jadwalContainer = document.getElementById("jadwalListContainer");
+  const ce = canEditLiga();
+
+  if (!jadwalList.length) {
+    jadwalContainer.innerHTML = '<div style="text-align:center; padding:32px 10px; color:var(--ink-faint); font-size:13.5px;">Belum ada jadwal pertandingan bola yang akan datang.</div>';
   } else {
-    jbTbody.innerHTML = jadwalBolaList.map(item => {
-      const st = eventStatus(item.tanggal);
+    jadwalContainer.innerHTML = jadwalList.map(m => {
+      const st = eventStatus(m.tanggal);
+      const isLive = m.status === "LIVE";
       return `
-        <tr>
-          <td>${formatTanggal(item.tanggal)}<br><span style="font-size:11.5px; color:var(--ink-faint);">${formatWaktu(item.waktu)}</span></td>
-          <td><strong>${escapeHtml(item.judul)}</strong>${item.deskripsi?'<br><span style="font-size:12px; color:var(--ink-soft);">'+escapeHtml(item.deskripsi)+'</span>':''}</td>
-          <td>${escapeHtml(item.lokasi||"–")}</td>
-          <td class="center"><span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold)":st.cls==="upcoming"?"#E7EFE9":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};">${st.label}</span></td>
-        </tr>
+        <div class="jadwal-match-card">
+          <div class="jadwal-match-header">
+            <span><strong>${escapeHtml(m.round || "Pertandingan")}</strong> • 📅 ${formatTanggal(m.tanggal)}${m.waktu ? ' • ⏰ ' + escapeHtml(m.waktu) : ''}${m.lokasi ? ' • 📍 ' + escapeHtml(m.lokasi) : ''}</span>
+            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:${isLive ? 'var(--clay)' : st.cls === 'today' ? 'var(--gold)' : '#E7EFE9'}; color:${isLive || st.cls === 'today' ? '#fff' : 'var(--green-ok)'};">
+              ${isLive ? 'SEDANG MAIN' : st.label}
+            </span>
+          </div>
+          <div class="jadwal-match-teams">
+            <span style="flex:1; text-align:right; font-size:14px; font-weight:700;">${escapeHtml(m.timA)}</span>
+            <span class="pill" style="margin:0 12px; font-size:11px;">VS</span>
+            <span style="flex:1; text-align:left; font-size:14px; font-weight:700;">${escapeHtml(m.timB)}</span>
+          </div>
+          ${ce ? `
+            <div class="jadwal-match-actions">
+              <button class="btn btn-ghost" style="padding:4px 12px; font-size:12px;" onclick="openJadwalModal('${m.id}')">⚙️ Ubah Info</button>
+              <button class="btn btn-gold" style="padding:4px 14px; font-size:12px;" onclick="openScoreInputModal('${m.id}')">⚽ Input Skor</button>
+              <button class="icon-btn danger" style="width:28px; height:28px;" title="Hapus" onclick="hapusMatch('${m.id}')">🗑️</button>
+            </div>
+          ` : ''}
+        </div>
       `;
     }).join("");
   }
 
-  // 2. Render Bagan Pohon Turnamen
-  const penyisihan = dataLiga.filter(m => m.round === "Penyisihan");
-  const semifinal = dataLiga.filter(m => m.round === "Semifinal");
-  const final = dataLiga.filter(m => m.round === "Final");
+  // 2. Render Panel Hasil & Bagan Turnamen (Style C Vertikal)
+  const penyisihan = hasilList.filter(m => m.round === "Penyisihan");
+  const semifinal = hasilList.filter(m => m.round === "Semifinal");
+  const final = hasilList.filter(m => m.round === "Final");
 
-  const container = document.getElementById("bracketTreeContainer");
-  
   let finalWinner = "Menunggu Pertandingan Final";
-  if(final.length > 0 && Number(final[0].skorA) !== Number(final[0].skorB)){
+  if (final.length > 0 && Number(final[0].skorA) !== Number(final[0].skorB)) {
     finalWinner = Number(final[0].skorA) > Number(final[0].skorB) ? final[0].timA : final[0].timB;
   }
 
-  container.innerHTML = `
+  const bracketContainer = document.getElementById("bracketTreeContainer");
+  bracketContainer.innerHTML = `
+    <!-- BABAK PENYISIHAN (8 BESAR) -->
     <div class="bracket-round-col">
-      <div class="bracket-col-title">Babak Penyisihan</div>
-      ${penyisihan.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px;">Belum ada pertandingan</div>' : 
-        penyisihan.map(m => {
-          const isAWin = Number(m.skorA) > Number(m.skorB);
-          const isBWin = Number(m.skorB) > Number(m.skorA);
-          return `
-            <div class="bracket-match-box">
-              <div class="bracket-team ${isAWin?'winner':''}"><span>${escapeHtml(m.timA)}</span><span class="bracket-score">${m.skorA}</span></div>
-              <div class="bracket-team ${isBWin?'winner':''}"><span>${escapeHtml(m.timB)}</span><span class="bracket-score">${m.skorB}</span></div>
-              <div class="bracket-date">${formatTanggal(m.tanggal)}</div>
-            </div>
-          `;
-        }).join('')}
+      <div class="bracket-col-title">Babak Penyisihan (8 Besar)</div>
+      ${penyisihan.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Belum ada hasil penyisihan</div>' :
+        penyisihan.map(m => renderBracketMatchBox(m, ce)).join('')}
     </div>
 
+    <!-- BABAK SEMIFINAL (4 BESAR) -->
     <div class="bracket-round-col">
-      <div class="bracket-col-title">Semifinal</div>
-      ${semifinal.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px;">Menunggu Penyisihan</div>' : 
-        semifinal.map(m => {
-          const isAWin = Number(m.skorA) > Number(m.skorB);
-          const isBWin = Number(m.skorB) > Number(m.skorA);
-          return `
-            <div class="bracket-match-box">
-              <div class="bracket-team ${isAWin?'winner':''}"><span>${escapeHtml(m.timA)}</span><span class="bracket-score">${m.skorA}</span></div>
-              <div class="bracket-team ${isBWin?'winner':''}"><span>${escapeHtml(m.timB)}</span><span class="bracket-score">${m.skorB}</span></div>
-              <div class="bracket-date">${formatTanggal(m.tanggal)}</div>
-            </div>
-          `;
-        }).join('')}
+      <div class="bracket-col-title">Semifinal (4 Besar)</div>
+      ${semifinal.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Menunggu Penyisihan Selesai</div>' :
+        semifinal.map(m => renderBracketMatchBox(m, ce)).join('')}
     </div>
 
+    <!-- BABAK FINAL & JUARA -->
     <div class="bracket-round-col">
-      <div class="bracket-col-title">Final &amp; Juara</div>
-      ${final.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px;">Menunggu Semifinal</div>' : 
-        final.map(m => {
-          const isAWin = Number(m.skorA) > Number(m.skorB);
-          const isBWin = Number(m.skorB) > Number(m.skorA);
-          return `
-            <div class="bracket-match-box" style="border-color:var(--gold);">
-              <div class="bracket-team ${isAWin?'winner':''}"><span>🏆 ${escapeHtml(m.timA)}</span><span class="bracket-score">${m.skorA}</span></div>
-              <div class="bracket-team ${isBWin?'winner':''}"><span>🏆 ${escapeHtml(m.timB)}</span><span class="bracket-score">${m.skorB}</span></div>
-              <div class="bracket-date">${formatTanggal(m.tanggal)}</div>
-            </div>
-          `;
-        }).join('')}
-      
+      <div class="bracket-col-title">Grand Final &amp; Juara</div>
+      ${final.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Menunggu Semifinal Selesai</div>' :
+        final.map(m => renderBracketMatchBox(m, ce, true)).join('')}
+
       <div class="champion-box" style="margin-top:14px;">
-        <h3>Juara Utama</h3>
+        <h3>🏆 Juara Utama Liga Bola</h3>
         <div class="champion-name">${escapeHtml(finalWinner)}</div>
       </div>
     </div>
   `;
 
-  const matches=[...dataLiga].sort((a,b)=>b.tanggal.localeCompare(a.tanggal));
-  const mt=document.getElementById("matchTbody");
-  const ce=canEditLiga();
-  if(!matches.length){mt.innerHTML='<tr class="empty-row"><td colspan="'+(ce?5:4)+'">Belum ada hasil pertandingan.</td></tr>';}
-  else{
-    mt.innerHTML=matches.map(m=>`
+  // 3. Render Tabel Rekap Skor
+  const mt = document.getElementById("matchTbody");
+  if (!hasilList.length) {
+    mt.innerHTML = '<tr class="empty-row"><td colspan="' + (ce ? 5 : 4) + '">Belum ada riwayat hasil pertandingan.</td></tr>';
+  } else {
+    mt.innerHTML = hasilList.map(m => `
       <tr>
-        <td><span class="pill">${escapeHtml(m.round)}</span></td>
+        <td><span class="pill">${escapeHtml(m.round || "Penyisihan")}</span></td>
         <td>${formatTanggal(m.tanggal)}</td>
         <td>${escapeHtml(m.timA)} vs ${escapeHtml(m.timB)}</td>
         <td class="center"><span class="pill total">${m.skorA} - ${m.skorB}</span></td>
-        ${ce?'<td class="center"><button class="icon-btn danger" title="Hapus" onclick="hapusMatch(\''+m.id+'\')">🗑️</button></td>':''}
+        ${ce ? '<td class="center"><button class="icon-btn" title="Koreksi Skor" onclick="openScoreInputModal(\'' + m.id + '\')">✏️</button> <button class="icon-btn danger" title="Hapus" onclick="hapusMatch(\'' + m.id + '\')">🗑️</button></td>' : ''}
       </tr>
     `).join("");
   }
 }
 
-function openMatchModal(){
+function renderBracketMatchBox(m, ce, isFinal = false) {
+  const isAWin = Number(m.skorA) > Number(m.skorB);
+  const isBWin = Number(m.skorB) > Number(m.skorA);
+  return `
+    <div class="bracket-match-box" style="${isFinal ? 'border-color:var(--gold);' : ''}">
+      <div class="bracket-team ${isAWin ? 'winner' : ''}">
+        <span>${isFinal && isAWin ? '🏆 ' : ''}${escapeHtml(m.timA)}</span>
+        <span class="bracket-score">${m.skorA}</span>
+      </div>
+      <div class="bracket-team ${isBWin ? 'winner' : ''}">
+        <span>${isFinal && isBWin ? '🏆 ' : ''}${escapeHtml(m.timB)}</span>
+        <span class="bracket-score">${m.skorB}</span>
+      </div>
+      <div class="bracket-date">${formatTanggal(m.tanggal)}${m.lokasi ? ' • ' + escapeHtml(m.lokasi) : ''}</div>
+      ${ce ? `
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px; padding-top:6px; border-top:1px dashed var(--line);">
+          <button class="icon-btn" style="width:26px; height:26px; font-size:11px;" title="Koreksi Skor" onclick="openScoreInputModal('${m.id}')">✏️</button>
+          <button class="icon-btn danger" style="width:26px; height:26px; font-size:11px;" title="Hapus" onclick="hapusMatch('${m.id}')">🗑️</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function openJadwalModal(matchId = null) {
   fillTeamSelects();
-  document.getElementById("mRound").value="Penyisihan";
-  document.getElementById("mTanggal").value=todayStr();
-  document.getElementById("mTimA").value="";document.getElementById("mTimB").value="";
-  document.getElementById("mSkorA").value="";document.getElementById("mSkorB").value="";
+  const title = document.getElementById("modalLigaTitle");
+  const mode = document.getElementById("mMode");
+  const idInput = document.getElementById("mMatchId");
+  const skorSec = document.getElementById("mSkorSection");
+
+  mode.value = "jadwal";
+  skorSec.style.display = "none";
+
+  if (matchId) {
+    const m = dataLiga.find(i => String(i.id) === String(matchId));
+    if (!m) return;
+    title.textContent = "Ubah Jadwal Pertandingan";
+    idInput.value = m.id;
+    document.getElementById("mRound").value = m.round || "Penyisihan";
+    document.getElementById("mTanggal").value = m.tanggal || todayStr();
+    document.getElementById("mWaktu").value = m.waktu || "";
+    document.getElementById("mLokasi").value = m.lokasi || "Lapangan Utama";
+    document.getElementById("mTimA").value = m.timA || "";
+    document.getElementById("mTimB").value = m.timB || "";
+  } else {
+    title.textContent = "Jadwalkan Pertandingan Baru";
+    idInput.value = "";
+    document.getElementById("mRound").value = "Penyisihan";
+    document.getElementById("mTanggal").value = todayStr();
+    document.getElementById("mWaktu").value = "15:30 WIB";
+    document.getElementById("mLokasi").value = "Lapangan Utama";
+    document.getElementById("mTimA").value = "";
+    document.getElementById("mTimB").value = "";
+  }
   document.getElementById("modalLiga").classList.add("show");
 }
 
-async function simpanMatch(){
-  const round=document.getElementById("mRound").value;
-  const rawT=document.getElementById("mTanggal").value, a=document.getElementById("mTimA").value, b=document.getElementById("mTimB").value;
-  const t=normalizeDateStr(rawT);
-  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).",true);return;}
-  const sa=parseInt(document.getElementById("mSkorA").value), sb=parseInt(document.getElementById("mSkorB").value);
-  if(!a||!b||isNaN(sa)||isNaN(sb)){showToast("Lengkapi semua isian.",true);return;}
-  if(a===b){showToast("Tim tidak boleh sama.",true);return;}
-  if(sa===sb){showToast("Sistem gugur tidak boleh seri. Harus ada pemenang.",true);return;}
-  if(sa<0||sb<0){showToast("Skor tidak boleh negatif.",true);return;}
-  
-  const btn = document.getElementById("btnSaveLiga");
-  btn.disabled = true; btn.textContent = "Menyimpan...";
+function openScoreInputModal(matchId) {
+  fillTeamSelects();
+  const title = document.getElementById("modalLigaTitle");
+  const mode = document.getElementById("mMode");
+  const idInput = document.getElementById("mMatchId");
+  const skorSec = document.getElementById("mSkorSection");
 
-  const newId = Date.now().toString();
-  const matchObj = { id:newId, round:round, tanggal:t, timA:a, timB:b, skorA:sa, skorB:sb };
-  dataLiga.push(matchObj);
-  saveData(KEY_LIGA,dataLiga);
-  
+  const m = dataLiga.find(i => String(i.id) === String(matchId));
+  if (!m) return;
+
+  mode.value = "skor";
+  title.textContent = "Input Skor: " + m.timA + " vs " + m.timB;
+  idInput.value = m.id;
+  document.getElementById("mRound").value = m.round || "Penyisihan";
+  document.getElementById("mTanggal").value = m.tanggal || todayStr();
+  document.getElementById("mWaktu").value = m.waktu || "";
+  document.getElementById("mLokasi").value = m.lokasi || "Lapangan Utama";
+  document.getElementById("mTimA").value = m.timA;
+  document.getElementById("mTimB").value = m.timB;
+
+  skorSec.style.display = "block";
+  document.getElementById("labelSkorA").textContent = "Skor " + m.timA;
+  document.getElementById("labelSkorB").textContent = "Skor " + m.timB;
+  document.getElementById("mSkorA").value = m.skorA !== "" && m.skorA != null ? m.skorA : "";
+  document.getElementById("mSkorB").value = m.skorB !== "" && m.skorB != null ? m.skorB : "";
+
+  document.getElementById("modalLiga").classList.add("show");
+}
+
+function openMatchModal() {
+  openJadwalModal();
+}
+
+async function simpanMatch() {
+  const mode = document.getElementById("mMode").value;
+  const matchId = document.getElementById("mMatchId").value;
+  const round = document.getElementById("mRound").value;
+  const rawT = document.getElementById("mTanggal").value;
+  const waktu = document.getElementById("mWaktu").value.trim();
+  const lokasi = document.getElementById("mLokasi").value.trim() || "Lapangan Utama";
+  const a = document.getElementById("mTimA").value;
+  const b = document.getElementById("mTimB").value;
+
+  const t = normalizeDateStr(rawT);
+  if (!t) { showToast("Format tanggal tidak valid (YYYY-MM-DD).", true); return; }
+  if (!a || !b) { showToast("Pilih Tim A dan Tim B (Gedung).", true); return; }
+  if (a === b) { showToast("Tim tidak boleh sama.", true); return; }
+
+  let sa = "";
+  let sb = "";
+  let status = "UPCOMING";
+
+  if (mode === "skor") {
+    sa = parseInt(document.getElementById("mSkorA").value, 10);
+    sb = parseInt(document.getElementById("mSkorB").value, 10);
+    if (isNaN(sa) || isNaN(sb)) { showToast("Isi skor untuk kedua tim.", true); return; }
+    if (sa < 0 || sb < 0) { showToast("Skor tidak boleh negatif.", true); return; }
+    if (sa === sb) { showToast("Sistem gugur tidak boleh seri. Harus ada pemenang.", true); return; }
+    status = "SELESAI";
+  }
+
+  const btn = document.getElementById("btnSaveLiga");
+  btn.disabled = true;
+  btn.textContent = "Menyimpan...";
+
+  const targetId = matchId || Date.now().toString();
+  const matchObj = {
+    id: targetId,
+    round: round,
+    tanggal: t,
+    waktu: waktu,
+    lokasi: lokasi,
+    timA: a,
+    timB: b,
+    skorA: sa,
+    skorB: sb,
+    status: status
+  };
+
+  const existingIdx = dataLiga.findIndex(i => String(i.id) === String(targetId));
+  if (existingIdx > -1) {
+    dataLiga[existingIdx] = matchObj;
+  } else {
+    dataLiga.push(matchObj);
+  }
+
+  saveData(KEY_LIGA, dataLiga);
   closeModal("modalLiga");
   renderligaMenu();
 
   const res = await sendToCloud("save_match", matchObj);
-  btn.disabled = false; btn.textContent = "Simpan";
-  showToast(res.status==="success" ? "Pertandingan tersimpan!" : "Tersimpan lokal, gagal sync cloud.", res.status!=="success");
+  btn.disabled = false;
+  btn.textContent = "Simpan";
+  showToast(res.status === "success" ? (mode === "skor" ? "Skor berhasil disimpan!" : "Jadwal berhasil disimpan!") : "Tersimpan lokal, gagal sync cloud.", res.status !== "success");
 }
 
-async function hapusMatch(id){
-  if(!confirm("Hapus hasil pertandingan ini?"))return;
-  dataLiga=dataLiga.filter(i=>String(i.id)!==String(id));
-  saveData(KEY_LIGA,dataLiga);
+async function hapusMatch(id) {
+  if (!confirm("Hapus data pertandingan ini?")) return;
+  dataLiga = dataLiga.filter(i => String(i.id) !== String(id));
+  saveData(KEY_LIGA, dataLiga);
   renderligaMenu();
 
   const res = await sendToCloud("delete_match", { id: id });
-  showToast(res.status==="success" ? "Dihapus." : "Gagal menghapus di cloud.", res.status!=="success");
+  showToast(res.status === "success" ? "Dihapus." : "Gagal menghapus di cloud.", res.status !== "success");
 }
 
 /* =========================================================================
@@ -883,7 +1040,7 @@ function renderEvent(){
   const list=[...dataEvent].sort((a,b)=>(String(a.tanggal||'')+String(a.waktu||'')).localeCompare(String(b.tanggal||'')+String(b.waktu||'')));
   const el=document.getElementById("eventList");
   const ce=canEditEvent();
-  if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink-faint);">Belum ada jadwal event atau jadwal bola.</div>';return;}
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink-faint);">Belum ada agenda atau kegiatan pesantren.</div>';return;}
   const months=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
   el.innerHTML=list.map((e)=>{
     let dNum = "–", dMonth = "–";
@@ -902,8 +1059,7 @@ function renderEvent(){
     }
 
     const st=eventStatus(e.tanggal);
-    const isBola = e.kategori === "Jadwal Bola";
-    const badgeColor = isBola ? "background:var(--ink);color:var(--gold-light);" : "background:var(--parchment-dim);color:var(--ink-soft);";
+    const badgeColor = "background:var(--parchment-dim);color:var(--ink-soft);";
     const katLabel = e.kategori || "Event Umum";
     const photoTag = e.foto ? `<img src="${e.foto}" class="event-thumb-img" alt="Poster Kegiatan" title="Klik untuk perbesar" onclick="openLightbox('${e.foto}')">` : '';
 

@@ -132,6 +132,9 @@ function doGet(e) {
       sheetSakan.appendRow(["qazvin-atas", "QAZVIN ATAS", "QAZVIN", 1, true]);
     }
 
+    // Auto-heal master data agar bulk paste dari spreadsheet otomatis terisi id, urutan, & aktif
+    autoHealMasterData(ss);
+
     const result = {
       klasemen: sheetToObjects(ss.getSheetByName("Klasemen")),
       liga: sheetToObjects(ss.getSheetByName("Liga")),
@@ -263,17 +266,53 @@ function doPost(e) {
       let sheet = ss.getSheetByName("Liga");
       if (!sheet) {
         sheet = ss.insertSheet("Liga");
-        sheet.appendRow(["id", "round", "tanggal", "timA", "timB", "skorA", "skorB"]);
+        sheet.appendRow(["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]);
+      } else {
+        // Cek jika header lama (hanya 7 kolom)
+        const header = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
+        if (header.length < 10 && header[3] === "timA") {
+          // Migrasi header jika belum ada waktu, lokasi, status
+          sheet.getRange(1, 1, 1, 10).setValues([["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]]);
+        }
       }
-      sheet.appendRow([
-        payload.id || Date.now().toString(),
-        payload.round,
-        payload.tanggal,
-        payload.timA,
-        payload.timB,
-        payload.skorA,
-        payload.skorB
-      ]);
+
+      const rows = sheet.getDataRange().getValues();
+      let rowIndex = -1;
+      if (payload.id) {
+        for (let i = 1; i < rows.length; i++) {
+          if (String(rows[i][0]) === String(payload.id)) {
+            rowIndex = i + 1;
+            break;
+          }
+        }
+      }
+
+      const matchStatus = payload.status || (payload.skorA !== "" && payload.skorA != null && payload.skorB !== "" && payload.skorB != null ? "SELESAI" : "UPCOMING");
+
+      if (rowIndex > -1) {
+        sheet.getRange(rowIndex, 2).setValue(payload.round || "");
+        sheet.getRange(rowIndex, 3).setValue(payload.tanggal || "");
+        sheet.getRange(rowIndex, 4).setValue(payload.waktu || "");
+        sheet.getRange(rowIndex, 5).setValue(payload.lokasi || "");
+        sheet.getRange(rowIndex, 6).setValue(payload.timA || "");
+        sheet.getRange(rowIndex, 7).setValue(payload.timB || "");
+        sheet.getRange(rowIndex, 8).setValue(payload.skorA != null ? payload.skorA : "");
+        sheet.getRange(rowIndex, 9).setValue(payload.skorB != null ? payload.skorB : "");
+        sheet.getRange(rowIndex, 10).setValue(matchStatus);
+      } else {
+        sheet.appendRow([
+          payload.id || Date.now().toString(),
+          payload.round || "",
+          payload.tanggal || "",
+          payload.waktu || "",
+          payload.lokasi || "",
+          payload.timA || "",
+          payload.timB || "",
+          payload.skorA != null ? payload.skorA : "",
+          payload.skorB != null ? payload.skorB : "",
+          matchStatus
+        ]);
+      }
     }
     else if (action === "delete_match") {
       deleteRowById(ss.getSheetByName("Liga"), payload.id);
@@ -456,7 +495,7 @@ function setupDatabase() {
   ensureSheet("Klasemen", ["id", "tanggal", "sakan", "kebersihan", "kedisiplinan", "bahasa", "totalPoin"]);
 
   // 3. Liga (header saja)
-  ensureSheet("Liga", ["id", "round", "tanggal", "timA", "timB", "skorA", "skorB"]);
+  ensureSheet("Liga", ["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]);
 
   // 4. Event (header saja)
   ensureSheet("Event", ["id", "kategori", "tanggal", "waktu", "judul", "lokasi", "deskripsi", "foto"]);
@@ -487,55 +526,109 @@ function setupDatabase() {
 }
 
 /**
- * Trigger onEdit: Otomatis mengisi kolom 'id' (slug), 'urutan', dan 'aktif' (TRUE)
- * saat pengurus menambahkan nama di tab 'Gedung' atau 'Sakan'.
+ * Auto-heal master data: Menjamin susunan kolom, slug id, urutan, dan aktif (true)
+ * terisi secara otomatis bahkan saat pengurus melakukan bulk paste di spreadsheet.
+ */
+function autoHealMasterData(ss) {
+  if (!ss) ss = getDb();
+
+  // 1. Healing Tab Gedung: id | nama | urutan | aktif
+  let sheetGedung = ss.getSheetByName("Gedung");
+  let gedungNames = [];
+  if (sheetGedung && sheetGedung.getLastRow() > 1) {
+    const dataRange = sheetGedung.getDataRange();
+    const values = dataRange.getValues();
+    let dirty = false;
+    for (let i = 1; i < values.length; i++) {
+      const nama = String(values[i][1] || "").trim();
+      if (nama) {
+        gedungNames.push(nama.toUpperCase());
+        // Auto-generate id jika kosong
+        if (!values[i][0]) {
+          values[i][0] = nama.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+          dirty = true;
+        }
+        // Auto-generate urutan jika kosong
+        if (!values[i][2] && values[i][2] !== 0) {
+          values[i][2] = i;
+          dirty = true;
+        }
+        // Auto-generate aktif jika kosong
+        if (values[i][3] === "" || values[i][3] == null || values[i][3] === undefined) {
+          values[i][3] = true;
+          dirty = true;
+        }
+      }
+    }
+    if (dirty) {
+      dataRange.setValues(values);
+    }
+  }
+
+  // 2. Healing Tab Sakan: id | nama | gedung | urutan | aktif
+  let sheetSakan = ss.getSheetByName("Sakan");
+  if (sheetSakan) {
+    const lastRow = sheetSakan.getLastRow();
+    const lastCol = sheetSakan.getLastColumn();
+    if (lastRow >= 1) {
+      let headers = sheetSakan.getRange(1, 1, 1, Math.max(lastCol, 5)).getValues()[0];
+      // Jika kolom ke-3 adalah "urutan", berarti kolom "gedung" hilang/tergeser!
+      if (String(headers[2]).toLowerCase() === "urutan") {
+        sheetSakan.insertColumnAfter(2);
+        sheetSakan.getRange(1, 3).setValue("gedung");
+      } else if (headers[0] !== "id" || headers[1] !== "nama" || headers[2] !== "gedung") {
+        sheetSakan.getRange(1, 1, 1, 5).setValues([["id", "nama", "gedung", "urutan", "aktif"]]);
+      }
+
+      if (sheetSakan.getLastRow() > 1) {
+        const sDataRange = sheetSakan.getDataRange();
+        const sValues = sDataRange.getValues();
+        let sDirty = false;
+        for (let i = 1; i < sValues.length; i++) {
+          const sNama = String(sValues[i][1] || "").trim();
+          if (sNama) {
+            // Slug id
+            if (!sValues[i][0]) {
+              sValues[i][0] = sNama.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+              sDirty = true;
+            }
+            // Gedung auto-match dari nama sakan jika kosong
+            if (!sValues[i][2] || String(sValues[i][2]).trim() === "") {
+              const matched = gedungNames.find(g => sNama.toUpperCase().startsWith(g) || sNama.toUpperCase().includes(g));
+              if (matched) {
+                sValues[i][2] = matched;
+                sDirty = true;
+              }
+            }
+            // Urutan
+            if (!sValues[i][3] && sValues[i][3] !== 0) {
+              sValues[i][3] = i;
+              sDirty = true;
+            }
+            // Aktif
+            if (sValues[i][4] === "" || sValues[i][4] == null || sValues[i][4] === undefined) {
+              sValues[i][4] = true;
+              sDirty = true;
+            }
+          }
+        }
+        if (sDirty) {
+          sDataRange.setValues(sValues);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Trigger onEdit: Otomatis memicu autoHealMasterData saat pengurus
+ * mengedit atau melakukan bulk paste di tab 'Gedung' atau 'Sakan'.
  */
 function onEdit(e) {
   if (!e || !e.range) return;
   const sheet = e.range.getSheet();
   const sheetName = sheet.getName();
-  const row = e.range.getRow();
-  if (row <= 1) return; // Lewati header
-
-  // Otomatisasi Tab Gedung: id | nama | urutan | aktif
-  if (sheetName === "Gedung") {
-    const idVal = sheet.getRange(row, 1).getValue();
-    const namaVal = sheet.getRange(row, 2).getValue();
-    
-    if (namaVal && !idVal) {
-      const slug = String(namaVal).trim().toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      sheet.getRange(row, 1).setValue(slug);
-    }
-    const urutanVal = sheet.getRange(row, 3).getValue();
-    if (namaVal && !urutanVal) {
-      sheet.getRange(row, 3).setValue(row - 1);
-    }
-    const aktifVal = sheet.getRange(row, 4).getValue();
-    if (namaVal && (aktifVal === "" || aktifVal === null || aktifVal === undefined)) {
-      sheet.getRange(row, 4).setValue(true);
-    }
-  }
-
-  // Otomatisasi Tab Sakan: id | nama | gedung | urutan | aktif
-  if (sheetName === "Sakan") {
-    const idVal = sheet.getRange(row, 1).getValue();
-    const namaVal = sheet.getRange(row, 2).getValue();
-    
-    if (namaVal && !idVal) {
-      const slug = String(namaVal).trim().toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      sheet.getRange(row, 1).setValue(slug);
-    }
-    const urutanVal = sheet.getRange(row, 4).getValue();
-    if (namaVal && !urutanVal) {
-      sheet.getRange(row, 4).setValue(row - 1);
-    }
-    const aktifVal = sheet.getRange(row, 5).getValue();
-    if (namaVal && (aktifVal === "" || aktifVal === null || aktifVal === undefined)) {
-      sheet.getRange(row, 5).setValue(true);
-    }
+  if (sheetName === "Gedung" || sheetName === "Sakan") {
+    autoHealMasterData(sheet.getParent());
   }
 }
