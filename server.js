@@ -146,9 +146,11 @@ const server = http.createServer(async (req, res) => {
         const proxyRes = await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ action: 'login', payload: { username, password } })
+          body: JSON.stringify({ action: 'login', payload: { username, password } }),
+          redirect: 'follow'
         });
-        const data = await proxyRes.json();
+        const text = await proxyRes.text();
+        const data = JSON.parse(text);
         return sendJson(res, proxyRes.ok && data.status === 'success' ? 200 : 401, data);
       } catch (err) {
         return sendJson(res, 500, { status: 'error', message: 'Gagal menghubungi Google Apps Script: ' + err.message });
@@ -188,8 +190,9 @@ const server = http.createServer(async (req, res) => {
     if (GOOGLE_SCRIPT_URL) {
       try {
         if (req.method === 'GET') {
-          const proxyRes = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
-          const data = await proxyRes.json();
+          const proxyRes = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET', redirect: 'follow' });
+          const text = await proxyRes.text();
+          const data = JSON.parse(text);
           return sendJson(res, 200, data);
         }
         if (req.method === 'POST') {
@@ -199,10 +202,14 @@ const server = http.createServer(async (req, res) => {
           const proxyRes = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ ...body, token })
+            body: JSON.stringify({ ...body, token }),
+            redirect: 'follow'
           });
-          const data = await proxyRes.json();
-          return sendJson(res, 200, data);
+          const text = await proxyRes.text();
+          const data = JSON.parse(text);
+          const code = data && data.code;
+          const httpStatus = code === 'unauthorized' ? 401 : code === 'forbidden' ? 403 : 200;
+          return sendJson(res, httpStatus, data);
         }
       } catch (err) {
         return sendJson(res, 500, { status: 'error', message: 'Gagal menghubungi Google Apps Script: ' + err.message });
