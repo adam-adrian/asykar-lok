@@ -137,6 +137,25 @@ describe('TournamentEngine (In-Process Pure Calculation)', () => {
     assert.equal(res.value.loser, 'TIM B');
   });
 
+  test('validateScore: otomatis mendefaultkan skor kosong ke 0 tanpa harus ketik manual', () => {
+    const match = { id: 'm1', timA: 'TIM A', timB: 'TIM B' };
+    const resA = TournamentEngine.validateScore(match, '2', '');
+    assert.equal(resA.ok, true);
+    assert.equal(resA.value.skorA, 2);
+    assert.equal(resA.value.skorB, 0);
+    assert.equal(resA.value.winner, 'TIM A');
+
+    const resB = TournamentEngine.validateScore(match, '', '1');
+    assert.equal(resB.ok, true);
+    assert.equal(resB.value.skorA, 0);
+    assert.equal(resB.value.skorB, 1);
+    assert.equal(resB.value.winner, 'TIM B');
+
+    const resEmpty = TournamentEngine.validateScore(match, '', '');
+    assert.equal(resEmpty.ok, false);
+    assert.equal(resEmpty.code, 'ERR_EMPTY_SCORE');
+  });
+
   test('validateSchedule: menolak tim yang sama dan tanggal tidak valid', () => {
     const resSame = TournamentEngine.validateSchedule({
       timA: 'QAZVIN',

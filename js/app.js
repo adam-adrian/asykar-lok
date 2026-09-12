@@ -231,7 +231,7 @@ function renderSyncBadge(syncStatus, syncId, errorMsg) {
     return `<span class="row-sync-status"><span class="sync-pill-pending" title="Menyinkronkan ke Google Sheets...">${svgIcon('loader', 11, 'svg-spinner')} Mengirim</span></span>`;
   }
   if (syncStatus === 'synced') {
-    return `<span class="row-sync-status"><span class="sync-pill-synced" title="Tersinkronisasi">${svgIcon('check', 12)}</span></span>`;
+    return '';
   }
   if (syncStatus === 'failed') {
     const escMsg = escapeHtml(errorMsg || 'Gagal tersinkron');
@@ -1507,8 +1507,8 @@ function openScoreInputModal(matchId) {
   skorSec.style.display = "block";
   document.getElementById("labelSkorA").textContent = "Skor " + m.timA;
   document.getElementById("labelSkorB").textContent = "Skor " + m.timB;
-  document.getElementById("mSkorA").value = m.skorA !== "" && m.skorA != null ? m.skorA : "";
-  document.getElementById("mSkorB").value = m.skorB !== "" && m.skorB != null ? m.skorB : "";
+  document.getElementById("mSkorA").value = (m.skorA !== "" && m.skorA != null) ? m.skorA : "0";
+  document.getElementById("mSkorB").value = (m.skorB !== "" && m.skorB != null) ? m.skorB : "0";
 
   document.getElementById("modalLiga").classList.add("show");
 }
@@ -1737,8 +1737,11 @@ async function simpanEvent(){
     fotoBase64: tempBase64Image || ""
   };
 
-  btn.disabled = false;
-  btn.textContent = "Simpan";
+  const btn = document.getElementById("btnSaveEvent");
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "Simpan";
+  }
   closeModal("modalEvent");
   clearImageUpload();
 

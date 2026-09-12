@@ -486,12 +486,12 @@
       <div class="field-row" style="margin-bottom:0;">
         <div class="field" id="fieldSkorA">
           <label id="labelSkorA">Skor Tim A</label>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorA" min="0" max="999" placeholder="0" oninput="liveValidateSkor()">
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorA" min="0" max="999" placeholder="0" oninput="liveValidateSkor()" onfocus="this.select()">
           <span class="field-error-hint" id="hintSkorA">Skor 0–999</span>
         </div>
         <div class="field" id="fieldSkorB">
           <label id="labelSkorB">Skor Tim B</label>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorB" min="0" max="999" placeholder="0" oninput="liveValidateSkor()">
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorB" min="0" max="999" placeholder="0" oninput="liveValidateSkor()" onfocus="this.select()">
           <span class="field-error-hint" id="hintSkorB">Skor 0–999</span>
         </div>
       </div>

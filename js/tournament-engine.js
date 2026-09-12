@@ -153,17 +153,22 @@
       };
     }
 
-    if (rawA === "" || rawA == null || rawB === "" || rawB == null) {
+    const valA = (rawA === "" || rawA == null) ? "" : String(rawA).trim();
+    const valB = (rawB === "" || rawB == null) ? "" : String(rawB).trim();
+
+    // Jika kedua skor kosong, berarti belum ada input
+    if (valA === "" && valB === "") {
       return {
         ok: false,
         code: ERROR_CODES.EMPTY_SCORE,
-        error: "Skor kedua tim wajib diisi.",
-        message: "Skor kedua tim wajib diisi."
+        error: "Skor pertandingan belum diisi.",
+        message: "Skor pertandingan belum diisi."
       };
     }
 
-    const strA = String(rawA).trim();
-    const strB = String(rawB).trim();
+    // Jika salah satu kosong, defaultkan otomatis ke 0 (user tidak dipaksa ketik 0 manual)
+    const strA = valA === "" ? "0" : valA;
+    const strB = valB === "" ? "0" : valB;
 
     if (!/^-?\d+$/.test(strA) || !/^-?\d+$/.test(strB)) {
       return {
