@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Evaluasi Visual Headerbar - League Of Kindness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0A192F;
+      --ink-soft: #1E293B;
+      --ink-faint: #475569;
+      --parchment: #F8FAFC;
+      --parchment-dim: #E2E8F0;
+      --card: #FFFFFF;
+      --gold: #2563EB;
+      --gold-light: #93C5FD;
+      --clay: #EF4444;
+      --green-ok: #10B981;
+      --line: #CBD5E1;
+      --radius: 14px;
+      --radius-sm: 9px;
+      --ease: cubic-bezier(.16,1,.3,1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      padding: 30px 20px 80px;
+      line-height: 1.5;
+    }
+
+    h1, h2, h3, .serif { font-family: 'Fraunces', serif; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .meta-panel {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 36px;
+    }
+    .meta-panel h2 {
+      font-size: 20px;
+      color: #93c5fd;
+      margin-bottom: 8px;
+    }
+    .meta-desc {
+      font-size: 13.5px;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      max-width: 850px;
+    }
+
+    /* Controls Bar */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      background: #0b1329;
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid #1e293b;
+    }
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .control-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-toggle {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-toggle:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .btn-toggle.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #3b82f6;
+      box-shadow: 0 0 12px rgba(37,99,235,0.4);
+    }
+
+    /* Section Styles */
+    .option-card {
+      background: #182234;
+      border: 1px solid #283548;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 40px;
+      overflow: visible;
+    }
+    .option-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #283548;
+      padding-bottom: 14px;
+    }
+    .option-title {
+      font-size: 19px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .badge-opt {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .badge-new { background: #065f46; color: #6ee7b7; border: 1px solid #10b981; }
+    .option-specs {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .preview-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      margin: 18px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .preview-section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #283548;
+    }
+
+    /* Desktop View Wrapper */
+    .desktop-viewport {
+      background: var(--parchment);
+      border-radius: 12px;
+      overflow: visible;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+      border: 1px solid #334155;
+      min-height: 220px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    /* Mobile View Simulation Container */
+    .mobile-grid {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+    .mobile-frame {
+      width: 375px;
+      box-sizing: content-box; /* Pastikan viewport dalam tepat 375px */
+      background: var(--parchment);
+      border-radius: 36px;
+      overflow: visible;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.45);
+      border: 10px solid #0f172a;
+      outline: 2px solid #334155;
+      position: relative;
+      min-height: 440px;
+      display: flex;
+      flex-direction: column;
+    }
+    .mobile-notch {
+      width: 120px;
+      height: 16px;
+      background: #0f172a;
+      margin: 0 auto;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      position: relative;
+      z-index: 1000;
+    }
+    .mobile-content {
+      flex: 1;
+      padding: 16px 14px;
+      color: var(--ink);
+    }
+    .mobile-sample-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid var(--line);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .mobile-sample-card h4 {
+      font-size: 14px;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+    .mobile-sample-card p {
+      font-size: 12px;
+      color: var(--ink-faint);
+    }
+
+    /* Bottom Nav Simulation */
+    .mock-bottom-nav {
+      height: 56px;
+      background: var(--ink);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 8px;
+    }
+    .mock-bottom-nav span {
+      font-size: 10px;
+      color: var(--gold-light);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .mock-bottom-nav span.active {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* ========================================================
+       SHARED COMPONENT ELEMENTS
+       ======================================================== */
+    .icon {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .sync-dot.online { background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+    .sync-dot.loading { background: #93C5FD; animation: spin 1s linear infinite; }
+    .sync-dot.offline { background: #EF4444; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ========================================================
+       OPSI A: CLEAN COMPACT BAR (RESPONSIVE FLEXBOX)
+       ======================================================== */
+    .topbar-a {
+      background: var(--ink);
+      color: var(--parchment);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      min-height: 56px;
+      position: relative;
+      z-index: 100;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .topbar-a-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      min-width: 0;
+      flex-shrink: 1;
+    }
+    .topbar-a-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-light);
+      font-family: 'Fraunces', serif;
+      font-weight: 700;
+      font-size: 13.5px;
+      flex-shrink: 0;
+      background: rgba(147,197,253,0.08);
+    }
+    .topbar-a-title {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    /* Desktop Centered Nav */
+    .topbar-a-nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex: 1;
+    }
+    .nav-pill-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,255,255,0.05);
+      padding: 3px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-pill-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-pill-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+    .nav-pill-btn.active {
+      background: var(--gold);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+    }
+
+    /* Right Action Cluster */
+    .topbar-a-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: flex-end;
+      flex-shrink: 0; /* Cegah kluster kanan terdorong ke luar layar */
+    }
+    .status-chip-a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 4px 9px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    
+    /* Guest Button: Ghost / Outline */
+    .btn-guest-login {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--parchment);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-guest-login:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    /* ========================================================
+       USER DROPDOWN MENU PATTERN
+       ======================================================== */
+    .user-menu-wrap {
+      position: relative;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* Trigger Pill Button */
+    .btn-user-pill {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #f8fafc;
+      padding: 4px 10px 4px 5px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-user-pill:hover, .btn-user-pill.active {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+    .user-avatar-pip {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .user-pill-name {
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-block;
+    }
+    .user-caret {
+      font-size: 9px;
+      color: #94a3b8;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+    .btn-user-pill.active .user-caret {
+      transform: rotate(180deg);
+    }
+
+    /* Floating Dropdown Popover */
+    .user-dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      background: #0d1e38;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+      min-width: 190px;
+      padding: 8px 0;
+      z-index: 1500;
+      animation: dropdownIn 0.18s var(--ease);
+    }
+    .user-dropdown-menu.show {
+      display: block;
+    }
+
+    @keyframes dropdownIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .dropdown-user-header {
+      padding: 10px 16px 8px;
+    }
+    .dropdown-user-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dropdown-user-role {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #93c5fd;
+      background: rgba(37,99,235,0.25);
+      border: 1px solid rgba(37,99,235,0.4);
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-top: 4px;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 6px 0;
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 9px 16px;
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .dropdown-item:hover {
+      background: rgba(255,255,255,0.07);
+      color: #fff;
+    }
+    .dropdown-item.danger {
+      color: #fca5a5;
+    }
+    .dropdown-item.danger:hover {
+      background: rgba(239,68,68,0.15);
+      color: #ef4444;
+    }
+
+    /* ========================================================
+       MOBILE CALIBRATIONS (360px - 390px FIT)
+       ======================================================== */
+    /* Mobile Adaptations for Opsi A */
+    .mobile-frame .topbar-a {
+      padding: 0 12px;
+      height: 52px;
+      min-height: 52px;
+      gap: 8px;
+    }
+    .mobile-frame .topbar-a-nav {
+      display: none;
+    }
+    .mobile-frame .topbar-a-brand {
+      gap: 8px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+    .mobile-frame .topbar-a-title {
+      font-size: 15px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .mobile-frame .topbar-a-mark {
+      width: 32px;
+      height: 32px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .mobile-frame .topbar-a-right {
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .mobile-frame .status-chip-a {
+      padding: 2px;
+      background: none;
+      border: none;
+    }
+    .mobile-frame .status-text-a {
+      display: none;
+    }
+    .mobile-frame .btn-guest-login {
+      padding: 4px 8px;
+      font-size: 11px;
+      gap: 4px;
+    }
+    .mobile-frame .btn-user-pill {
+      padding: 3px;
+      border: none;
+      background: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .mobile-frame .user-avatar-pip {
+      width: 26px;
+      height: 26px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1.5px solid rgba(147, 197, 253, 0.45);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+    .mobile-frame .btn-user-pill:hover .user-avatar-pip,
+    .mobile-frame .btn-user-pill.active .user-avatar-pip {
+      border-color: #ffffff;
+      transform: scale(1.06);
+      box-shadow: 0 0 8px rgba(37,99,235,0.6);
+    }
+    .mobile-frame .user-pill-name {
+      display: none;
+    }
+    .mobile-frame .user-caret {
+      display: none;
+    }
+
+    /* State toggling helpers */
+    .state-admin .guest-only { display: none !important; }
+    .state-guest .admin-only { display: none !important; }
+  </style>
+</head>
+<body class="state-admin">
+
+  <div class="container">
+    <!-- Header / Meta Panel -->
+    <header class="meta-panel">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div>
+          <h2>Eksplorasi Mockup — Opsi A dengan User Dropdown (Fix Overflow)</h2>
+          <p class="meta-desc">
+            Ukuran komponen di HP telah dikalibrasi presisi: flexbox dilindungi <code>min-width: 0</code> dan <code>flex-shrink: 0</code>, dot sync dibuat ringkas tanpa padding chip berlebih, serta nama akun diatur aman di <code>max-width: 65px</code> agar tidak meluap dari batas layar HP 360-375px.
+          </p>
+        </div>
+        <div style="font-size:12px; color:#64748b; background:#0b1329; padding:6px 12px; border-radius:8px; border:1px solid #1e293b;">
+          Server Lokal: <span style="color:#10b981; font-weight:600;">http://localhost:8899/mockup-header.html</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <div class="control-group">
+          <span class="control-label">Status Pengguna:</span>
+          <button class="btn-toggle" id="btnModeGuest" onclick="setMode('guest')">Mode Tamu (95% User)</button>
+          <button class="btn-toggle active" id="btnModeAdmin" onclick="setMode('admin')">Mode Admin Login</button>
+        </div>
+
+        <div style="width: 1px; height: 24px; background: #334155; margin: 0 4px;"></div>
+
+        <div class="control-group">
+          <span class="control-label">Status Cloud:</span>
+          <button class="btn-toggle active" id="btnSyncOnline" onclick="setSync('online', 'Cloud Terhubung')">Online</button>
+          <button class="btn-toggle" id="btnSyncLoading" onclick="setSync('loading', 'Sinkronisasi...')">Syncing</button>
+          <button class="btn-toggle" id="btnSyncOffline" onclick="setSync('offline', 'Offline / Gagal')">Offline</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========================================================
+         OPSI A: DENGAN USER DROPDOWN (RESPONSIVE VERIFIED)
+         ======================================================== -->
+    <section class="option-card">
+      <div class="option-header">
+        <div class="option-title">
+          <span>Opsi A: Clean Compact Bar + User Dropdown</span>
+          <span class="badge-opt badge-new">Terpilih & Terkalibrasi</span>
+        </div>
+        <div class="option-specs">52-56px Ramping • Zero Overflow pada HP 360-375px</div>
+      </div>
+
+      <div class="preview-section-title">1. Preview Desktop (Lebar Penuh)</div>
+      <div class="desktop-viewport">
+        <header class="topbar-a">
+          <a class="topbar-a-brand" href="#homepage">
+            <div class="topbar-a-mark">LK</div>
+            <h1 class="topbar-a-title serif">League Of Kindness</h1>
+          </a>
+
+          <nav class="topbar-a-nav">
+            <div class="nav-pill-box">
+              <button class="nav-pill-btn active">Beranda</button>
+              <button class="nav-pill-btn">Klasemen</button>
+              <button class="nav-pill-btn">Turnamen Bola</button>
+              <button class="nav-pill-btn">Jadwal Event</button>
+            </div>
+          </nav>
+
+          <div class="topbar-a-right">
+            <div class="status-chip-a">
+              <span class="sync-dot online" id="syncDotA"></span>
+              <span class="status-text-a" id="syncTextA">Cloud Terhubung</span>
+            </div>
+
+            <!-- Tamu State -->
+            <button class="btn-guest-login guest-only" onclick="setMode('admin')">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+              <span>Login Admin</span>
+            </button>
+
+            <!-- Admin State -->
+            <div class="user-menu-wrap admin-only" id="userMenuDesktopWrap">
+              <button class="btn-user-pill" id="btnUserDesktop" onclick="toggleDropdown('dropdownDesktop', 'btnUserDesktop', event)">
+                <div class="user-avatar-pip">A</div>
+                <span class="user-pill-name">admin_pesantren</span>
+                <span class="user-caret">▼</span>
+              </button>
+
+              <div class="user-dropdown-menu" id="dropdownDesktop">
+                <div class="dropdown-user-header">
+                  <div class="dropdown-user-title">admin_pesantren</div>
+                  <div class="dropdown-user-role">Admin Utama</div>
+                </div>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item danger" onclick="logoutSim()">
+                  <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                  <span>Keluar</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </header>
+
+        <!-- Mock Content Background -->
+        <div style="padding: 24px; color: var(--ink);">
+          <div style="font-size: 12px; color: var(--gold); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</div>
+          <h2 style="font-size: 22px; margin-bottom: 6px;">Ahlan wa Sahlan di Liga Kebaikan</h2>
+          <p style="font-size: 13px; color: var(--ink-faint);">Klik nama akun <strong>admin_pesantren</strong> di pojok kanan atas untuk melihat menu dropdown.</p>
+        </div>
+      </div>
+
+      <div class="preview-section-title">2. Preview Layar HP 375px (Viewport Dalam Pas 375px)</div>
+      <div class="mobile-grid">
+        <div class="mobile-frame">
+          <div class="mobile-notch"></div>
+          <header class="topbar-a">
+            <div class="topbar-a-brand">
+              <div class="topbar-a-mark">LK</div>
+              <h1 class="topbar-a-title serif">League Of Kindness</h1>
+            </div>
+
+            <div class="topbar-a-right">
+              <div class="status-chip-a" title="Status Sinkronisasi">
+                <span class="sync-dot online" id="syncDotAMob"></span>
+              </div>
+
+              <!-- Tamu State: Mobile Button -->
+              <button class="btn-guest-login guest-only" onclick="setMode('admin')">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                <span>Admin</span>
+              </button>
+
+              <!-- Admin State: Mobile Pill & Dropdown -->
+              <div class="user-menu-wrap admin-only" id="userMenuMobileWrap">
+                <button class="btn-user-pill" id="btnUserMobile" onclick="toggleDropdown('dropdownMobile', 'btnUserMobile', event)">
+                  <div class="user-avatar-pip">A</div>
+                  <span class="user-pill-name">admin_pesantren</span>
+                  <span class="user-caret">▼</span>
+                </button>
+
+                <div class="user-dropdown-menu" id="dropdownMobile">
+                  <div class="dropdown-user-header">
+                    <div class="dropdown-user-title">admin_pesantren</div>
+                    <div class="dropdown-user-role">Admin Utama</div>
+                  </div>
+                  <div class="dropdown-divider"></div>
+                  <button class="dropdown-item danger" onclick="logoutSim()">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <span>Keluar</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </header>
+
+          <div class="mobile-content">
+            <div class="mobile-sample-card">
+              <h4>Kompak & Presisi di HP</h4>
+              <p>Header tetap rapi 1 baris di dalam batas frame tanpa menabrak tepi kanan.</p>
+            </div>
+            <div class="mobile-sample-card">
+              <h4>Bebas Sesak</h4>
+              <p>Tinggi header tetap 52px, konten langsung kelihatan tanpa terdorong ke bawah.</p>
+            </div>
+          </div>
+
+          <nav class="mock-bottom-nav">
+            <span class="active">Beranda</span>
+            <span>Klasemen</span>
+            <span>Turnamen</span>
+            <span>Event</span>
+          </nav>
+        </div>
+
+        <div style="flex: 1; min-width: 300px; padding-top: 10px;">
+          <h4 style="color:#6ee7b7; margin-bottom: 12px; font-size: 16px;">Koreksi yang Baru Diterapkan:</h4>
+          <ul style="font-size: 13.5px; color: #cbd5e1; padding-left: 20px; line-height: 1.8;">
+            <li><strong>Kalibrasi Lebar Frame:</strong> Simulator mobile disetel ke <code>box-sizing: content-box</code> agar layar dalam benar-benar berukuran 375px (sebelumnya terpotong oleh border frame 20px).</li>
+            <li><strong>Flexbox Anti-Overflow:</strong> Menambahkan <code>min-width: 0</code> pada brand kiri dan <code>flex-shrink: 0</code> pada kluster kanan, sehingga tombol akun tidak akan pernah terdorong keluar layar.</li>
+            <li><strong>Optimasi Dot Sync HP:</strong> Menghapus padding pill berlebih di mobile, hanya menyisakan dot 7px murni.</li>
+            <li><strong>Ukuran Pill Terukur:</strong> Avatar 20px, gap 5px, dan <code>max-width: 65px</code> untuk nama akun, pas dan proporsional.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    function setMode(mode) {
+      document.body.className = (mode === 'admin') ? 'state-admin' : 'state-guest';
+      document.getElementById('btnModeGuest').classList.toggle('active', mode === 'guest');
+      document.getElementById('btnModeAdmin').classList.toggle('active', mode === 'admin');
+      closeAllDropdowns();
+    }
+
+    function setSync(status, label) {
+      ['syncDotA', 'syncDotAMob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.className = 'sync-dot ' + status;
+      });
+      const txtA = document.getElementById('syncTextA');
+      if (txtA) txtA.textContent = label;
+
+      ['btnSyncOnline', 'btnSyncLoading', 'btnSyncOffline'].forEach(id => {
+        document.getElementById(id).classList.toggle('active', id.toLowerCase().includes(status));
+      });
+    }
+
+    function toggleDropdown(menuId, btnId, event) {
+      event.stopPropagation();
+      const menu = document.getElementById(menuId);
+      const btn = document.getElementById(btnId);
+      const isShown = menu.classList.contains('show');
+      closeAllDropdowns();
+      if (!isShown) {
+        menu.classList.add('show');
+        btn.classList.add('active');
+      }
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.user-dropdown-menu').forEach(m => m.classList.remove('show'));
+      document.querySelectorAll('.btn-user-pill').forEach(b => b.classList.remove('active'));
+    }
+
+    function logoutSim() {
+      closeAllDropdowns();
+      setMode('guest');
+    }
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-menu-wrap')) {
+        closeAllDropdowns();
+      }
+    });
+  </script>
+</body>
+</html>

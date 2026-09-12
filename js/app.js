@@ -465,26 +465,60 @@ function logout() {
 function applyUserSessionUI() {
   const isAdmin = currentRole && currentRole !== "tamu";
   const btnLogin = document.getElementById("btnLoginTrigger");
-  const btnLogout = document.getElementById("btnLogoutBtn");
+  const userMenu = document.getElementById("userMenuWrap");
   const chip = document.getElementById("roleChip");
+  const avatar = document.getElementById("userAvatarInitial");
+  const dropUser = document.getElementById("dropdownUsername");
 
   if (isAdmin) {
     if (btnLogin) btnLogin.classList.add("hidden");
-    if (btnLogout) btnLogout.classList.remove("hidden");
+    if (userMenu) userMenu.classList.remove("hidden");
     if (chip) {
       chip.textContent = currentLabel || "Admin";
       chip.className = "role-chip r-" + currentRole;
-      chip.classList.remove("hidden");
+    }
+    if (avatar) {
+      avatar.textContent = (currentUser || "A").charAt(0).toUpperCase();
+    }
+    if (dropUser) {
+      dropUser.textContent = currentUser || "";
     }
     updateDisplayUsername(currentUser);
   } else {
     if (btnLogin) btnLogin.classList.remove("hidden");
-    if (btnLogout) btnLogout.classList.add("hidden");
-    if (chip) chip.classList.add("hidden");
+    if (userMenu) userMenu.classList.add("hidden");
     updateDisplayUsername("");
   }
+  closeUserDropdown();
   applyAccessNotes();
 }
+
+function toggleUserDropdown(event) {
+  if (event) event.stopPropagation();
+  const menu = document.getElementById("userDropdownMenu");
+  const btn = document.getElementById("btnUserMenuTrigger");
+  if (!menu || !btn) return;
+  const isShown = menu.classList.contains("show");
+  if (isShown) {
+    closeUserDropdown();
+  } else {
+    menu.classList.add("show");
+    btn.classList.add("active");
+  }
+}
+
+function closeUserDropdown() {
+  const menu = document.getElementById("userDropdownMenu");
+  const btn = document.getElementById("btnUserMenuTrigger");
+  if (menu) menu.classList.remove("show");
+  if (btn) btn.classList.remove("active");
+}
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("#userMenuWrap")) {
+    closeUserDropdown();
+  }
+});
 
 function switchView(view, pushToHistory = true){
   currentView=view;

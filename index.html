@@ -39,10 +39,7 @@
   <header class="topbar">
     <button class="topbar-left" onclick="switchView('homepage')" title="Kembali ke Beranda">
       <div class="topbar-mark">LK</div>
-      <div>
-        <h1>League Of Kindness</h1>
-        <div class="who"><span id="displayUsername"></span></div>
-      </div>
+      <h1>League Of Kindness</h1>
     </button>
 
     <nav class="topbar-nav">
@@ -57,9 +54,33 @@
         <span class="sync-dot" id="syncDot"></span>
         <span id="syncText">Cloud Sync</span>
       </div>
-      <span class="role-chip hidden" id="roleChip"></span>
-      <button class="btn btn-ghost hidden" id="btnLogoutBtn" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:7px 16px; font-size:12.5px;" onclick="logout()">Keluar</button>
-      <button class="btn btn-gold" id="btnLoginTrigger" style="padding:7px 16px; font-size:12.5px;" onclick="openLoginModal()">Login Admin</button>
+
+      <!-- Guest State: Tombol Login Admin Outline -->
+      <button class="btn btn-guest-login" id="btnLoginTrigger" onclick="openLoginModal()" title="Masuk sebagai Administrator">
+        <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+        <span>Login Admin</span>
+      </button>
+
+      <!-- Admin State: User Profile Dropdown -->
+      <div class="user-menu-wrap hidden" id="userMenuWrap">
+        <button class="btn-user-pill" id="btnUserMenuTrigger" onclick="toggleUserDropdown(event)" title="Menu Akun">
+          <div class="user-avatar-pip" id="userAvatarInitial">A</div>
+          <span class="user-pill-name" id="displayUsername"></span>
+          <span class="user-caret">▼</span>
+        </button>
+
+        <div class="user-dropdown-menu" id="userDropdownMenu">
+          <div class="dropdown-user-header">
+            <div class="dropdown-user-title" id="dropdownUsername"></div>
+            <span class="role-chip" id="roleChip">Admin</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item danger" id="btnLogoutBtn" onclick="logout()">
+            <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Keluar</span>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
