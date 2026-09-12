@@ -524,6 +524,9 @@ function switchView(view, pushToHistory = true){
   currentView=view;
   saveSession();
 
+  // Kembalikan posisi scroll ke atas setiap berpindah halaman
+  window.scrollTo({ top: 0, behavior: "instant" });
+
   // Push state ke browser history agar saat tombol Back ditekan tidak langsung keluar web
   if(pushToHistory){
     history.pushState({ view: view }, "", "#" + view);
