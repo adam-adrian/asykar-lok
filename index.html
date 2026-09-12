@@ -11,58 +11,29 @@
 </head>
 <body>
 
-<!-- ===== POP-UP LOGIN UTAMA ===== -->
-<div class="login-veil show" id="loginModal">
+<!-- ===== POP-UP LOGIN ADMIN ===== -->
+<div class="login-veil" id="loginModal">
   <div class="login-modal-box">
-    <h3>Masuk ke Sistem</h3>
-    <p class="sub">Gunakan akun Pengurus / Admin atau lanjutkan sebagai tamu.</p>
+    <h3>Login Admin</h3>
+    <p class="sub">Masuk untuk mengelola penilaian klasemen, jadwal bola, dan agenda.</p>
     <div class="login-error" id="loginError"></div>
     <div class="field">
       <label>Username</label>
-      <input type="text" id="usernameInput" placeholder="Masukkan username" maxlength="30">
+      <input type="text" id="usernameInput" placeholder="Masukkan username admin" maxlength="30">
     </div>
     <div class="field">
       <label>Password</label>
       <input type="password" id="passwordInput" placeholder="Masukkan password" maxlength="30">
     </div>
-    <button class="btn btn-gold btn-block" id="btnLoginSubmit" onclick="login()">Masuk</button>
-    <div class="or-divider">atau</div>
-    <button class="btn btn-ghost btn-block" onclick="loginAsTamu()">Masuk sebagai Tamu</button>
-  </div>
-</div>
-
-<!-- ===== POP-UP SELAMAT DATANG (WELCOME) ===== -->
-<div class="welcome-veil" id="welcomeModal">
-  <div class="welcome-modal-box">
-    <div class="welcome-icon">LK</div>
-    <h3>Selamat Datang</h3>
-    <p>السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُهُ</p>
-    <div class="welcome-user" id="welcomeUserName"></div>
-    <button class="btn btn-gold btn-block" onclick="proceedToAgendaCheck()">Lanjutkan</button>
-  </div>
-</div>
-
-<!-- ===== POP-UP PERINGATAN AGENDA (HARI INI) ===== -->
-<div class="agenda-veil" id="agendaModal">
-  <div class="agenda-modal-box">
-    <div class="agenda-modal-header">
-      <div class="agenda-modal-icon">
-        <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      </div>
-      <div>
-        <h3>Peringatan Agenda Hari Ini</h3>
-        <p class="agenda-sub" id="agendaDateSub"></p>
-      </div>
+    <div style="display:flex; gap:10px; margin-top:16px;">
+      <button class="btn btn-gold" id="btnLoginSubmit" onclick="login()" style="flex:1;">Masuk</button>
+      <button class="btn btn-ghost" onclick="closeLoginModal()" style="flex:1;">Batal</button>
     </div>
-    <div class="agenda-list-container" id="agendaListContainer">
-      <!-- Diisi dinamis via JS -->
-    </div>
-    <button class="btn btn-primary btn-block" onclick="closeAgendaModal()">Mengerti &amp; Masuk Beranda</button>
   </div>
 </div>
 
 <!-- ===== DASHBOARD UTAMA ===== -->
-<div class="hidden" id="dashboard">
+<div id="dashboard">
   
   <!-- UNIFIED TOPBAR HEADER -->
   <header class="topbar">
@@ -86,8 +57,9 @@
         <span class="sync-dot" id="syncDot"></span>
         <span id="syncText">Cloud Sync</span>
       </div>
-      <span class="role-chip" id="roleChip"></span>
-      <button class="btn btn-ghost" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:7px 16px; font-size:12.5px;" onclick="logout()">Keluar</button>
+      <span class="role-chip hidden" id="roleChip"></span>
+      <button class="btn btn-ghost hidden" id="btnLogoutBtn" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:7px 16px; font-size:12.5px;" onclick="logout()">Keluar</button>
+      <button class="btn btn-gold" id="btnLoginTrigger" style="padding:7px 16px; font-size:12.5px;" onclick="openLoginModal()">Login Admin</button>
     </div>
   </header>
 

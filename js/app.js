@@ -367,15 +367,42 @@ function canEditEvent() {
   return currentRole === 'admin_utama';
 }
 
-async function login(){
-  const u=document.getElementById("usernameInput").value.trim();
-  const p=document.getElementById("passwordInput").value.trim();
-  const err=document.getElementById("loginError");
-  const btn=document.getElementById("btnLoginSubmit");
-  
-  if(!u||!p){err.textContent="Mohon lengkapi username dan password.";err.style.display="block";return;}
+function openLoginModal() {
+  const err = document.getElementById("loginError");
+  if (err) err.style.display = "none";
+  const pInp = document.getElementById("passwordInput");
+  if (pInp) pInp.value = "";
+  const m = document.getElementById("loginModal");
+  if (m) m.classList.add("show");
+  setTimeout(() => {
+    const uInp = document.getElementById("usernameInput");
+    if (uInp) uInp.focus();
+  }, 100);
+}
 
-  btn.disabled = true; btn.textContent = "Memverifikasi...";
+function closeLoginModal() {
+  const m = document.getElementById("loginModal");
+  if (m) m.classList.remove("show");
+  const pInp = document.getElementById("passwordInput");
+  if (pInp) pInp.value = "";
+  const err = document.getElementById("loginError");
+  if (err) err.style.display = "none";
+}
+
+async function login() {
+  const u = document.getElementById("usernameInput").value.trim();
+  const p = document.getElementById("passwordInput").value.trim();
+  const err = document.getElementById("loginError");
+  const btn = document.getElementById("btnLoginSubmit");
+
+  if (!u || !p) {
+    err.textContent = "Mohon lengkapi username dan password admin.";
+    err.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Memverifikasi...";
   err.style.display = "none";
 
   try {
@@ -386,88 +413,77 @@ async function login(){
     });
     const json = await res.json();
 
-    if(json.status === "success" && json.user){
+    if (json.status === "success" && json.user) {
       currentUser = json.user.username;
       currentRole = json.user.role || "admin_utama";
       currentLabel = json.user.label || "Admin";
       currentAuthToken = json.token || "";
-      enterDashboard(true);
+
+      saveSession();
+      store.setAuthToken(currentAuthToken);
+      closeLoginModal();
+      applyUserSessionUI();
+      showToast("Berhasil masuk sebagai " + currentLabel);
+
+      // Refresh tampilan aktif agar kontrol aksi admin langsung muncul
+      if (currentView === "klasemen") renderKlasemen();
+      else if (currentView === "liga") renderligaMenu();
+      else if (currentView === "event") renderEvent();
+      else if (currentView === "homepage") renderDashboard();
     } else {
-      err.textContent = json.message || "Username atau password salah.";
+      err.textContent = json.message || "Username atau password admin salah.";
       err.style.display = "block";
       document.getElementById("passwordInput").value = "";
     }
-  } catch(ex) {
+  } catch (ex) {
     err.textContent = "Gagal menghubungi server autentikasi. Pastikan koneksi internet aktif.";
     err.style.display = "block";
   } finally {
-    btn.disabled = false; btn.textContent = "Masuk";
+    btn.disabled = false;
+    btn.textContent = "Masuk";
   }
 }
 
-function loginAsTamu(){
-  currentUser="Tamu";currentRole="tamu";currentLabel="Tamu";currentAuthToken="";
-  enterDashboard(true);
-}
-
-function enterDashboard(showWelcome = false){
-  store.setAuthToken(currentAuthToken);
-  document.getElementById("loginModal").classList.remove("show");
-  document.getElementById("dashboard").classList.remove("hidden");
-  updateDisplayUsername(currentUser);
-  const chip=document.getElementById("roleChip");
-  chip.textContent=currentLabel;chip.className="role-chip r-"+currentRole;
-  
-  saveSession();
-
-  if(showWelcome){
-    document.getElementById("welcomeUserName").textContent = currentUser;
-    document.getElementById("welcomeModal").classList.add("show");
-  } else {
-    switchView(currentView);
-  }
-}
-
-function proceedToAgendaCheck(){
-  document.getElementById("welcomeModal").classList.remove("show");
-  const today = todayStr();
-  const todayEvents = dataEvent.filter(e => e.tanggal === today);
-
-  if(todayEvents.length > 0){
-    document.getElementById("agendaDateSub").textContent = formatTanggal(today) + " (" + todayEvents.length + " Agenda)";
-    const container = document.getElementById("agendaListContainer");
-    container.innerHTML = todayEvents.map(ev => `
-      <div class="agenda-item-card">
-        <div class="agenda-item-title">${escapeHtml(ev.judul)}</div>
-        <div class="agenda-item-meta">
-          <span>${svgIcon('clock', 12)} ${formatWaktu(ev.waktu)}</span>
-          <span>${svgIcon('map-pin', 12)} ${escapeHtml(ev.lokasi || "Lokasi utama")}</span>
-        </div>
-      </div>
-    `).join("");
-    document.getElementById("agendaModal").classList.add("show");
-  } else {
-    switchView("homepage");
-  }
-}
-
-function closeAgendaModal(){
-  document.getElementById("agendaModal").classList.remove("show");
-  switchView("homepage");
-}
-
-function resetToLogin(){
-  currentUser="";currentRole="";currentLabel="";currentAuthToken="";
+function logout() {
+  if (!confirm("Keluar dari akun admin?")) return;
+  currentUser = "Tamu";
+  currentRole = "tamu";
+  currentLabel = "Tamu";
+  currentAuthToken = "";
   clearSession();
-  document.getElementById("dashboard").classList.add("hidden");
-  document.getElementById("loginModal").classList.add("show");
-  document.getElementById("passwordInput").value="";
+  store.setAuthToken("");
+  applyUserSessionUI();
+  showToast("Anda telah keluar. Mode publik (view-only) aktif.");
+
+  // Refresh tampilan aktif agar tombol aksi admin tersembunyi
+  if (currentView === "klasemen") renderKlasemen();
+  else if (currentView === "liga") renderligaMenu();
+  else if (currentView === "event") renderEvent();
+  else if (currentView === "homepage") renderDashboard();
 }
 
-function logout(){
-  if(!confirm("Yakin ingin keluar?"))return;
-  resetToLogin();
-  document.getElementById("usernameInput").value="";
+function applyUserSessionUI() {
+  const isAdmin = currentRole && currentRole !== "tamu";
+  const btnLogin = document.getElementById("btnLoginTrigger");
+  const btnLogout = document.getElementById("btnLogoutBtn");
+  const chip = document.getElementById("roleChip");
+
+  if (isAdmin) {
+    if (btnLogin) btnLogin.classList.add("hidden");
+    if (btnLogout) btnLogout.classList.remove("hidden");
+    if (chip) {
+      chip.textContent = currentLabel || "Admin";
+      chip.className = "role-chip r-" + currentRole;
+      chip.classList.remove("hidden");
+    }
+    updateDisplayUsername(currentUser);
+  } else {
+    if (btnLogin) btnLogin.classList.remove("hidden");
+    if (btnLogout) btnLogout.classList.add("hidden");
+    if (chip) chip.classList.add("hidden");
+    updateDisplayUsername("");
+  }
+  applyAccessNotes();
 }
 
 function switchView(view, pushToHistory = true){
@@ -539,23 +555,31 @@ function switchTab(tab){
 }
 
 function applyAccessNotes(){
-  const k=document.getElementById("klasemenAccessNote");
-  let accessText = currentRole==="admin_utama" ? "Anda masuk sebagai Admin Utama — dapat mengelola semua data." : "Anda masuk sebagai Tamu — hanya dapat melihat data.";
-  k.innerHTML = `<span>${accessText}</span> <span style="font-size:11px; opacity:.8;">[Database Terintegrasi]</span>`;
+  const k = document.getElementById("klasemenAccessNote");
+  const isAdmin = currentRole === "admin_utama";
+  const accessText = isAdmin ? "Akses Admin Utama — dapat mengelola semua data." : "Mode Publik — hanya dapat melihat peringkat sakan.";
+  if (k) k.innerHTML = `<span>${accessText}</span> <span style="font-size:11px; opacity:.8;">[Database Terintegrasi]</span>`;
   
   const addK = document.getElementById("addKlasemenBtn");
   if(addK) addK.classList.toggle("hidden",!canEditKlasemenAny());
   const addBulkK = document.getElementById("addBulkKlasemenBtn");
   if(addBulkK) addBulkK.classList.toggle("hidden",!canEditKlasemenAny());
-  document.getElementById("actionHead").classList.toggle("hidden",!canEditKlasemenAny());
-  document.getElementById("ligaAccessNote").innerHTML=`<span>${canEditLiga()?"Anda dapat mengelola jadwal pertandingan dan hasil turnamen bola.":"Anda hanya dapat melihat jadwal dan bagan turnamen bola."}</span>`;
+  const ah = document.getElementById("actionHead");
+  if(ah) ah.classList.toggle("hidden",!canEditKlasemenAny());
+
+  const lNote = document.getElementById("ligaAccessNote");
+  if(lNote) lNote.innerHTML = `<span>${canEditLiga() ? "Akses Admin — dapat mengelola jadwal pertandingan dan hasil turnamen bola." : "Mode Publik — jadwal dan bagan turnamen bola."}</span>`;
   const addJb = document.getElementById("addJadwalBolaBtn");
   if(addJb) addJb.classList.toggle("hidden",!canEditLiga());
   const mb = document.getElementById("addMatchBtn");
   if(mb) mb.classList.toggle("hidden",!canEditLiga());
-  document.getElementById("matchActionHead").classList.toggle("hidden",!canEditLiga());
-  document.getElementById("eventAccessNote").innerHTML=`<span>${canEditEvent()?"Anda dapat menambah agenda kegiatan dan mengupload foto dokumentasi.":"Anda hanya dapat melihat agenda kegiatan dan foto kegiatan."}</span>`;
-  document.getElementById("addEventBtn").classList.toggle("hidden",!canEditEvent());
+  const mah = document.getElementById("matchActionHead");
+  if(mah) mah.classList.toggle("hidden",!canEditLiga());
+
+  const eNote = document.getElementById("eventAccessNote");
+  if(eNote) eNote.innerHTML = `<span>${canEditEvent() ? "Akses Admin — dapat menambah agenda kegiatan dan mengupload foto dokumentasi." : "Mode Publik — daftar agenda kegiatan dan dokumentasi."}</span>`;
+  const addEb = document.getElementById("addEventBtn");
+  if(addEb) addEb.classList.toggle("hidden",!canEditEvent());
 }
 
 /* =========================================================================
@@ -1773,37 +1797,38 @@ document.getElementById("passwordInput").addEventListener("keypress",e=>{if(e.ke
 document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.key==="Enter")document.getElementById("passwordInput").focus();});
 
 (async function init(){
-  // 1. Cek session login
+  // 1. Cek session login admin
   const session = loadSession();
-  const token = (session && session.user) ? (session.token || "") : "";
+  const hasAdminSession = session && session.user && session.role && session.role !== "tamu";
+  const token = hasAdminSession ? (session.token || "") : "";
+
+  if (hasAdminSession) {
+    currentUser = session.user;
+    currentRole = session.role;
+    currentLabel = session.label || "Admin";
+    currentAuthToken = token;
+    currentView = session.view || "homepage";
+  } else {
+    currentUser = "Tamu";
+    currentRole = "tamu";
+    currentLabel = "Tamu";
+    currentAuthToken = "";
+    currentView = "homepage";
+  }
 
   // 2. Inisialisasi DataStore (muat dari localStorage & set auth token)
-  store.init(token);
+  store.init(currentAuthToken);
   fillSakanSelect();
   fillTeamSelects();
   renderSakanPills();
 
-  if(session && session.user){
-    currentUser = session.user;
-    currentRole = session.role;
-    currentLabel = session.label;
-    currentAuthToken = token;
-    currentView = session.view || "homepage";
-    updateDisplayUsername(currentUser);
-    const chip = document.getElementById("roleChip");
-    chip.textContent = currentLabel;
-    chip.className = "role-chip r-" + currentRole;
-    
-    document.getElementById("dashboard").classList.remove("hidden");
-    document.getElementById("loginModal").classList.remove("show");
-    
-    const hash = window.location.hash.replace("#", "");
-    const initialView = ["klasemen", "liga", "event"].includes(hash) ? hash : currentView;
-    history.replaceState({ view: initialView }, "", initialView === "homepage" ? window.location.pathname : "#" + initialView);
-    switchView(initialView, false);
-  } else {
-    document.getElementById("loginModal").classList.add("show");
-  }
+  // Terapkan UI sesi (admin vs publik)
+  applyUserSessionUI();
+
+  const hash = window.location.hash.replace("#", "");
+  const initialView = ["klasemen", "liga", "event"].includes(hash) ? hash : currentView;
+  history.replaceState({ view: initialView }, "", initialView === "homepage" ? window.location.pathname : "#" + initialView);
+  switchView(initialView, false);
 
   // 3. Sinkronkan dengan Cloud via Proxy Vercel
   await syncDataFromCloud();
