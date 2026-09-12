@@ -592,11 +592,6 @@ function switchTab(tab){
 }
 
 function applyAccessNotes(){
-  const k = document.getElementById("klasemenAccessNote");
-  const isAdmin = currentRole === "admin_utama";
-  const accessText = isAdmin ? "Akses Admin Utama — dapat mengelola semua data." : "Mode Publik — hanya dapat melihat peringkat sakan.";
-  if (k) k.innerHTML = `<span>${accessText}</span> <span style="font-size:11px; opacity:.8;">[Database Terintegrasi]</span>`;
-  
   const addK = document.getElementById("addKlasemenBtn");
   if(addK) addK.classList.toggle("hidden",!canEditKlasemenAny());
   const addBulkK = document.getElementById("addBulkKlasemenBtn");
@@ -604,8 +599,6 @@ function applyAccessNotes(){
   const ah = document.getElementById("actionHead");
   if(ah) ah.classList.toggle("hidden",!canEditKlasemenAny());
 
-  const lNote = document.getElementById("ligaAccessNote");
-  if(lNote) lNote.innerHTML = `<span>${canEditLiga() ? "Akses Admin — dapat mengelola jadwal pertandingan dan hasil turnamen bola." : "Mode Publik — jadwal dan bagan turnamen bola."}</span>`;
   const addJb = document.getElementById("addJadwalBolaBtn");
   if(addJb) addJb.classList.toggle("hidden",!canEditLiga());
   const mb = document.getElementById("addMatchBtn");
@@ -613,8 +606,6 @@ function applyAccessNotes(){
   const mah = document.getElementById("matchActionHead");
   if(mah) mah.classList.toggle("hidden",!canEditLiga());
 
-  const eNote = document.getElementById("eventAccessNote");
-  if(eNote) eNote.innerHTML = `<span>${canEditEvent() ? "Akses Admin — dapat menambah agenda kegiatan dan mengupload foto dokumentasi." : "Mode Publik — daftar agenda kegiatan dan dokumentasi."}</span>`;
   const addEb = document.getElementById("addEventBtn");
   if(addEb) addEb.classList.toggle("hidden",!canEditEvent());
 }

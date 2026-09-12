@@ -224,7 +224,6 @@
 
   <!-- KLASEMEN -->
     <div class="page page-panel hidden" id="page-klasemen">
-      <div class="info-note" id="klasemenAccessNote"></div>
       <div class="toolbar">
         <div class="field" style="margin:0;"><label>Tanggal</label><input type="date" id="filterTanggal" onchange="renderKlasemen()"></div>
         <button class="btn btn-ghost" onclick="resetFilter()">Reset</button>
@@ -287,7 +286,6 @@
 
     <!-- TURNAMEN BOLA SISTEM AKAR / BRACKET -->
     <div class="page page-panel hidden" id="page-liga">
-      <div class="info-note" id="ligaAccessNote"></div>
 
       <!-- TABS SUB-NAVIGASI LIGA: JADWAL vs HASIL -->
       <div class="tabs">
@@ -350,7 +348,6 @@
 
     <!-- EVENT -->
     <div class="page page-panel hidden" id="page-event">
-      <div class="info-note" id="eventAccessNote"></div>
       <div class="ledger-head" style="padding-top:0;">
         <div class="ledger-title" style="font-size:22px; margin-bottom:14px;">Daftar Agenda &amp; Dokumentasi Kegiatan</div>
         <button class="btn btn-primary hidden" id="addEventBtn" onclick="openEventModal()">+ Tambah Event</button>
@@ -369,7 +366,7 @@
       <span>Klasemen</span>
     </button>
     <button class="mobile-nav-item" id="mNav-liga" onclick="switchView('liga')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="12,7.2 15.6,9.8 14.2,14 9.8,14 8.4,9.8"></polygon><line x1="12" y1="2" x2="12" y2="7.2"></line><line x1="21.5" y1="7.3" x2="15.6" y2="9.8"></line><line x1="17.9" y1="18.3" x2="14.2" y2="14"></line><line x1="6.1" y1="18.3" x2="9.8" y2="14"></line><line x1="2.5" y1="7.3" x2="8.4" y2="9.8"></line></svg>
       <span>Turnamen</span>
     </button>
     <button class="mobile-nav-item" id="mNav-event" onclick="switchView('event')">
