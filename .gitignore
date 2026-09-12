@@ -4,3 +4,4 @@ node_modules/
 .env.local
 .local-db.json
 .DS_Store
+.agents/
