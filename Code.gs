@@ -46,12 +46,13 @@ function jsonOut(obj) {
 // Aksi yang tidak terdaftar di sini DITOLAK, bukan diabaikan.
 const SESSION_TTL_SECONDS = 21600;
 const ACTION_ROLES = {
-  save_klasemen:   "*",
-  delete_klasemen: ["admin_utama"],
-  save_match:      ["admin_utama"],
-  delete_match:    ["admin_utama"],
-  save_event:      ["admin_utama"],
-  delete_event:      ["admin_utama"]
+  save_klasemen:      "*",
+  save_klasemen_bulk: "*",
+  delete_klasemen:    ["admin_utama"],
+  save_match:         ["admin_utama"],
+  delete_match:       ["admin_utama"],
+  save_event:         ["admin_utama"],
+  delete_event:       ["admin_utama"]
 };
 
 function issueSession(user) {
@@ -84,14 +85,14 @@ function getSession(token) {
 function denyIfUnauthorized(action, token) {
   const allowed = ACTION_ROLES[action];
   if (!allowed) {
-    return { status: "error", message: "Aksi tidak dikenal: " + String(action) };
+    return { status: "error", code: "ERR_UNKNOWN_ACTION", message: "Aksi tidak dikenal: " + String(action) };
   }
 
   const session = getSession(token);
   if (!session) {
     return {
       status: "error",
-      code: "unauthorized",
+      code: "ERR_UNAUTHORIZED",
       message: "Sesi tidak valid atau sudah berakhir. Silakan masuk kembali."
     };
   }
@@ -104,7 +105,7 @@ function denyIfUnauthorized(action, token) {
   if (!ok) {
     return {
       status: "error",
-      code: "forbidden",
+      code: "ERR_FORBIDDEN",
       message: "Peran Anda tidak berhak melakukan aksi ini."
     };
   }
@@ -132,8 +133,8 @@ function doGet(e) {
       sheetSakan.appendRow(["qazvin-atas", "QAZVIN ATAS", "QAZVIN", 1, true]);
     }
 
-    // Auto-heal master data agar bulk paste dari spreadsheet otomatis terisi id, urutan, & aktif
-    autoHealMasterData(ss);
+    // Master data di-heal via onEdit saat pengurus mengedit spreadsheet,
+    // tidak dijalankan pada doGet publik agar read latency cepat dan bebas write-lock.
 
     const result = {
       klasemen: sheetToObjects(ss.getSheetByName("Klasemen")),
@@ -208,150 +209,303 @@ function doPost(e) {
     }
 
     // ==========================================
-    // B. MODUL KLASEMEN
+    // MUTASI DATA DENGAN LOCK SERVICE
     // ==========================================
-    else if (action === "save_klasemen") {
-      let sheet = ss.getSheetByName("Klasemen");
-      if (!sheet) {
-        sheet = ss.insertSheet("Klasemen");
-        sheet.appendRow(["id", "tanggal", "sakan", "kebersihan", "kedisiplinan", "bahasa", "totalPoin"]);
-      }
-      const rows = sheet.getDataRange().getValues();
-      let rowIndex = -1;
-      
-      for (let i = 1; i < rows.length; i++) {
-        const rowDate = formatDateStr(rows[i][1]);
-        if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
-          rowIndex = i + 1;
-          break;
-        }
-      }
-      
-      const totalPoin = (Number(payload.kebersihan) || 0) + (Number(payload.kedisiplinan) || 0) + (Number(payload.bahasa) || 0);
-      
-      if (rowIndex > 0) {
-        sheet.getRange(rowIndex, 4).setValue(payload.kebersihan != null ? payload.kebersihan : "");
-        sheet.getRange(rowIndex, 5).setValue(payload.kedisiplinan != null ? payload.kedisiplinan : "");
-        sheet.getRange(rowIndex, 6).setValue(payload.bahasa != null ? payload.bahasa : "");
-        sheet.getRange(rowIndex, 7).setValue(totalPoin);
-      } else {
-        sheet.appendRow([
-          Date.now().toString(),
-          payload.tanggal,
-          payload.sakan,
-          payload.kebersihan != null ? payload.kebersihan : "",
-          payload.kedisiplinan != null ? payload.kedisiplinan : "",
-          payload.bahasa != null ? payload.bahasa : "",
-          totalPoin
-        ]);
-      }
-    } 
-    else if (action === "delete_klasemen") {
-      const sheet = ss.getSheetByName("Klasemen");
-      if (sheet) {
-        const rows = sheet.getDataRange().getValues();
-        for (let i = 1; i < rows.length; i++) {
-          const rowDate = formatDateStr(rows[i][1]);
-          if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
-            sheet.deleteRow(i + 1);
-            break;
-          }
-        }
-      }
+    // Mencegah race condition ketika beberapa admin menyimpan data di saat yang sama
+    const lock = LockService.getScriptLock();
+    const hasLock = lock.tryLock(10000); // Tunggu antrean sampai 10 detik
+    if (!hasLock) {
+      return jsonOut({ status: "error", message: "Server sedang sibuk memproses antrean data. Silakan coba lagi." });
     }
-    // ==========================================
-    // C. MODUL LIGA / MATCH BOLA
-    // ==========================================
-    else if (action === "save_match") {
-      let sheet = ss.getSheetByName("Liga");
-      if (!sheet) {
-        sheet = ss.insertSheet("Liga");
-        sheet.appendRow(["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]);
-      } else {
-        // Cek jika header lama (hanya 7 kolom)
-        const header = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
-        if (header.length < 10 && header[3] === "timA") {
-          // Migrasi header jika belum ada waktu, lokasi, status
-          sheet.getRange(1, 1, 1, 10).setValues([["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]]);
-        }
+
+    try {
+      function isScoreValid(val) {
+        if (val === null || val === undefined || val === "") return true;
+        const n = Number(val);
+        return !isNaN(n) && n >= 0 && n <= 100;
       }
 
-      const rows = sheet.getDataRange().getValues();
-      let rowIndex = -1;
-      if (payload.id) {
+      // ==========================================
+      // B. MODUL KLASEMEN
+      // ==========================================
+      if (action === "save_klasemen") {
+        if (!isScoreValid(payload.kebersihan) || !isScoreValid(payload.kedisiplinan) || !isScoreValid(payload.bahasa)) {
+          return jsonOut({
+            status: "error",
+            code: "ERR_OUT_OF_RANGE",
+            message: "Nilai poin harus berupa angka di antara 0 sampai 100."
+          });
+        }
+
+        let sheet = ss.getSheetByName("Klasemen");
+        if (!sheet) {
+          sheet = ss.insertSheet("Klasemen");
+          sheet.appendRow(["id", "tanggal", "sakan", "kebersihan", "kedisiplinan", "bahasa", "totalPoin"]);
+        }
+        const rows = sheet.getDataRange().getValues();
+        let rowIndex = -1;
+        
         for (let i = 1; i < rows.length; i++) {
-          if (String(rows[i][0]) === String(payload.id)) {
+          const rowDate = formatDateStr(rows[i][1], ss);
+          if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
             rowIndex = i + 1;
             break;
           }
         }
+        
+        const totalPoin = (Number(payload.kebersihan) || 0) + (Number(payload.kedisiplinan) || 0) + (Number(payload.bahasa) || 0);
+        
+        if (rowIndex > 0) {
+          // Batch write 1x call untuk performa tinggi
+          sheet.getRange(rowIndex, 4, 1, 4).setValues([[
+            payload.kebersihan != null ? payload.kebersihan : "",
+            payload.kedisiplinan != null ? payload.kedisiplinan : "",
+            payload.bahasa != null ? payload.bahasa : "",
+            totalPoin
+          ]]);
+        } else {
+          sheet.appendRow([
+            Date.now().toString(),
+            payload.tanggal,
+            payload.sakan,
+            payload.kebersihan != null ? payload.kebersihan : "",
+            payload.kedisiplinan != null ? payload.kedisiplinan : "",
+            payload.bahasa != null ? payload.bahasa : "",
+            totalPoin
+          ]);
+        }
+      }
+      else if (action === "save_klasemen_bulk") {
+        let sheet = ss.getSheetByName("Klasemen");
+        if (!sheet) {
+          sheet = ss.insertSheet("Klasemen");
+          sheet.appendRow(["id", "tanggal", "sakan", "kebersihan", "kedisiplinan", "bahasa", "totalPoin"]);
+        }
+        const entries = Array.isArray(payload) ? payload : (payload.entries || []);
+        if (!entries.length) {
+          return jsonOut({ status: "error", code: "ERR_EMPTY_DATA", message: "Tidak ada data entri yang dikirim." });
+        }
+
+        // Validasi batasan maksimal poin 0 - 100
+        for (let k = 0; k < entries.length; k++) {
+          const eItem = entries[k];
+          if (!isScoreValid(eItem.kebersihan) || !isScoreValid(eItem.kedisiplinan) || !isScoreValid(eItem.bahasa)) {
+            return jsonOut({
+              status: "error",
+              code: "ERR_OUT_OF_RANGE",
+              message: "Nilai poin untuk " + (eItem.sakan || "sakan") + " harus berada di antara 0 sampai 100."
+            });
+          }
+        }
+
+        const rows = sheet.getDataRange().getValues();
+        const rowMap = {};
+        for (let i = 1; i < rows.length; i++) {
+          const rDate = formatDateStr(rows[i][1], ss);
+          const rSakan = String(rows[i][2] || "").trim().toUpperCase();
+          rowMap[rDate + "_" + rSakan] = i + 1;
+        }
+
+        for (let k = 0; k < entries.length; k++) {
+          const item = entries[k];
+          const t = item.tanggal;
+          const s = item.sakan;
+          const totalPoin = (Number(item.kebersihan) || 0) + (Number(item.kedisiplinan) || 0) + (Number(item.bahasa) || 0);
+          const lookupKey = t + "_" + String(s || "").trim().toUpperCase();
+          const targetRow = rowMap[lookupKey];
+
+          if (targetRow) {
+            sheet.getRange(targetRow, 4, 1, 4).setValues([[
+              item.kebersihan != null ? item.kebersihan : "",
+              item.kedisiplinan != null ? item.kedisiplinan : "",
+              item.bahasa != null ? item.bahasa : "",
+              totalPoin
+            ]]);
+          } else {
+            sheet.appendRow([
+              Date.now().toString() + "_" + k,
+              t,
+              s,
+              item.kebersihan != null ? item.kebersihan : "",
+              item.kedisiplinan != null ? item.kedisiplinan : "",
+              item.bahasa != null ? item.bahasa : "",
+              totalPoin
+            ]);
+            rowMap[lookupKey] = sheet.getLastRow();
+          }
+        }
+      }
+      else if (action === "delete_klasemen") {
+        const sheet = ss.getSheetByName("Klasemen");
+        if (sheet) {
+          const rows = sheet.getDataRange().getValues();
+          for (let i = 1; i < rows.length; i++) {
+            const rowDate = formatDateStr(rows[i][1], ss);
+            if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
+              sheet.deleteRow(i + 1);
+              break;
+            }
+          }
+        }
+      }
+      // ==========================================
+      // C. MODUL LIGA / MATCH BOLA
+      // ==========================================
+      else if (action === "save_match") {
+        // Validasi skor jika kedua skor diisi
+        if (payload.skorA !== "" && payload.skorA != null && payload.skorB !== "" && payload.skorB != null) {
+          const sa = Number(payload.skorA);
+          const sb = Number(payload.skorB);
+          if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0 || sa > 999 || sb > 999) {
+            return jsonOut({
+              status: "error",
+              code: "ERR_OUT_OF_RANGE",
+              message: "Skor harus berupa angka bilangan bulat antara 0 sampai 999."
+            });
+          }
+          if (sa === sb) {
+            return jsonOut({
+              status: "error",
+              code: "ERR_ANTI_DRAW",
+              message: "Sistem gugur tidak boleh seri. Harus ada pemenang."
+            });
+          }
+        }
+
+        let sheet = ss.getSheetByName("Liga");
+        if (!sheet) {
+          sheet = ss.insertSheet("Liga");
+          sheet.appendRow(["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]);
+        } else {
+          // Cek jika header lama (hanya 7 kolom)
+          const header = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 1)).getValues()[0];
+          if (header.length < 10 && header[3] === "timA") {
+            // Migrasi header jika belum ada waktu, lokasi, status
+            sheet.getRange(1, 1, 1, 10).setValues([["id", "round", "tanggal", "waktu", "lokasi", "timA", "timB", "skorA", "skorB", "status"]]);
+          }
+        }
+
+        const rows = sheet.getDataRange().getValues();
+        let rowIndex = -1;
+        if (payload.id) {
+          for (let i = 1; i < rows.length; i++) {
+            if (String(rows[i][0]).trim() === String(payload.id).trim()) {
+              rowIndex = i + 1;
+              break;
+            }
+          }
+        }
+
+        const matchStatus = payload.status || (payload.skorA !== "" && payload.skorA != null && payload.skorB !== "" && payload.skorB != null ? "SELESAI" : "UPCOMING");
+
+        if (rowIndex > -1) {
+          // Batch write 1x call untuk 9 kolom sekaligus
+          sheet.getRange(rowIndex, 2, 1, 9).setValues([[
+            payload.round || "",
+            payload.tanggal || "",
+            payload.waktu || "",
+            payload.lokasi || "",
+            payload.timA || "",
+            payload.timB || "",
+            payload.skorA != null ? payload.skorA : "",
+            payload.skorB != null ? payload.skorB : "",
+            matchStatus
+          ]]);
+        } else {
+          sheet.appendRow([
+            payload.id || Date.now().toString(),
+            payload.round || "",
+            payload.tanggal || "",
+            payload.waktu || "",
+            payload.lokasi || "",
+            payload.timA || "",
+            payload.timB || "",
+            payload.skorA != null ? payload.skorA : "",
+            payload.skorB != null ? payload.skorB : "",
+            matchStatus
+          ]);
+        }
+      }
+      else if (action === "delete_match") {
+        deleteRowById(ss.getSheetByName("Liga"), payload.id);
+      }
+      // ==========================================
+      // D. MODUL EVENT & FOTO KEGIATAN
+      // ==========================================
+      else if (action === "save_event") {
+        let sheet = ss.getSheetByName("Event");
+        if (!sheet) {
+          sheet = ss.insertSheet("Event");
+          sheet.appendRow(["id", "kategori", "tanggal", "waktu", "judul", "lokasi", "deskripsi", "foto"]);
+        }
+
+        const rows = sheet.getDataRange().getValues();
+        let rowIndex = -1;
+        let existingFoto = "";
+        if (payload.id) {
+          for (let i = 1; i < rows.length; i++) {
+            if (String(rows[i][0]).trim() === String(payload.id).trim()) {
+              rowIndex = i + 1;
+              existingFoto = rows[i][7] || "";
+              break;
+            }
+          }
+        }
+
+        let fotoUrl = "";
+        const folderId = getFolderId();
+        if (payload.fotoBase64) {
+          fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
+        } else if (rowIndex > -1) {
+          fotoUrl = existingFoto;
+        }
+
+        if (rowIndex > -1) {
+          // Batch write update event yang sudah ada
+          sheet.getRange(rowIndex, 2, 1, 7).setValues([[
+            payload.kategori || "Event Umum",
+            payload.tanggal || "",
+            payload.waktu || "",
+            payload.judul || "",
+            payload.lokasi || "",
+            payload.deskripsi || "",
+            fotoUrl
+          ]]);
+        } else {
+          // Tambah event baru
+          sheet.appendRow([
+            payload.id || Date.now().toString(),
+            payload.kategori || "Event Umum",
+            payload.tanggal || "",
+            payload.waktu || "",
+            payload.judul || "",
+            payload.lokasi || "",
+            payload.deskripsi || "",
+            fotoUrl
+          ]);
+        }
+      }
+      else if (action === "delete_event") {
+        deleteRowById(ss.getSheetByName("Event"), payload.id);
       }
 
-      const matchStatus = payload.status || (payload.skorA !== "" && payload.skorA != null && payload.skorB !== "" && payload.skorB != null ? "SELESAI" : "UPCOMING");
-
-      if (rowIndex > -1) {
-        sheet.getRange(rowIndex, 2).setValue(payload.round || "");
-        sheet.getRange(rowIndex, 3).setValue(payload.tanggal || "");
-        sheet.getRange(rowIndex, 4).setValue(payload.waktu || "");
-        sheet.getRange(rowIndex, 5).setValue(payload.lokasi || "");
-        sheet.getRange(rowIndex, 6).setValue(payload.timA || "");
-        sheet.getRange(rowIndex, 7).setValue(payload.timB || "");
-        sheet.getRange(rowIndex, 8).setValue(payload.skorA != null ? payload.skorA : "");
-        sheet.getRange(rowIndex, 9).setValue(payload.skorB != null ? payload.skorB : "");
-        sheet.getRange(rowIndex, 10).setValue(matchStatus);
-      } else {
-        sheet.appendRow([
-          payload.id || Date.now().toString(),
-          payload.round || "",
-          payload.tanggal || "",
-          payload.waktu || "",
-          payload.lokasi || "",
-          payload.timA || "",
-          payload.timB || "",
-          payload.skorA != null ? payload.skorA : "",
-          payload.skorB != null ? payload.skorB : "",
-          matchStatus
-        ]);
-      }
+      return jsonOut({ status: "success" });
+    } finally {
+      lock.releaseLock();
     }
-    else if (action === "delete_match") {
-      deleteRowById(ss.getSheetByName("Liga"), payload.id);
-    }
-    // ==========================================
-    // D. MODUL EVENT & FOTO KEGIATAN
-    // ==========================================
-    else if (action === "save_event") {
-      let fotoUrl = "";
-      const folderId = getFolderId();
-      
-      if (payload.fotoBase64) {
-        fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
-      }
-      
-      let sheet = ss.getSheetByName("Event");
-      if (!sheet) {
-        sheet = ss.insertSheet("Event");
-        sheet.appendRow(["id", "kategori", "tanggal", "waktu", "judul", "lokasi", "deskripsi", "foto"]);
-      }
-      
-      sheet.appendRow([
-        payload.id || Date.now().toString(),
-        payload.kategori,
-        payload.tanggal,
-        payload.waktu,
-        payload.judul,
-        payload.lokasi,
-        payload.deskripsi,
-        fotoUrl
-      ]);
-    }
-    else if (action === "delete_event") {
-      deleteRowById(ss.getSheetByName("Event"), payload.id);
-    }
-    return jsonOut({ status: "success" });
-
   } catch (err) {
     return jsonOut({ status: "error", message: err.toString() });
+  }
+}
+
+/**
+ * Helper: Ambil TimeZone Spreadsheet (default Asia/Jakarta)
+ */
+function getTimeZone(ss) {
+  try {
+    return (ss || getDb()).getSpreadsheetTimeZone() || "Asia/Jakarta";
+  } catch (e) {
+    return "Asia/Jakarta";
   }
 }
 
@@ -360,6 +514,13 @@ function doPost(e) {
  */
 function uploadImageToDrive(base64Data, filename, folderId) {
   try {
+    if (!base64Data) return "";
+    
+    // Jika data sudah berupa URL (misal edit event tanpa ganti foto), langsung kembalikan
+    if (typeof base64Data === "string" && (base64Data.startsWith("http://") || base64Data.startsWith("https://"))) {
+      return base64Data;
+    }
+
     const targetFolderId = folderId || getFolderId();
     let folder;
     if (targetFolderId) {
@@ -371,8 +532,6 @@ function uploadImageToDrive(base64Data, filename, folderId) {
     } else {
       folder = DriveApp.getRootFolder();
     }
-
-    if (!base64Data) return "";
     
     let contentType = "image/jpeg";
     let rawBase64 = base64Data;
@@ -395,6 +554,7 @@ function uploadImageToDrive(base64Data, filename, folderId) {
     return "";
   }
 }
+
 /**
  * Helper: Convert entire sheet data to Array of Objects
  */
@@ -405,6 +565,7 @@ function sheetToObjects(sheet) {
   
   const headers = data[0];
   const list = [];
+  const tz = getTimeZone(sheet.getParent());
   
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
@@ -414,9 +575,9 @@ function sheetToObjects(sheet) {
       const headerKey = String(headers[j] || "").toLowerCase();
       if (val instanceof Date) {
         if (headerKey === "waktu" || headerKey === "time" || headerKey === "jam") {
-          val = Utilities.formatDate(val, Session.getScriptTimeZone(), "HH:mm");
+          val = Utilities.formatDate(val, tz, "HH:mm");
         } else {
-          val = Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+          val = Utilities.formatDate(val, tz, "yyyy-MM-dd");
         }
       }
       obj[headers[j]] = val;
@@ -430,16 +591,16 @@ function deleteRowById(sheet, id) {
   if (!sheet) return;
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][0]) === String(id)) {
+    if (String(data[i][0]).trim() === String(id).trim()) {
       sheet.deleteRow(i + 1);
       break;
     }
   }
 }
 
-function formatDateStr(val) {
+function formatDateStr(val, ss) {
   if (val instanceof Date) {
-    return Utilities.formatDate(val, Session.getScriptTimeZone(), "yyyy-MM-dd");
+    return Utilities.formatDate(val, getTimeZone(ss), "yyyy-MM-dd");
   }
   return String(val);
 }

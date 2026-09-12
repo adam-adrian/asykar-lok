@@ -143,7 +143,7 @@ const server = http.createServer(async (req, res) => {
     const body = await parseJsonBody(req);
     const { username, password } = body;
 
-    // Jika ada GOOGLE_SCRIPT_URL asli, proxy ke Apps Script
+    // Jika ada GOOGLE_SCRIPT_URL asli, coba proxy ke Apps Script terlebih dahulu
     if (GOOGLE_SCRIPT_URL) {
       try {
         const proxyRes = await fetch(GOOGLE_SCRIPT_URL, {
@@ -153,14 +153,18 @@ const server = http.createServer(async (req, res) => {
           redirect: 'follow'
         });
         const text = await proxyRes.text();
-        const data = JSON.parse(text);
-        return sendJson(res, proxyRes.ok && data.status === 'success' ? 200 : 401, data);
+        if (text.startsWith('{')) {
+          const data = JSON.parse(text);
+          if (data.status === 'success') {
+            return sendJson(res, 200, data);
+          }
+        }
       } catch (err) {
-        return sendJson(res, 500, { status: 'error', message: 'Gagal menghubungi Google Apps Script: ' + err.message });
+        console.warn('Apps Script login gagal, mencoba database lokal:', err.message);
       }
     }
 
-    // Mode Offline Demo: Verifikasi ke mock db
+    // Mode Offline Demo / Fallback: Verifikasi ke mock db
     const matched = db.users.find(u =>
       String(u.username).trim().toLowerCase() === String(username || '').trim().toLowerCase() &&
       String(u.password).trim() === String(password || '').trim()
@@ -181,7 +185,7 @@ const server = http.createServer(async (req, res) => {
 
     return sendJson(res, 401, {
       status: 'error',
-      message: 'Username atau password salah (Demo offline: gunakan admin / admin123).'
+      message: 'Username atau password salah (Demo: admin / admin123).'
     });
   }
 
@@ -189,33 +193,46 @@ const server = http.createServer(async (req, res) => {
   // 2. API: /api/sync
   // =========================================================================
   if (pathname === '/api/sync') {
-    // Jika ada GOOGLE_SCRIPT_URL asli, proxy ke Apps Script
+    // Jika ada GOOGLE_SCRIPT_URL asli, coba proxy ke Apps Script
     if (GOOGLE_SCRIPT_URL) {
       try {
         if (req.method === 'GET') {
           const proxyRes = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET', redirect: 'follow' });
           const text = await proxyRes.text();
-          const data = JSON.parse(text);
-          return sendJson(res, 200, data);
+          if (text.startsWith('{')) {
+            const data = JSON.parse(text);
+            return sendJson(res, 200, data);
+          }
         }
         if (req.method === 'POST') {
           const auth = req.headers.authorization || '';
           const token = auth.startsWith('Bearer ') ? auth.slice(7).trim() : '';
           const body = await parseJsonBody(req);
-          const proxyRes = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ ...body, token }),
-            redirect: 'follow'
-          });
-          const text = await proxyRes.text();
-          const data = JSON.parse(text);
-          const code = data && data.code;
-          const httpStatus = code === 'unauthorized' ? 401 : code === 'forbidden' ? 403 : 200;
-          return sendJson(res, httpStatus, data);
+          const isDemoToken = token.startsWith('demo_token_');
+
+          if (!isDemoToken) {
+            const proxyRes = await fetch(GOOGLE_SCRIPT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ ...body, token }),
+              redirect: 'follow'
+            });
+            const text = await proxyRes.text();
+            if (text.startsWith('{')) {
+              const data = JSON.parse(text);
+              const code = data && data.code;
+              const httpStatus = code === 'unauthorized' ? 401 : code === 'forbidden' ? 403 : 200;
+              return sendJson(res, httpStatus, data);
+            }
+            console.warn('Apps Script POST non-JSON, fallback ke lokal.');
+          } else {
+            console.log('Menggunakan demo token lokal, mutasi disimpan ke database lokal.');
+          }
+          // Teruskan body ke handler lokal di bawah
+          req._parsedBody = body;
         }
       } catch (err) {
-        return sendJson(res, 500, { status: 'error', message: 'Gagal menghubungi Google Apps Script: ' + err.message });
+        console.warn('Gagal sync ke Google Apps Script, fallback ke lokal:', err.message);
       }
     }
 
@@ -236,7 +253,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      const body = await parseJsonBody(req);
+      const body = req._parsedBody || await parseJsonBody(req);
       const action = body.action;
       const payload = body.payload || {};
 
@@ -266,6 +283,35 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { status: 'success', local: true });
       }
 
+      if (action === 'save_klasemen_bulk') {
+        const entries = Array.isArray(payload.entries) ? payload.entries : [];
+        entries.forEach(item => {
+          const t = item.tanggal;
+          const s = item.sakan;
+          let existing = db.klasemen.find(i => i.tanggal === t && String(i.sakan).toUpperCase() === String(s).toUpperCase());
+          const totalPoin = (Number(item.kebersihan) || 0) + (Number(item.kedisiplinan) || 0) + (Number(item.bahasa) || 0);
+
+          if (existing) {
+            if ('kebersihan' in item) existing.kebersihan = item.kebersihan;
+            if ('kedisiplinan' in item) existing.kedisiplinan = item.kedisiplinan;
+            if ('bahasa' in item) existing.bahasa = item.bahasa;
+            existing.totalPoin = totalPoin;
+          } else {
+            db.klasemen.push({
+              id: Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+              tanggal: t,
+              sakan: s,
+              kebersihan: item.kebersihan != null ? item.kebersihan : null,
+              kedisiplinan: item.kedisiplinan != null ? item.kedisiplinan : null,
+              bahasa: item.bahasa != null ? item.bahasa : null,
+              totalPoin: totalPoin
+            });
+          }
+        });
+        persistDb();
+        return sendJson(res, 200, { status: 'success', local: true, updated: entries.length });
+      }
+
       if (action === 'delete_klasemen') {
         db.klasemen = db.klasemen.filter(i => !(i.tanggal === payload.tanggal && String(i.sakan).toUpperCase() === String(payload.sakan).toUpperCase()));
         persistDb();
@@ -279,10 +325,13 @@ const server = http.createServer(async (req, res) => {
           id: id,
           round: payload.round,
           tanggal: payload.tanggal,
+          waktu: payload.waktu || '',
+          lokasi: payload.lokasi || '',
           timA: payload.timA,
           timB: payload.timB,
           skorA: payload.skorA,
-          skorB: payload.skorB
+          skorB: payload.skorB,
+          status: payload.status || 'UPCOMING'
         };
         if (existingIdx >= 0) {
           db.liga[existingIdx] = matchData;

@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=5.4">
 </head>
 <body>
 
@@ -64,54 +64,161 @@
 <!-- ===== DASHBOARD UTAMA ===== -->
 <div class="hidden" id="dashboard">
   
-  <!-- HOMEPAGE UTAMA -->
+  <!-- UNIFIED TOPBAR HEADER -->
+  <header class="topbar">
+    <button class="topbar-left" onclick="switchView('homepage')" title="Kembali ke Beranda">
+      <div class="topbar-mark">LK</div>
+      <div>
+        <h1>League Of Kindness</h1>
+        <div class="who"><span id="displayUsername"></span></div>
+      </div>
+    </button>
+
+    <nav class="topbar-nav">
+      <button class="nav-pill-btn active" id="nav-homepage" onclick="switchView('homepage')">Beranda</button>
+      <button class="nav-pill-btn" id="nav-klasemen" onclick="switchView('klasemen')">Klasemen</button>
+      <button class="nav-pill-btn" id="nav-liga" onclick="switchView('liga')">Turnamen Bola</button>
+      <button class="nav-pill-btn" id="nav-event" onclick="switchView('event')">Jadwal Event</button>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="sync-badge" id="syncStatusBadge" onclick="syncDataFromCloud(true)" style="cursor:pointer;" title="Klik untuk refresh data dari cloud">
+        <span class="sync-dot" id="syncDot"></span>
+        <span id="syncText">Cloud Sync</span>
+      </div>
+      <span class="role-chip" id="roleChip"></span>
+      <button class="btn btn-ghost" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:7px 16px; font-size:12.5px;" onclick="logout()">Keluar</button>
+    </div>
+  </header>
+
+  <!-- HOMEPAGE / DASHBOARD UTAMA -->
   <div class="page-panel" id="view-homepage">
-    <header class="pub-header">
-      <div class="pub-logo">
-        <div class="pub-logo-mark">LK</div>
-        <span>League Of Kindness</span>
-      </div>
-      <nav class="pub-nav">
-        <div class="sync-badge" id="syncStatusBadgeTop">
-          <span class="sync-dot" id="syncDotTop"></span>
-          <span id="syncTextTop">Menghubungkan...</span>
-        </div>
-        <a href="javascript:void(0)" onclick="switchView('homepage')">Fitur</a>
-        <a href="javascript:void(0)" onclick="scrollToSakan()">Sakan</a>
-        <span class="user-badge-top" id="displayUsernameTop"></span>
-        <button class="btn btn-ghost" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:6px 14px; font-size:12px;" onclick="logout()">Keluar</button>
-      </nav>
-    </header>
 
-    <section class="pub-hero" id="fitur">
-      <div class="pub-hero-sub">LEAGUE OF KINDNESS</div>
-      <h1 class="brand-word" style="font-size:clamp(32px, 6vw, 64px); color:var(--ink); margin-bottom:12px;">League Of Kindness</h1>
-      <p>Pusat penilaian kebaikan sakan harian, bagan turnamen sistem gugur, dan agenda pesantren secara transparan.</p>
+    <!-- DASHBOARD WORKSPACE -->
+    <div class="dash-workspace" id="fitur">
+      <!-- HERO & GREETING BAR -->
+      <section class="dash-hero">
+        <div class="dash-hero-content">
+          <div class="dash-greeting-eyebrow" id="dashGreetingEyebrow">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</div>
+          <h1 class="dash-greeting-title" id="dashGreetingTitle">Ahlan wa Sahlan</h1>
+          <div class="dash-greeting-sub" id="dashGreetingSub">Pusat Informasi Terpadu Liga Kebaikan Pesantren</div>
+        </div>
+        <div class="dash-hero-actions">
+          <button class="btn btn-ghost dash-btn-sync" onclick="syncDataFromCloud(true)" title="Sinkronisasi Data">
+            <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+            <span>Segarkan Data</span>
+          </button>
+        </div>
+      </section>
 
-      <div class="pub-cards-grid">
-        <div class="pub-card" onclick="switchView('klasemen')">
-          <div class="pub-card-icon">
-            <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+      <!-- 4 QUICK STAT METRICS -->
+      <section class="dash-metrics-grid">
+        <div class="dash-metric-card" onclick="scrollToSakan()" title="Lihat Daftar Sakan Terdaftar">
+          <div class="dash-metric-icon">
+            <svg class="svg-icon md" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
           </div>
-          <h3>Klasemen Kebaikan</h3>
-          <p>Penilaian harian kebersihan, kedisiplinan, dan bahasa per sakan dengan rekap rata-rata otomatis.</p>
-        </div>
-        <div class="pub-card" onclick="switchView('liga')">
-          <div class="pub-card-icon">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><path d="m14.83 9.17 4.24-4.24"></path><path d="m4.93 19.07 4.24-4.24"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          <div class="dash-metric-data">
+            <span class="dash-metric-label">Sakan Terdaftar</span>
+            <strong class="dash-metric-value" id="dashStatSakan">16 Sakan</strong>
           </div>
-          <h3>Turnamen Bola (Sistem Akar)</h3>
-          <p>Bagan alur pertandingan sepak bola antar sakan dengan sistem gugur hingga babak final.</p>
         </div>
-        <div class="pub-card" onclick="switchView('event')">
-          <div class="pub-card-icon">
-            <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+        <div class="dash-metric-card" onclick="switchView('klasemen')" title="Buka Klasemen Kebaikan Lengkap">
+          <div class="dash-metric-icon">
+            <svg class="svg-icon md" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
           </div>
-          <h3>Jadwal &amp; Dokumentasi Event</h3>
-          <p>Kelola seluruh agenda pesantren, jadwal match, lengkap dengan foto/poster kegiatan.</p>
+          <div class="dash-metric-data">
+            <span class="dash-metric-label">Pemimpin Kebaikan</span>
+            <strong class="dash-metric-value" id="dashStatTopSakan">–</strong>
+          </div>
         </div>
-      </div>
-    </section>
+        <div class="dash-metric-card" onclick="switchView('liga')" title="Buka Bagan & Jadwal Turnamen">
+          <div class="dash-metric-icon">
+            <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
+          </div>
+          <div class="dash-metric-data">
+            <span class="dash-metric-label">Laga Turnamen</span>
+            <strong class="dash-metric-value" id="dashStatLaga">–</strong>
+          </div>
+        </div>
+        <div class="dash-metric-card" onclick="switchView('event')" title="Buka Agenda Pesantren">
+          <div class="dash-metric-icon">
+            <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+          </div>
+          <div class="dash-metric-data">
+            <span class="dash-metric-label">Agenda Terdekat</span>
+            <strong class="dash-metric-value" id="dashStatEvent">–</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 DASHBOARD PILLAR WIDGETS -->
+      <section class="dash-widgets-grid">
+        
+        <!-- WIDGET 1: KLASEMEN KEBAIKAN -->
+        <div class="dash-widget-box">
+          <div class="dash-widget-head">
+            <div class="dash-widget-title-wrap">
+              <div class="dash-widget-icon">
+                <svg class="svg-icon md" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+              </div>
+              <div>
+                <h3 class="dash-widget-title">Klasemen Kebaikan</h3>
+                <div class="dash-widget-sub">Kebersihan, Kedisiplinan, Bahasa</div>
+              </div>
+            </div>
+            <button class="dash-widget-link-btn" onclick="switchView('klasemen')">
+              Lihat Detail <span>→</span>
+            </button>
+          </div>
+          <div class="dash-widget-body" id="dashKlasemenContent">
+            <!-- Diisi dinamis oleh renderDashboard() -->
+          </div>
+        </div>
+
+        <!-- WIDGET 2: TURNAMEN SEPAK BOLA -->
+        <div class="dash-widget-box">
+          <div class="dash-widget-head">
+            <div class="dash-widget-title-wrap">
+              <div class="dash-widget-icon">
+                <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
+              </div>
+              <div>
+                <h3 class="dash-widget-title">Turnamen Bola</h3>
+                <div class="dash-widget-sub">Jadwal Tanding &amp; Sistem Gugur</div>
+              </div>
+            </div>
+            <button class="dash-widget-link-btn" onclick="switchView('liga')">
+              Buka Bagan <span>→</span>
+            </button>
+          </div>
+          <div class="dash-widget-body" id="dashTurnamenContent">
+            <!-- Diisi dinamis oleh renderDashboard() -->
+          </div>
+        </div>
+
+        <!-- WIDGET 3: AGENDA & DOKUMENTASI -->
+        <div class="dash-widget-box">
+          <div class="dash-widget-head">
+            <div class="dash-widget-title-wrap">
+              <div class="dash-widget-icon">
+                <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+              </div>
+              <div>
+                <h3 class="dash-widget-title">Agenda &amp; Kegiatan</h3>
+                <div class="dash-widget-sub">Jadwal &amp; Dokumentasi Pesantren</div>
+              </div>
+            </div>
+            <button class="dash-widget-link-btn" onclick="switchView('event')">
+              Semua Agenda <span>→</span>
+            </button>
+          </div>
+          <div class="dash-widget-body" id="dashEventContent">
+            <!-- Diisi dinamis oleh renderDashboard() -->
+          </div>
+        </div>
+
+      </section>
+    </div>
 
     <section class="pub-footer-section" id="sakanSection">
       <div style="font-size:11.5px; font-weight:700; letter-spacing:.12em; color:var(--gold-light); text-transform:uppercase; margin-bottom:12px;">SAKAN-SAKAN KAMI</div>
@@ -122,35 +229,7 @@
     </section>
   </div>
 
-  <!-- CONTAINER HALAMAN LAINNYA -->
-  <div class="hidden" id="view-inner-pages">
-    <div class="topbar">
-      <button class="topbar-left" onclick="switchView('homepage')">
-        <div class="topbar-mark">LK</div>
-        <div>
-          <h1>League Of Kindness</h1>
-          <div class="who"><span id="displayUsernameSub"></span></div>
-        </div>
-      </button>
-
-      <nav class="topbar-nav">
-        <button class="nav-pill-btn" id="nav-homepage" onclick="switchView('homepage')">Beranda</button>
-        <button class="nav-pill-btn" id="nav-klasemen" onclick="switchView('klasemen')">Klasemen</button>
-        <button class="nav-pill-btn" id="nav-liga" onclick="switchView('liga')">Turnamen Bola</button>
-        <button class="nav-pill-btn" id="nav-event" onclick="switchView('event')">Jadwal Event</button>
-      </nav>
-
-      <div class="topbar-right">
-        <div class="sync-badge" id="syncStatusBadgeSub" onclick="syncDataFromCloud(true)" style="cursor:pointer;" title="Klik untuk refresh dari cloud">
-          <span class="sync-dot" id="syncDotSub"></span>
-          <span id="syncTextSub">Cloud Sync</span>
-        </div>
-        <span class="role-chip" id="roleChip"></span>
-        <button class="btn btn-ghost" style="color:var(--parchment); border-color:rgba(255,255,255,.3); padding:7px 16px; font-size:12.5px;" onclick="logout()">Keluar</button>
-      </div>
-    </div>
-
-    <!-- KLASEMEN -->
+  <!-- KLASEMEN -->
     <div class="page page-panel hidden" id="page-klasemen">
       <div class="info-note" id="klasemenAccessNote"></div>
       <div class="toolbar">
@@ -182,7 +261,13 @@
       <div class="ledger" id="panelHarian">
         <div class="ledger-head">
           <div class="ledger-title">Data Poin Harian</div>
-          <button class="btn btn-primary hidden" id="addKlasemenBtn" onclick="openKlasemenModal()">+ Tambah Poin</button>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-secondary hidden" id="addBulkKlasemenBtn" onclick="openKlasemenBulkModal()" style="font-size:12.5px; padding:6px 14px;">
+              <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+              Input Massal
+            </button>
+            <button class="btn btn-primary hidden" id="addKlasemenBtn" onclick="openKlasemenModal()">+ Tambah Poin</button>
+          </div>
         </div>
         <table>
           <thead><tr>
@@ -213,8 +298,14 @@
 
       <!-- TABS SUB-NAVIGASI LIGA: JADWAL vs HASIL -->
       <div class="tabs">
-        <button class="tab active" id="tabLigaJadwal" onclick="switchLigaTab('jadwal')">📅 Jadwal Pertandingan</button>
-        <button class="tab" id="tabLigaHasil" onclick="switchLigaTab('hasil')">🏁 Hasil &amp; Babak Turnamen</button>
+        <button class="tab active" id="tabLigaJadwal" onclick="switchLigaTab('jadwal')">
+          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          Jadwal Pertandingan
+        </button>
+        <button class="tab" id="tabLigaHasil" onclick="switchLigaTab('hasil')">
+          <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+          Hasil &amp; Babak Turnamen
+        </button>
       </div>
 
       <!-- PANEL 1: JADWAL PERTANDINGAN -->
@@ -224,7 +315,10 @@
             <div class="ledger-title">Jadwal Pertandingan Mendatang</div>
             <p style="font-size:13px; color:var(--ink-faint); margin-top:2px;">Daftar laga yang akan dan sedang berlangsung antar gedung.</p>
           </div>
-          <button class="btn btn-primary hidden" id="addJadwalBolaBtn" onclick="openJadwalModal()">+ Tambah Jadwal Bola</button>
+          <button class="btn btn-primary hidden" id="addJadwalBolaBtn" onclick="openJadwalModal()">
+            <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Jadwal Bola
+          </button>
         </div>
         <div id="jadwalListContainer" style="margin-top:14px;">
           <!-- Rendered via JS -->
@@ -238,19 +332,25 @@
             <div class="ledger-title">Hasil &amp; Alur Babak Turnamen</div>
             <p style="font-size:13px; color:var(--ink-faint); margin-top:2px;">Skor resmi babak gugur hingga penentuan juara utama.</p>
           </div>
-          <button class="btn btn-primary hidden" id="addMatchBtn" onclick="openMatchModal()">+ Input Hasil Laga</button>
         </div>
 
         <div class="bracket-tree-wrap" id="bracketTreeContainer" style="margin-top:14px;">
           <!-- Rendered via JS (Penyisihan, Semifinal, Final & Juara) -->
         </div>
 
-        <div style="margin-top:24px;">
-          <div class="ledger-title" style="font-size:16px; margin-bottom:10px;">Rekap Riwayat Skor</div>
-          <table>
-            <thead><tr><th>Babak</th><th>Tanggal</th><th>Pertandingan</th><th class="center">Skor</th><th class="center hidden" id="matchActionHead">Aksi</th></tr></thead>
-            <tbody id="matchTbody"></tbody>
-          </table>
+        <div class="rekap-skor-wrap" style="margin-top:26px;">
+          <div class="ledger-title" style="font-size:16px; margin-bottom:12px;">Rekap Riwayat Skor</div>
+          
+          <!-- Desktop Table View -->
+          <div class="rekap-table-wrap">
+            <table>
+              <thead><tr><th>Babak</th><th>Tanggal</th><th>Pertandingan</th><th class="center">Skor</th><th class="center hidden" id="matchActionHead">Aksi</th></tr></thead>
+              <tbody id="matchTbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Mobile Card View -->
+          <div class="rekap-cards-wrap" id="matchCardsMobile"></div>
         </div>
       </div>
     </div>
@@ -264,7 +364,6 @@
       </div>
       <div id="eventList"></div>
     </div>
-  </div>
 
   <!-- ===== BOTTOM NAVIGATION BAR (KHUSUS TAMPILAN HP) ===== -->
   <div class="mobile-bottom-nav">
@@ -273,15 +372,15 @@
       <span>Beranda</span>
     </button>
     <button class="mobile-nav-item" id="mNav-klasemen" onclick="switchView('klasemen')">
-      <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+      <svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
       <span>Klasemen</span>
     </button>
     <button class="mobile-nav-item" id="mNav-liga" onclick="switchView('liga')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 4.24 4.24"></path><path d="m14.83 14.83 4.24 4.24"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
       <span>Turnamen</span>
     </button>
     <button class="mobile-nav-item" id="mNav-event" onclick="switchView('event')">
-      <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y2="10" y2="10"></line></svg>
+      <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
       <span>Event</span>
     </button>
   </div>
@@ -295,13 +394,65 @@
       <div class="field"><label>Tanggal</label><input type="date" id="kTanggal" onchange="onKlasemenKeyChange()"></div>
       <div class="field"><label>Sakan</label><select id="kSakan" onchange="onKlasemenKeyChange()"></select></div>
     </div>
-    <div class="field"><label>Poin Kebersihan (0–100)</label><input type="number" id="fKebersihan" min="0" max="100" placeholder="Belum diisi"></div>
-    <div class="field"><label>Poin Kedisiplinan (0–100)</label><input type="number" id="fKedisiplinan" min="0" max="100" placeholder="Belum diisi"></div>
-    <div class="field"><label>Poin Bahasa (0–100)</label><input type="number" id="fBahasa" min="0" max="100" placeholder="Belum diisi"></div>
+    <div class="field" id="fieldKebersihan">
+      <label>Poin Kebersihan (0–100)</label>
+      <input type="number" inputmode="numeric" pattern="[0-9]*" id="fKebersihan" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintKebersihan')">
+      <span class="field-error-hint" id="hintKebersihan">Nilai harus angka 0 sampai 100</span>
+    </div>
+    <div class="field" id="fieldKedisiplinan">
+      <label>Poin Kedisiplinan (0–100)</label>
+      <input type="number" inputmode="numeric" pattern="[0-9]*" id="fKedisiplinan" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintKedisiplinan')">
+      <span class="field-error-hint" id="hintKedisiplinan">Nilai harus angka 0 sampai 100</span>
+    </div>
+    <div class="field" id="fieldBahasa">
+      <label>Poin Bahasa (0–100)</label>
+      <input type="number" inputmode="numeric" pattern="[0-9]*" id="fBahasa" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintBahasa')">
+      <span class="field-error-hint" id="hintBahasa">Nilai harus angka 0 sampai 100</span>
+    </div>
     <div id="dupeNote" style="display:none;color:var(--green-ok);font-size:12px;font-weight:600;margin-bottom:10px;">Data sakan &amp; tanggal ini sudah ada — nilai akan diperbarui.</div>
     <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
       <button class="btn btn-primary" id="btnSaveKlasemen" onclick="simpanKlasemen()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalKlasemen')">Batal</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL INPUT MASSAL HARIAN (1B VERSI A) -->
+<div class="modal-veil" id="modalKlasemenBulk">
+  <div class="modal-box" style="max-width:720px; width:95%; max-height:90vh; display:flex; flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h3 style="margin:0; font-size:19px;">Input Massal Poin Harian</h3>
+      <button class="btn btn-ghost" style="padding:3px 8px; font-size:15px;" onclick="closeModal('modalKlasemenBulk')">✕</button>
+    </div>
+    <p style="font-size:12.5px; color:var(--ink-faint); margin-bottom:14px;">Masukkan nilai untuk seluruh sakan sekaligus. Tersimpan instan (optimis) dan disinkronkan ke cloud dalam 1 batch.</p>
+    
+    <div class="field" style="margin-bottom:12px; max-width:220px;">
+      <label>Tanggal Penilaian</label>
+      <input type="date" id="bulkTanggal" onchange="populateBulkTable()">
+    </div>
+
+    <div style="overflow-y:auto; flex:1; border:1px solid var(--line); border-radius:10px; margin-bottom:14px; background:#fff;">
+      <table class="bulk-input-table">
+        <thead>
+          <tr>
+            <th style="min-width:140px;">Sakan</th>
+            <th class="center" style="width:105px;">Kebersihan<br><small style="font-size:10px; color:var(--ink-faint);">(0–100)</small></th>
+            <th class="center" style="width:105px;">Kedisiplinan<br><small style="font-size:10px; color:var(--ink-faint);">(0–100)</small></th>
+            <th class="center" style="width:105px;">Bahasa<br><small style="font-size:10px; color:var(--ink-faint);">(0–100)</small></th>
+            <th class="center" style="width:85px;">Rata-rata</th>
+          </tr>
+        </thead>
+        <tbody id="bulkTableTbody">
+          <!-- Diisi via populateBulkTable() -->
+        </tbody>
+      </table>
+    </div>
+
+    <div id="bulkErrorNote" style="display:none; color:var(--clay); font-size:12px; font-weight:600; margin-bottom:10px; padding:6px 10px; background:#FEF2F2; border:1px solid #FCA5A5; border-radius:6px;"></div>
+
+    <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn btn-ghost" onclick="closeModal('modalKlasemenBulk')">Batal</button>
+      <button class="btn btn-primary" id="btnSaveBulkKlasemen" onclick="simpanKlasemenBulk()">Simpan Rekap Semua</button>
     </div>
   </div>
 </div>
@@ -333,10 +484,18 @@
     <div id="mSkorSection" style="display:none; background:var(--parchment); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:16px;">
       <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:8px;">Hasil Skor Akhir</div>
       <div class="field-row" style="margin-bottom:0;">
-        <div class="field"><label id="labelSkorA">Skor Tim A</label><input type="number" id="mSkorA" min="0" placeholder="0"></div>
-        <div class="field"><label id="labelSkorB">Skor Tim B</label><input type="number" id="mSkorB" min="0" placeholder="0"></div>
+        <div class="field" id="fieldSkorA">
+          <label id="labelSkorA">Skor Tim A</label>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorA" min="0" max="999" placeholder="0" oninput="liveValidateSkor()">
+          <span class="field-error-hint" id="hintSkorA">Skor 0–999</span>
+        </div>
+        <div class="field" id="fieldSkorB">
+          <label id="labelSkorB">Skor Tim B</label>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorB" min="0" max="999" placeholder="0" oninput="liveValidateSkor()">
+          <span class="field-error-hint" id="hintSkorB">Skor 0–999</span>
+        </div>
       </div>
-      <p style="font-size:11px; color:var(--ink-faint); margin-top:6px;">* Sistem gugur: skor tidak boleh sama (harus ada pemenang).</p>
+      <p id="antiDrawHint" style="font-size:11px; color:var(--ink-faint); margin-top:6px;">* Sistem gugur: skor tidak boleh sama (harus ada pemenang).</p>
     </div>
 
     <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
@@ -389,6 +548,9 @@
 
 <div id="toast"></div>
 
-<script src="js/app.js"></script>
+<script src="js/standings-engine.js?v=1.0"></script>
+<script src="js/tournament-engine.js?v=1.0"></script>
+<script src="js/data-store.js?v=1.0"></script>
+<script src="js/app.js?v=6.0"></script>
 </body>
 </html>

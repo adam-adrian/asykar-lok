@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Halaman Penilaian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Token diambil apa adanya dari index.html — mockup ini tidak memperkenalkan warna
+   atau tipografi baru, supaya yang dinilai adalah tata letak, bukan gaya. */
+:root{
+  --ink:#16302A; --ink-soft:#23473D; --ink-faint:#5C7268;
+  --parchment:#F6F1E3; --parchment-dim:#ECE3CC; --card:#FFFEFB;
+  --gold:#B08A2E; --gold-light:#D9B65C;
+  --clay:#A9503A; --clay-light:#C97A5E;
+  --green-ok:#3E7A5C;
+  --line:#DFD5B8;
+  --radius:14px; --radius-sm:9px;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--parchment);color:var(--ink);-webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Fraunces',serif;}
+button{font-family:inherit;cursor:pointer;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.hidden{display:none !important;}
+
+/* ---------- kerangka yang sudah ada ---------- */
+.topbar{background:var(--ink);color:var(--parchment);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:900;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.topbar-mark{width:38px;height:38px;border-radius:50%;border:1.5px solid var(--gold-light);display:flex;align-items:center;justify-content:center;color:var(--gold-light);font-family:'Fraunces',serif;font-weight:700;}
+.topbar h1{font-size:18px;margin:0;font-weight:600;line-height:1.2;}
+.topbar .who{font-size:12px;color:#A9BDB4;}
+.topbar-nav{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);padding:4px;border-radius:999px;border:1px solid rgba(255,255,255,.1);}
+.nav-pill-btn{background:transparent;border:none;color:#C9D6D0;padding:8px 16px;border-radius:999px;font-size:13px;font-weight:500;transition:all .2s var(--ease);}
+.nav-pill-btn:hover{color:#fff;background:rgba(255,255,255,.08);}
+.nav-pill-btn.active{background:var(--gold);color:#fff;font-weight:600;box-shadow:0 2px 10px rgba(176,138,46,.3);}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.role-chip{font-size:10.5px;font-weight:700;letter-spacing:.03em;padding:3px 10px;border-radius:999px;background:var(--gold);color:#fff;}
+.page{max-width:1180px;margin:0 auto;padding:26px 24px 120px;}
+.btn{border:none;border-radius:999px;cursor:pointer;padding:10px 20px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:8px;transition:transform .18s var(--ease),box-shadow .18s var(--ease);white-space:nowrap;justify-content:center;}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--ink);color:var(--parchment);}
+.btn-primary:hover{background:var(--ink-soft);box-shadow:0 6px 18px rgba(22,48,42,.25);}
+.btn-ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+.btn-ghost:hover{border-color:var(--ink);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 18px;margin-bottom:22px;}
+.toolbar label{font-size:12.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;}
+.toolbar input[type=date],.toolbar select{padding:9px 12px;font-size:13.5px;border:1.5px solid var(--line);border-radius:var(--radius-sm);font-family:inherit;background:#fff;color:var(--ink);}
+.field-inline{display:flex;align-items:center;gap:10px;}
+.ledger{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:6px 22px 18px;margin-bottom:26px;}
+.ledger-head{display:flex;align-items:center;justify-content:space-between;padding:16px 0 6px;flex-wrap:wrap;gap:12px;}
+.ledger-title{font-family:'Fraunces',serif;font-size:18px;font-weight:600;}
+table{width:100%;border-collapse:collapse;}
+thead th{text-align:left;font-size:11px;font-weight:700;color:var(--ink-faint);letter-spacing:.03em;padding:10px;border-bottom:1.5px solid var(--line);white-space:nowrap;}
+thead th.center,td.center{text-align:center;}
+tbody td{padding:9px 10px;border-bottom:1px solid #EFE9D6;font-size:13.5px;vertical-align:middle;}
+.sakan-name{font-weight:600;}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--parchment-dim);font-size:12px;font-weight:600;color:var(--ink-soft);}
+.pill.empty{color:var(--ink-faint);font-weight:500;}
+.info-note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:22px;font-size:13.5px;color:var(--ink-soft);}
+
+/* ---------- baru: grid penilaian ---------- */
+
+/* Kolom yang sedang dinilai diberi latar sedikit berbeda, supaya mata tahu
+   ke mana harus turun. Kolom lain hadir sebagai konteks, bukan sebagai isian. */
+.grid-nilai td.aktif{background:#FCFAF2;}
+.grid-nilai th.aktif{background:#FCFAF2;color:var(--ink);}
+
+.nilai-cell{display:flex;align-items:center;gap:6px;justify-content:center;}
+.nilai-input{
+  width:76px;padding:8px 10px;border:1.5px solid var(--line);border-radius:var(--radius-sm);
+  font-size:14px;font-family:'Inter',sans-serif;background:#fff;color:var(--ink);
+  text-align:center;font-weight:600;
+}
+.nilai-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(176,138,46,.15);}
+.nilai-input.ubah{border-color:var(--gold);background:#FFFDF5;}
+.nilai-input.kosongkan{border-color:var(--clay);background:#FDF4F1;text-decoration:line-through;color:var(--clay);}
+.nilai-input:disabled{background:var(--parchment-dim);color:var(--ink-faint);border-color:transparent;font-weight:500;}
+
+/* Tombol kosongkan: hanya muncul saat selnya berisi, jadi tidak menambah
+   kebisingan pada 19 baris yang kosong. */
+.btn-kosong{
+  border:none;background:transparent;color:var(--ink-faint);width:26px;height:26px;
+  border-radius:6px;font-size:15px;line-height:1;display:inline-flex;align-items:center;
+  justify-content:center;transition:all .15s;flex-shrink:0;
+}
+.btn-kosong:hover{background:#FBEDE8;color:var(--clay);}
+.btn-kosong.invisible{visibility:hidden;}
+
+/* Penanda status per baris: tersimpan / diubah / akan dikosongkan. */
+.tanda{font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.tanda.tetap{color:var(--ink-faint);}
+.tanda.ubah{color:var(--gold);}
+.tanda.hapus{color:var(--clay);}
+.tanda .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+/* Bilah simpan menempel di bawah: satu tindakan untuk seluruh kolom. */
+.bilah-simpan{
+  position:fixed;bottom:0;left:0;right:0;background:var(--ink);color:var(--parchment);
+  padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;box-shadow:0 -6px 24px rgba(0,0,0,.18);z-index:800;
+}
+.bilah-kiri{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.bilah-ringkas{font-size:13.5px;}
+.bilah-ringkas strong{font-family:'Fraunces',serif;font-size:17px;color:var(--gold-light);font-weight:700;}
+.bilah-rincian{font-size:12px;color:#A9BDB4;}
+.bilah-kanan{display:flex;align-items:center;gap:10px;}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:#98761f;box-shadow:0 6px 18px rgba(176,138,46,.3);}
+.btn-outline-light{background:transparent;color:var(--parchment);border:1.5px solid rgba(255,255,255,.3);}
+.btn-outline-light:hover{border-color:var(--parchment);}
+
+/* Pemilih kategori untuk admin_utama. Admin kategori melihat versi terkunci. */
+.pilih-kategori{display:flex;gap:4px;background:var(--parchment-dim);padding:4px;border-radius:999px;}
+.pilih-kategori button{
+  background:transparent;border:none;padding:7px 15px;border-radius:999px;
+  font-size:13px;font-weight:600;color:var(--ink-faint);transition:all .18s var(--ease);
+}
+.pilih-kategori button:hover{color:var(--ink);}
+.pilih-kategori button.aktif{background:var(--ink);color:var(--parchment);}
+.kategori-terkunci{display:inline-flex;align-items:center;gap:8px;background:var(--parchment-dim);padding:8px 15px;border-radius:999px;font-size:13px;font-weight:600;color:var(--ink-soft);}
+.kategori-terkunci svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.4;}
+
+.progres{font-size:12.5px;color:var(--ink-faint);}
+.progres strong{color:var(--ink);font-weight:700;}
+
+/* Panel peraga mockup — bukan bagian dari desain sebenarnya. */
+.peraga{position:fixed;top:76px;right:16px;background:var(--card);border:1.5px solid var(--gold);border-radius:var(--radius);padding:14px 16px;z-index:950;box-shadow:0 10px 30px rgba(22,48,42,.12);max-width:230px;}
+.peraga h4{font-family:'Inter',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.peraga button{display:block;width:100%;text-align:left;background:var(--parchment);border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+.peraga button:hover{border-color:var(--gold);color:var(--ink);}
+.peraga button.on{background:var(--ink);color:var(--parchment);border-color:var(--ink);}
+.peraga p{font-size:11px;color:var(--ink-faint);line-height:1.5;margin-top:8px;}
+
+@media (max-width:768px){
+  .topbar-nav{display:none;}
+  .page{padding:20px 14px 140px;}
+  .peraga{position:static;max-width:none;margin:14px;}
+  table{min-width:520px;}
+  .ledger{overflow-x:auto;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-mark">LK</div>
+    <div>
+      <h1>League Of Kindness</h1>
+      <div class="who" id="who">Fatimah — Admin Kebersihan</div>
+    </div>
+  </div>
+  <div class="topbar-nav">
+    <button class="nav-pill-btn">Klasemen</button>
+    <button class="nav-pill-btn">Liga</button>
+    <button class="nav-pill-btn">Agenda</button>
+    <button class="nav-pill-btn active">Penilaian</button>
+  </div>
+  <div class="topbar-right">
+    <span class="role-chip" id="chip">Admin Kebersihan</span>
+    <button class="btn btn-ghost" style="color:var(--parchment);border-color:rgba(255,255,255,.3);padding:7px 16px;font-size:12.5px;">Keluar</button>
+  </div>
+</div>
+
+<div class="peraga">
+  <h4>Peraga mockup</h4>
+  <button id="btnPeran" onclick="tukarPeran()">Peran: Admin Kebersihan</button>
+  <button onclick="isiContoh()">Isi beberapa nilai</button>
+  <button onclick="mulaiUlang()">Kosongkan semua</button>
+  <p>Panel ini alat peraga, bukan bagian desain. Coba ubah angka, lalu tekan × untuk mengosongkan sel yang sudah berisi.</p>
+</div>
+
+<div class="page">
+  <div class="info-note" id="catatanAkses">
+    Anda menilai <strong>Kebersihan</strong>. Kolom kategori lain ditampilkan sebagai rujukan dan tidak dapat Anda ubah.
+  </div>
+
+  <div class="toolbar">
+    <div class="field-inline">
+      <label for="tgl">Tanggal</label>
+      <input type="date" id="tgl" value="2026-09-03" onchange="render()">
+    </div>
+
+    <div class="field-inline" id="wadahKategori">
+      <label>Kategori</label>
+      <div class="kategori-terkunci" id="kategoriTerkunci">
+        <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        Kebersihan
+      </div>
+      <div class="pilih-kategori hidden" id="pilihKategori">
+        <button class="aktif" data-kat="kebersihan" onclick="pilihKategori('kebersihan')">Kebersihan</button>
+        <button data-kat="kedisiplinan" onclick="pilihKategori('kedisiplinan')">Kedisiplinan</button>
+        <button data-kat="bahasa" onclick="pilihKategori('bahasa')">Bahasa</button>
+      </div>
+    </div>
+
+    <div style="flex:1"></div>
+    <div class="progres" id="progres"></div>
+  </div>
+
+  <div class="ledger">
+    <div class="ledger-head">
+      <div class="ledger-title">Penilaian Rabu, 3 September 2026</div>
+    </div>
+    <table class="grid-nilai">
+      <thead>
+        <tr>
+          <th>Sakan</th>
+          <th class="center" data-kol="kebersihan">Kebersihan</th>
+          <th class="center" data-kol="kedisiplinan">Kedisiplinan</th>
+          <th class="center" data-kol="bahasa">Bahasa</th>
+          <th class="center">Rata-rata</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="baris"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="bilah-simpan">
+  <div class="bilah-kiri">
+    <div class="bilah-ringkas" id="ringkas"><strong>0</strong> perubahan</div>
+    <div class="bilah-rincian" id="rincian">Ubah angka pada kolom yang Anda nilai.</div>
+  </div>
+  <div class="bilah-kanan">
+    <button class="btn btn-outline-light" id="btnBatal" onclick="batalkan()" disabled>Batalkan perubahan</button>
+    <button class="btn btn-gold" id="btnSimpan" onclick="simpan()" disabled>Simpan</button>
+  </div>
+</div>
+
+<script>
+const SAKAN = [
+  "QAZVIN ATAS","QAZVIN BAWAH","NAISABUR ATAS","NAISABUR BAWAH",
+  "SIJISTAN ATAS","SIJISTAN BAWAH","HAMADAN ATAS","HAMADAN BAWAH",
+  "HAMADAN LORONG","TIRMIDZ ATAS","TIRMIDZ BAWAH","BUKHARA ATAS",
+  "BUKHARA BAWAH","SAGARAS","ASGARD","MCAVA","XRERA","LOBBY","ZARAGOZA"
+];
+const KATEGORI = ["kebersihan","kedisiplinan","bahasa"];
+const LABEL = { kebersihan:"Kebersihan", kedisiplinan:"Kedisiplinan", bahasa:"Bahasa" };
+
+// tersimpan = keadaan server. draf = yang sedang diketik.
+// null berarti belum dinilai; itu berbeda dari nilai 0.
+let tersimpan = {}, draf = {};
+let peran = "admin_kebersihan";
+let katAktif = "kebersihan";
+
+function kunci(sakan, kat){ return sakan + "|" + kat; }
+function bolehUbah(kat){
+  if(peran === "admin_utama") return true;
+  return peran === "admin_" + kat;
+}
+
+function seed(){
+  tersimpan = {}; draf = {};
+  // Sebagian sakan sudah dinilai sebagian — ini keadaan yang paling sering
+  // terjadi di lapangan, dan yang paling perlu terlihat benar.
+  const awal = {
+    "QAZVIN ATAS":   { kebersihan:88, kedisiplinan:90, bahasa:76 },
+    "QAZVIN BAWAH":  { kebersihan:79, kedisiplinan:85 },
+    "NAISABUR ATAS": { kedisiplinan:92, bahasa:88 },
+    "SIJISTAN ATAS": { kebersihan:95 },
+    "HAMADAN ATAS":  { kebersihan:0, kedisiplinan:70, bahasa:64 },
+  };
+  SAKAN.forEach(s => KATEGORI.forEach(k => {
+    const v = awal[s] && awal[s][k] !== undefined ? awal[s][k] : null;
+    tersimpan[kunci(s,k)] = v;
+    draf[kunci(s,k)] = v;
+  }));
+}
+
+function bedaSel(s, k){
+  const a = tersimpan[kunci(s,k)], b = draf[kunci(s,k)];
+  if(a === b) return "tetap";
+  if(b === null) return "hapus";
+  return "ubah";
+}
+
+function daftarBeda(){
+  const out = [];
+  SAKAN.forEach(s => KATEGORI.forEach(k => {
+    const d = bedaSel(s,k);
+    if(d !== "tetap") out.push({ sakan:s, kat:k, jenis:d });
+  }));
+  return out;
+}
+
+function rata(s, sumber){
+  const isi = KATEGORI.map(k => sumber[kunci(s,k)]).filter(v => v !== null && v !== undefined);
+  if(!isi.length) return null;
+  return isi.reduce((a,b) => a + Number(b), 0) / isi.length;
+}
+
+function render(){
+  const tbody = document.getElementById("baris");
+  tbody.innerHTML = "";
+
+  SAKAN.forEach(s => {
+    const tr = document.createElement("tr");
+
+    const tdNama = document.createElement("td");
+    tdNama.className = "sakan-name";
+    tdNama.textContent = s;
+    tr.appendChild(tdNama);
+
+    KATEGORI.forEach(k => {
+      const td = document.createElement("td");
+      td.className = "center" + (k === katAktif ? " aktif" : "");
+      const wrap = document.createElement("div");
+      wrap.className = "nilai-cell";
+
+      const inp = document.createElement("input");
+      inp.type = "number"; inp.min = 0; inp.max = 100;
+      inp.className = "nilai-input";
+      inp.setAttribute("aria-label", `${LABEL[k]} ${s}`);
+      const v = draf[kunci(s,k)];
+      inp.value = v === null ? "" : v;
+      inp.placeholder = "–";
+      inp.disabled = !bolehUbah(k);
+
+      const beda = bedaSel(s,k);
+      if(beda === "ubah") inp.classList.add("ubah");
+      if(beda === "hapus") inp.classList.add("kosongkan");
+
+      inp.addEventListener("input", () => {
+        const t = inp.value.trim();
+        draf[kunci(s,k)] = t === "" ? null : Number(t);
+        render();
+        // Fokus dipulihkan agar mengetik 19 baris tidak terputus.
+        const ulang = document.querySelector(`[aria-label="${LABEL[k]} ${s}"]`);
+        if(ulang){ ulang.focus(); ulang.setSelectionRange?.(ulang.value.length, ulang.value.length); }
+      });
+      wrap.appendChild(inp);
+
+      // Tombol kosongkan hanya untuk sel yang tersimpan berisi dan boleh diubah.
+      const btn = document.createElement("button");
+      btn.className = "btn-kosong";
+      btn.innerHTML = "&times;";
+      btn.title = `Kosongkan ${LABEL[k].toLowerCase()} ${s}`;
+      btn.setAttribute("aria-label", btn.title);
+      const perluTombol = bolehUbah(k) && draf[kunci(s,k)] !== null;
+      if(!perluTombol) btn.classList.add("invisible");
+      btn.onclick = () => { draf[kunci(s,k)] = null; render(); };
+      wrap.appendChild(btn);
+
+      td.appendChild(wrap);
+      tr.appendChild(td);
+    });
+
+    // Rata-rata dihitung di klien, hanya dari kategori yang terisi.
+    const tdAvg = document.createElement("td");
+    tdAvg.className = "center";
+    const r = rata(s, draf);
+    tdAvg.innerHTML = r === null
+      ? '<span class="pill empty">–</span>'
+      : `<span class="pill">${r.toFixed(1)}</span>`;
+    tr.appendChild(tdAvg);
+
+    const tdStatus = document.createElement("td");
+    const bedaBaris = KATEGORI.map(k => bedaSel(s,k)).filter(d => d !== "tetap");
+    if(!bedaBaris.length){
+      const adaIsi = KATEGORI.some(k => draf[kunci(s,k)] !== null);
+      tdStatus.innerHTML = adaIsi
+        ? '<span class="tanda tetap"><span class="dot"></span>Tersimpan</span>'
+        : '<span class="tanda tetap" style="opacity:.5"><span class="dot"></span>Belum dinilai</span>';
+    } else if(bedaBaris.every(d => d === "hapus")){
+      tdStatus.innerHTML = '<span class="tanda hapus"><span class="dot"></span>Akan dikosongkan</span>';
+    } else {
+      tdStatus.innerHTML = '<span class="tanda ubah"><span class="dot"></span>Belum disimpan</span>';
+    }
+    tr.appendChild(tdStatus);
+
+    tbody.appendChild(tr);
+  });
+
+  document.querySelectorAll("thead th[data-kol]").forEach(th => {
+    th.classList.toggle("aktif", th.dataset.kol === katAktif);
+  });
+
+  const beda = daftarBeda();
+  const nUbah = beda.filter(b => b.jenis === "ubah").length;
+  const nHapus = beda.filter(b => b.jenis === "hapus").length;
+  document.getElementById("ringkas").innerHTML = `<strong>${beda.length}</strong> perubahan`;
+  document.getElementById("rincian").textContent = beda.length === 0
+    ? "Ubah angka pada kolom yang Anda nilai."
+    : [nUbah ? `${nUbah} nilai diubah` : null, nHapus ? `${nHapus} akan dikosongkan` : null]
+        .filter(Boolean).join(" • ");
+  document.getElementById("btnSimpan").disabled = beda.length === 0;
+  document.getElementById("btnBatal").disabled = beda.length === 0;
+
+  const terisi = SAKAN.filter(s => draf[kunci(s,katAktif)] !== null).length;
+  document.getElementById("progres").innerHTML =
+    `${LABEL[katAktif]}: <strong>${terisi}</strong> dari ${SAKAN.length} sakan terisi`;
+}
+
+function pilihKategori(k){
+  katAktif = k;
+  document.querySelectorAll("#pilihKategori button").forEach(b =>
+    b.classList.toggle("aktif", b.dataset.kat === k));
+  render();
+}
+
+function batalkan(){
+  SAKAN.forEach(s => KATEGORI.forEach(k => draf[kunci(s,k)] = tersimpan[kunci(s,k)]));
+  render();
+}
+
+function simpan(){
+  const beda = daftarBeda();
+  // Payload sebenarnya: hanya sel yang berubah. null berarti kosongkan.
+  console.log("save_klasemen_batch", {
+    tanggal: document.getElementById("tgl").value,
+    perubahan: beda.map(b => ({ sakan:b.sakan, kategori:b.kat, nilai:draf[kunci(b.sakan,b.kat)] }))
+  });
+  beda.forEach(b => tersimpan[kunci(b.sakan,b.kat)] = draf[kunci(b.sakan,b.kat)]);
+  render();
+}
+
+function tukarPeran(){
+  const urut = ["admin_kebersihan","admin_kedisiplinan","admin_bahasa","admin_utama"];
+  peran = urut[(urut.indexOf(peran) + 1) % urut.length];
+  const nama = {
+    admin_kebersihan:  ["Fatimah","Admin Kebersihan","kebersihan"],
+    admin_kedisiplinan:["Umar","Admin Kedisiplinan","kedisiplinan"],
+    admin_bahasa:      ["Zaynab","Admin Bahasa","bahasa"],
+    admin_utama:       ["Asykar","Admin Utama",null],
+  }[peran];
+
+  document.getElementById("btnPeran").textContent = "Peran: " + nama[1];
+  document.getElementById("who").textContent = `${nama[0]} — ${nama[1]}`;
+  document.getElementById("chip").textContent = nama[1];
+
+  const utama = peran === "admin_utama";
+  document.getElementById("pilihKategori").classList.toggle("hidden", !utama);
+  document.getElementById("kategoriTerkunci").classList.toggle("hidden", utama);
+
+  if(utama){
+    document.getElementById("catatanAkses").innerHTML =
+      "Anda dapat menilai semua kategori. Pilih kategori yang ingin dikerjakan.";
+    pilihKategori(katAktif);
+  } else {
+    katAktif = nama[2];
+    document.getElementById("kategoriTerkunci").innerHTML =
+      `<svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> ${LABEL[katAktif]}`;
+    document.getElementById("catatanAkses").innerHTML =
+      `Anda menilai <strong>${LABEL[katAktif]}</strong>. Kolom kategori lain ditampilkan sebagai rujukan dan tidak dapat Anda ubah.`;
+    batalkan();
+  }
+  render();
+}
+
+function isiContoh(){
+  const contoh = [72, 85, 90, 68, 94, 77, 88, 81];
+  SAKAN.slice(0, 8).forEach((s,i) => {
+    if(bolehUbah(katAktif)) draf[kunci(s,katAktif)] = contoh[i];
+  });
+  render();
+}
+
+function mulaiUlang(){ seed(); render(); }
+
+seed();
+render();
+</script>
+</body>
+</html>

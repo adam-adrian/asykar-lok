@@ -24,11 +24,45 @@
 const API_URL = "/api/sync";
 const AUTH_URL = "/api/login";
 
+// Instansiasi DataStore tunggal (Tingkat 1)
+const store = new DataStoreModule.DataStore(new DataStoreModule.HttpTransportAdapter(API_URL));
+
+// Observer reaktif terkalibrasi untuk status sinkronisasi pasif
+store.subscribe(snap => {
+  updateSyncStatus(snap.sync.status, snap.sync.label);
+  // Re-render pasif baris data untuk memperbarui badge WhatsApp (🕒 -> ✓)
+  if (currentView === "klasemen") renderKlasemen();
+  else if (currentView === "liga") renderligaMenu();
+  else if (currentView === "event") renderEvent();
+  else if (currentView === "homepage") renderDashboard();
+});
+
 let currentUser="", currentRole="", currentLabel="", currentAuthToken="";
 let currentView="homepage";
-let dataKlasemen=[], dataLiga=[], dataEvent=[], dataGedung=[], dataSakan=[];
 let editingKlasemenKey=null;
 let tempBase64Image = "";
+
+// State proxy bridges untuk menjamin kompatibilitas fungsi legacy
+Object.defineProperty(window, 'dataKlasemen', {
+  get: () => store.getKlasemen(),
+  set: (val) => { store.state.klasemen = val; }
+});
+Object.defineProperty(window, 'dataLiga', {
+  get: () => store.getMatches(),
+  set: (val) => { store.state.liga = val; }
+});
+Object.defineProperty(window, 'dataEvent', {
+  get: () => store.getEvents(),
+  set: (val) => { store.state.event = val; }
+});
+Object.defineProperty(window, 'dataGedung', {
+  get: () => store.getGedung(),
+  set: (val) => { store.state.gedung = val; }
+});
+Object.defineProperty(window, 'dataSakan', {
+  get: () => store.getSakan(),
+  set: (val) => { store.state.sakan = val; }
+});
 
 const KEY_DATA="lok-klasemen-v5", KEY_LIGA="lok-liga-v5", KEY_EVENT="lok-event-v5", KEY_SESSION="lok-session-v5";
 
@@ -164,71 +198,147 @@ function closeModal(id) {
     el.classList.remove('show');
   }
 }
+
+/* ===== SVG VECTOR ICONS HELPER ===== */
+const SVG_ICONS = {
+  home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  trophy: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  award: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+  crown: '<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/>',
+  building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+  soccer: '<circle cx="12" cy="12" r="10"/><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"/><path d="m12 7V2"/><path d="m15.5 9.5 4-2"/><path d="m15.5 13.5 4 2"/><path d="m12 16v5"/><path d="m8.5 13.5-4 2"/><path d="m8.5 9.5-4-2"/>',
+  calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  'map-pin': '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  'refresh-cw': '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  edit: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  loader: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>'
+};
+
+function svgIcon(name, size = 16, extraClass = '') {
+  const inner = SVG_ICONS[name] || '';
+  const cls = extraClass ? `svg-icon ${extraClass}` : 'svg-icon';
+  return `<svg class="${cls}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+}
+
+/* ===== WHATSAPP-STYLE ROW SYNC BADGE HELPER ===== */
+function renderSyncBadge(syncStatus, syncId, errorMsg) {
+  if (syncStatus === 'pending') {
+    return `<span class="row-sync-status"><span class="sync-pill-pending" title="Menyinkronkan ke Google Sheets...">${svgIcon('loader', 11, 'svg-spinner')} Mengirim</span></span>`;
+  }
+  if (syncStatus === 'synced') {
+    return `<span class="row-sync-status"><span class="sync-pill-synced" title="Tersinkronisasi">${svgIcon('check', 12)}</span></span>`;
+  }
+  if (syncStatus === 'failed') {
+    const escMsg = escapeHtml(errorMsg || 'Gagal tersinkron');
+    const escId = escapeHtml(syncId || '');
+    return `<span class="row-sync-status"><button type="button" class="sync-pill-failed" onclick="event.stopPropagation(); retryItemSync('${escId}')" title="${escMsg}">⚠️ Gagal • Coba lagi</button></span>`;
+  }
+  return '';
+}
+
+async function retryItemSync(syncId) {
+  if (!syncId) return;
+  showToast("Mencoba menyinkronkan kembali...");
+  await store.retryMutation(syncId);
+  if (currentView === "klasemen") renderKlasemen();
+  else if (currentView === "liga") renderligaMenu();
+  else if (currentView === "event") renderEvent();
+}
+
+function liveValidatePoin(input, hintId) {
+  if (!input) return;
+  input.value = input.value.replace(/[^0-9]/g, '');
+  const parentField = input.closest('.field');
+  const hint = document.getElementById(hintId);
+  const val = input.value.trim();
+  if (val !== '') {
+    const n = parseInt(val, 10);
+    if (n < 0 || n > 100) {
+      if (parentField) parentField.classList.add('field-invalid');
+      if (hint) {
+        hint.textContent = 'Maksimal nilai adalah 100';
+        hint.style.display = 'block';
+      }
+      return false;
+    }
+  }
+  if (parentField) parentField.classList.remove('field-invalid');
+  if (hint) hint.style.display = 'none';
+  return true;
+}
+
+function liveValidateSkor() {
+  const inpA = document.getElementById('mSkorA');
+  const inpB = document.getElementById('mSkorB');
+  const hint = document.getElementById('antiDrawHint');
+  if (inpA) inpA.value = inpA.value.replace(/[^0-9]/g, '');
+  if (inpB) inpB.value = inpB.value.replace(/[^0-9]/g, '');
+  const a = inpA ? inpA.value.trim() : '';
+  const b = inpB ? inpB.value.trim() : '';
+  if (a !== '' && b !== '' && a === b) {
+    if (hint) {
+      hint.style.color = 'var(--clay)';
+      hint.style.fontWeight = '700';
+      hint.textContent = '⚠️ Sistem gugur tidak boleh seri! Harus ada pemenang.';
+    }
+  } else {
+    if (hint) {
+      hint.style.color = 'var(--ink-faint)';
+      hint.style.fontWeight = 'normal';
+      hint.textContent = '* Sistem gugur: skor tidak boleh sama (harus ada pemenang).';
+    }
+  }
+}
 /* ===== CLOUD SYNC & API CALLS ===== */
 function updateSyncStatus(status, text){
-  const dots = [document.getElementById("syncDotTop"), document.getElementById("syncDotSub")];
-  const texts = [document.getElementById("syncTextTop"), document.getElementById("syncTextSub")];
+  const dots = [document.getElementById("syncDot"), document.getElementById("syncDotTop"), document.getElementById("syncDotSub")];
+  const texts = [document.getElementById("syncText"), document.getElementById("syncTextTop"), document.getElementById("syncTextSub")];
   dots.forEach(d => { if(d) d.className = "sync-dot " + status; });
   texts.forEach(t => { if(t) t.textContent = text; });
 }
 
+function updateDisplayUsername(name){
+  ["displayUsername", "displayUsernameTop", "displayUsernameSub"].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.textContent = name || "";
+  });
+}
+
 async function syncDataFromCloud(isManual = false){
-  updateSyncStatus("loading", "Sinkronisasi...");
   if(isManual) showToast("Mengambil data terbaru...");
+  store.setAuthToken(currentAuthToken);
+  const res = await store.syncFromRemote(isManual);
+  if(res.status === "success"){
+    fillSakanSelect();
+    fillTeamSelects();
+    renderSakanPills();
+    if(isManual) showToast(res.local ? "Data lokal dimuat." : "Data berhasil disinkronkan!");
 
-  try {
-    const res = await fetch(API_URL);
-    const json = await res.json();
-    if(json.status === "success" && json.data){
-      dataKlasemen = json.data.klasemen || [];
-      dataLiga = json.data.liga || [];
-      dataEvent = json.data.event || [];
-
-      dataGedung = Array.isArray(json.data.gedung) ? json.data.gedung : [];
-      dataSakan = Array.isArray(json.data.sakan) ? json.data.sakan : [];
-      fillSakanSelect();
-      fillTeamSelects();
-      renderSakanPills();
-
-      // Update cache lokal
-      saveData(KEY_DATA, dataKlasemen);
-      saveData(KEY_LIGA, dataLiga);
-      saveData(KEY_EVENT, dataEvent);
-
-      updateSyncStatus("online", json.local ? "Mode Lokal" : "Cloud Terhubung");
-      if(isManual) showToast(json.local ? "Data lokal dimuat." : "Data berhasil disinkronkan!");
-
-      if(currentView === "klasemen") renderKlasemen();
-      if(currentView === "liga") renderligaMenu();
-      if(currentView === "event") renderEvent();
-    }
-  } catch(err) {
-    console.warn("Gagal sync data:", err);
-    updateSyncStatus("local", "Cache Offline");
+    if(currentView === "homepage") renderDashboard();
+    if(currentView === "klasemen") renderKlasemen();
+    if(currentView === "liga") renderligaMenu();
+    if(currentView === "event") renderEvent();
+  } else {
     if(isManual) showToast("Gagal sync ke server. Menggunakan data lokal.", true);
   }
 }
 
 async function sendToCloud(action, payload){
-  updateSyncStatus("loading", "Menyimpan...");
   try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": currentAuthToken ? "Bearer " + currentAuthToken : ""
-      },
-      body: JSON.stringify({ action, payload })
-    });
-    const json = await res.json();
-    if(json && json.code === "unauthorized"){
+    const res = await store.adapter.push(action, payload, currentAuthToken);
+    if(res && res.code === "unauthorized"){
       updateSyncStatus("local", "Sesi berakhir");
       resetToLogin();
       showToast("Sesi berakhir. Silakan masuk kembali.", true);
-      return json;
+      return res;
     }
-    updateSyncStatus("online", json.local ? "Mode Lokal" : "Cloud Terhubung");
-    return json;
+    updateSyncStatus("online", res.local ? "Mode Lokal" : "Cloud Terhubung");
+    return res;
   } catch(err) {
     console.error("Cloud Error:", err);
     updateSyncStatus("local", "Gagal Simpan");
@@ -301,10 +411,10 @@ function loginAsTamu(){
 }
 
 function enterDashboard(showWelcome = false){
+  store.setAuthToken(currentAuthToken);
   document.getElementById("loginModal").classList.remove("show");
   document.getElementById("dashboard").classList.remove("hidden");
-  document.getElementById("displayUsernameTop").textContent=currentUser;
-  document.getElementById("displayUsernameSub").textContent=currentUser;
+  updateDisplayUsername(currentUser);
   const chip=document.getElementById("roleChip");
   chip.textContent=currentLabel;chip.className="role-chip r-"+currentRole;
   
@@ -330,8 +440,8 @@ function proceedToAgendaCheck(){
       <div class="agenda-item-card">
         <div class="agenda-item-title">${escapeHtml(ev.judul)}</div>
         <div class="agenda-item-meta">
-          <span>🕒 ${formatWaktu(ev.waktu)}</span>
-          <span>📍 ${escapeHtml(ev.lokasi || "Lokasi utama")}</span>
+          <span>${svgIcon('clock', 12)} ${formatWaktu(ev.waktu)}</span>
+          <span>${svgIcon('map-pin', 12)} ${escapeHtml(ev.lokasi || "Lokasi utama")}</span>
         </div>
       </div>
     `).join("");
@@ -374,20 +484,27 @@ function switchView(view, pushToHistory = true){
     b.classList.toggle("active", b.id === "mNav-" + view);
   });
 
-  const isHome = (view === 'homepage');
-  document.getElementById("view-homepage").classList.toggle("hidden", !isHome);
-  document.getElementById("view-inner-pages").classList.toggle("hidden", isHome);
+  // Update navigasi desktop (button group pills di topbar)
+  document.querySelectorAll(".nav-pill-btn").forEach(b => {
+    b.classList.toggle("active", b.id === "nav-" + view);
+  });
 
-  if(!isHome){
-    ["klasemen","liga","event"].forEach(p=>{
-      document.getElementById("page-"+p).classList.toggle("hidden", p !== view);
-    });
-    document.querySelectorAll(".nav-pill-btn").forEach(b=>{
-      b.classList.toggle("active", b.id === "nav-"+view);
-    });
-    if(view==="klasemen") renderKlasemen();
-    if(view==="liga") renderligaMenu();
-    if(view==="event") renderEvent();
+  // Toggle visibilitas halaman
+  const isHome = (view === 'homepage');
+  const vHome = document.getElementById("view-homepage");
+  if(vHome) vHome.classList.toggle("hidden", !isHome);
+
+  ["klasemen", "liga", "event"].forEach(p => {
+    const el = document.getElementById("page-" + p);
+    if(el) el.classList.toggle("hidden", p !== view);
+  });
+
+  if(isHome) {
+    renderDashboard();
+  } else {
+    if(view === "klasemen") renderKlasemen();
+    if(view === "liga") renderligaMenu();
+    if(view === "event") renderEvent();
   }
 }
 
@@ -426,15 +543,309 @@ function applyAccessNotes(){
   let accessText = currentRole==="admin_utama" ? "Anda masuk sebagai Admin Utama — dapat mengelola semua data." : "Anda masuk sebagai Tamu — hanya dapat melihat data.";
   k.innerHTML = `<span>${accessText}</span> <span style="font-size:11px; opacity:.8;">[Database Terintegrasi]</span>`;
   
-  document.getElementById("addKlasemenBtn").classList.toggle("hidden",!canEditKlasemenAny());
+  const addK = document.getElementById("addKlasemenBtn");
+  if(addK) addK.classList.toggle("hidden",!canEditKlasemenAny());
+  const addBulkK = document.getElementById("addBulkKlasemenBtn");
+  if(addBulkK) addBulkK.classList.toggle("hidden",!canEditKlasemenAny());
   document.getElementById("actionHead").classList.toggle("hidden",!canEditKlasemenAny());
   document.getElementById("ligaAccessNote").innerHTML=`<span>${canEditLiga()?"Anda dapat mengelola jadwal pertandingan dan hasil turnamen bola.":"Anda hanya dapat melihat jadwal dan bagan turnamen bola."}</span>`;
   const addJb = document.getElementById("addJadwalBolaBtn");
   if(addJb) addJb.classList.toggle("hidden",!canEditLiga());
-  document.getElementById("addMatchBtn").classList.toggle("hidden",!canEditLiga());
+  const mb = document.getElementById("addMatchBtn");
+  if(mb) mb.classList.toggle("hidden",!canEditLiga());
   document.getElementById("matchActionHead").classList.toggle("hidden",!canEditLiga());
   document.getElementById("eventAccessNote").innerHTML=`<span>${canEditEvent()?"Anda dapat menambah agenda kegiatan dan mengupload foto dokumentasi.":"Anda hanya dapat melihat agenda kegiatan dan foto kegiatan."}</span>`;
   document.getElementById("addEventBtn").classList.toggle("hidden",!canEditEvent());
+}
+
+/* =========================================================================
+   MODUL 0: DASHBOARD UTAMA (RINGKASAN & SOROTAN REAL-TIME)
+   ========================================================================= */
+function renderDashboard() {
+  // 1. Greeting Dinamis
+  const hour = new Date().getHours();
+  let salam = "Selamat Datang";
+  if (hour >= 4 && hour < 11) salam = "Selamat Pagi";
+  else if (hour >= 11 && hour < 15) salam = "Selamat Siang";
+  else if (hour >= 15 && hour < 18) salam = "Selamat Sore";
+  else salam = "Selamat Malam";
+
+  const greetTitle = document.getElementById("dashGreetingTitle");
+  if (greetTitle) {
+    const name = currentUser ? escapeHtml(currentUser) : "Tamu";
+    greetTitle.innerHTML = `${salam}, <span>${name}</span>`;
+  }
+
+  const greetSub = document.getElementById("dashGreetingSub");
+  if (greetSub) {
+    const now = new Date();
+    const dateFormatted = now.toLocaleDateString("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric"
+    });
+    greetSub.textContent = `${dateFormatted} • Pusat Informasi & Liga Kebaikan`;
+  }
+
+  // 2. Metrik Sakan Terdaftar
+  const activeSakanList = getActiveSakanList();
+  const statSakan = document.getElementById("dashStatSakan");
+  if (statSakan) statSakan.textContent = `${activeSakanList.length} Sakan`;
+
+  // 3. Agregasi Klasemen Kebaikan via StandingsEngine (In-Process)
+  const listRekap = StandingsEngine.computeSummary(store.getKlasemen());
+  const topSakan = listRekap.length ? listRekap[0] : null;
+  const statTop = document.getElementById("dashStatTopSakan");
+  if (statTop) {
+    statTop.textContent = topSakan && topSakan.jumlah > 0 ? `${topSakan.sakan} (${topSakan.avgCombined})` : "–";
+  }
+
+  // 4. Data & Metrik Turnamen Bola via TournamentEngine (In-Process)
+  const { jadwalList, hasilList, liveMatch } = TournamentEngine.partitionMatches(store.getMatches());
+  const statLaga = document.getElementById("dashStatLaga");
+  if (statLaga) {
+    if (liveMatch) {
+      statLaga.innerHTML = '<span style="color:var(--clay); font-weight:700;"><span class="dash-live-dot"></span>1 Live</span>';
+    } else if (jadwalList.length) {
+      const isToday = jadwalList.some(m => eventStatus(m.tanggal).cls === "today");
+      statLaga.textContent = isToday ? "Tanding Hari Ini" : `${jadwalList.length} Terjadwal`;
+    } else if (hasilList.length) {
+      statLaga.textContent = `${hasilList.length} Selesai`;
+    } else {
+      statLaga.textContent = "Belum Ada";
+    }
+  }
+
+  // 5. Data & Metrik Agenda Event
+  const listEvent = [...dataEvent].sort((a, b) => (String(a.tanggal || '') + String(a.waktu || '')).localeCompare(String(b.tanggal || '') + String(b.waktu || '')));
+  const upcomingEvents = listEvent.filter(e => {
+    const st = eventStatus(e.tanggal);
+    return st.cls === "today" || st.cls === "upcoming";
+  });
+
+  const statEvent = document.getElementById("dashStatEvent");
+  if (statEvent) {
+    if (upcomingEvents.length) {
+      const hasToday = upcomingEvents.some(e => eventStatus(e.tanggal).cls === "today");
+      statEvent.textContent = hasToday ? "Ada Hari Ini" : `${upcomingEvents.length} Agenda`;
+    } else {
+      statEvent.textContent = listEvent.length ? "Semua Selesai" : "Belum Ada";
+    }
+  }
+
+  // 6. Render Konten Masing-Masing Widget
+  renderDashKlasemenWidget(listRekap, topSakan);
+  renderDashTurnamenWidget(liveMatch, jadwalList, hasilList);
+  renderDashEventWidget(upcomingEvents, listEvent);
+}
+
+function renderDashKlasemenWidget(listRekap, topSakan) {
+  const container = document.getElementById("dashKlasemenContent");
+  if (!container) return;
+
+  const hasValidData = listRekap.length > 0 && listRekap.some(r => r.jumlah > 0);
+
+  if (!hasValidData) {
+    container.innerHTML = `
+      <div class="dash-empty-state">
+        <div class="dash-empty-icon">${svgIcon('trophy', 32)}</div>
+        <p>Belum ada data penilaian kebaikan tercatat.</p>
+        <button class="btn btn-ghost" style="font-size:12px; margin-top:8px;" onclick="switchView('klasemen')">Buka Klasemen</button>
+      </div>
+    `;
+    return;
+  }
+
+  // MVP Card (Sakan Teladan #1)
+  let html = `
+    <div class="dash-mvp-card">
+      <div class="dash-mvp-badge">${svgIcon('crown', 12)} Sakan Teladan</div>
+      <div class="dash-mvp-main">
+        <div class="dash-mvp-name">${escapeHtml(topSakan.sakan)}</div>
+        <div class="dash-mvp-score">${topSakan.avgCombined} <span>/10</span></div>
+      </div>
+      <div class="dash-mvp-breakdown">
+        <span class="dash-mvp-sub-pill">Kebersihan: <strong>${topSakan.avgKeb}</strong></span>
+        <span class="dash-mvp-sub-pill">Disiplin: <strong>${topSakan.avgKed}</strong></span>
+        <span class="dash-mvp-sub-pill">Bahasa: <strong>${topSakan.avgBah}</strong></span>
+      </div>
+    </div>
+  `;
+
+  // Runner-Up #2 dan #3
+  const runnerUps = listRekap.slice(1, 3).filter(r => r.jumlah > 0);
+  if (runnerUps.length > 0) {
+    html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+    runnerUps.forEach((r, idx) => {
+      const rankNum = idx + 2;
+      html += `
+        <div class="dash-runnerup-item">
+          <div class="dash-runnerup-left">
+            <span class="dash-rank-badge rank-${rankNum}">${rankNum}</span>
+            <span class="dash-runnerup-name">${escapeHtml(r.sakan)}</span>
+          </div>
+          <span class="dash-runnerup-score">Avg ${r.avgCombined}</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  // Hitung rata-rata global
+  let totalScore = 0, countTotal = 0;
+  listRekap.forEach(r => {
+    if (r.jumlah > 0) {
+      totalScore += r.avgCombined;
+      countTotal++;
+    }
+  });
+  if (countTotal > 0) {
+    const globalAvg = (totalScore / countTotal).toFixed(1);
+    html += `<div class="dash-avg-summary">Rata-rata kebaikan seluruh sakan: <strong>${globalAvg}</strong></div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderDashTurnamenWidget(liveMatch, jadwalList, hasilList) {
+  const container = document.getElementById("dashTurnamenContent");
+  if (!container) return;
+
+  if (liveMatch) {
+    container.innerHTML = `
+      <div class="dash-match-box live">
+        <div class="dash-match-meta">
+          <span><span class="dash-live-dot"></span><strong style="color:var(--clay);">SEDANG BERMAIN</strong> • ${escapeHtml(liveMatch.round || "Pertandingan")}</span>
+          <span>${svgIcon('map-pin', 12)} ${escapeHtml(liveMatch.lokasi || "Lapangan")}</span>
+        </div>
+        <div class="dash-match-teams-row">
+          <span class="dash-match-team">${escapeHtml(liveMatch.timA)}</span>
+          <span class="dash-match-score-badge">${liveMatch.skorA != null && liveMatch.skorA !== '' ? liveMatch.skorA : '0'} - ${liveMatch.skorB != null && liveMatch.skorB !== '' ? liveMatch.skorB : '0'}</span>
+          <span class="dash-match-team right">${escapeHtml(liveMatch.timB)}</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--ink-faint); text-align:center;">
+          Pertandingan bola sedang berlangsung saat ini.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (jadwalList.length > 0) {
+    const nextMatch = jadwalList[0];
+    const st = eventStatus(nextMatch.tanggal);
+    container.innerHTML = `
+      <div class="dash-match-box">
+        <div class="dash-match-meta">
+          <span><strong>${escapeHtml(nextMatch.round || "Laga")}</strong> • ${svgIcon('calendar', 12)} ${formatTanggal(nextMatch.tanggal)}${nextMatch.waktu ? ' • ' + svgIcon('clock', 12) + ' ' + escapeHtml(nextMatch.waktu) : ''}</span>
+          <span style="font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold)' : '#E7EFE9'}; color:${st.cls === 'today' ? '#fff' : 'var(--green-ok)'};">
+            ${st.label}
+          </span>
+        </div>
+        <div class="dash-match-teams-row">
+          <span class="dash-match-team">${escapeHtml(nextMatch.timA)}</span>
+          <span class="dash-match-vs">VS</span>
+          <span class="dash-match-team right">${escapeHtml(nextMatch.timB)}</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--ink-faint); display:flex; justify-content:space-between; align-items:center;">
+          <span>${svgIcon('map-pin', 12)} ${escapeHtml(nextMatch.lokasi || "Lapangan Pesantren")}</span>
+          ${jadwalList.length > 1 ? `<span style="font-size:11px; color:var(--gold); font-weight:600;">+${jadwalList.length - 1} laga lainnya</span>` : ''}
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  if (hasilList.length > 0) {
+    const last = hasilList[0];
+    container.innerHTML = `
+      <div class="dash-match-box">
+        <div class="dash-match-meta">
+          <span><strong>${escapeHtml(last.round || "Hasil Terakhir")}</strong> • ${formatTanggal(last.tanggal)}</span>
+          <span style="font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; background:var(--parchment-dim); color:var(--ink-faint);">
+            SELESAI
+          </span>
+        </div>
+        <div class="dash-match-teams-row">
+          <span class="dash-match-team">${escapeHtml(last.timA)}</span>
+          <span class="dash-match-score-badge">${last.skorA} - ${last.skorB}</span>
+          <span class="dash-match-team right">${escapeHtml(last.timB)}</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--ink-faint); text-align:center;">
+          Pertandingan terakhir telah rampung.
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="dash-empty-state">
+      <div class="dash-empty-icon">${svgIcon('soccer', 32)}</div>
+      <p>Belum ada jadwal pertandingan bola yang aktif.</p>
+      <button class="btn btn-ghost" style="font-size:12px; margin-top:8px;" onclick="switchView('liga')">Buka Bagan Turnamen</button>
+    </div>
+  `;
+}
+
+function renderDashEventWidget(upcomingEvents, listEvent) {
+  const container = document.getElementById("dashEventContent");
+  if (!container) return;
+
+  const displayList = upcomingEvents.length > 0 ? upcomingEvents.slice(0, 2) : listEvent.slice(0, 1);
+
+  if (!displayList.length) {
+    container.innerHTML = `
+      <div class="dash-empty-state">
+        <div class="dash-empty-icon">${svgIcon('calendar', 32)}</div>
+        <p>Belum ada agenda atau kegiatan pesantren.</p>
+        <button class="btn btn-ghost" style="font-size:12px; margin-top:8px;" onclick="switchView('event')">Buka Kalender Agenda</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = displayList.map(e => {
+    let dNum = "–", dMonth = "–";
+    let strDate = String(e.tanggal || "").trim();
+    if (strDate.includes("T")) strDate = strDate.split("T")[0];
+    const parts = strDate.split("-");
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const dateObj = new Date(y, m, d);
+      if (!isNaN(dateObj.getTime())) {
+        dNum = dateObj.toLocaleDateString("id-ID", { day: "numeric" });
+        dMonth = dateObj.toLocaleDateString("id-ID", { month: "short" });
+      }
+    }
+
+    const st = eventStatus(e.tanggal);
+    const photoTag = e.foto ? `<img src="${e.foto}" class="dash-event-thumb" alt="Poster Kegiatan" title="Klik untuk perbesar" onclick="openLightbox('${e.foto}')">` : '';
+
+    return `
+      <div class="dash-event-item">
+        <div class="dash-date-box">
+          <div class="dash-date-num">${dNum}</div>
+          <div class="dash-date-month">${dMonth}</div>
+        </div>
+        <div class="dash-event-info">
+          <div style="display:flex; gap:6px; align-items:center; margin-bottom:3px; flex-wrap:wrap;">
+            <span style="font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:999px; background:var(--parchment-dim); color:var(--ink-soft);">${escapeHtml(e.kategori || "Umum")}</span>
+            <span style="font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold)' : st.cls === 'upcoming' ? '#E7EFE9' : 'var(--parchment-dim)'}; color:${st.cls === 'today' ? '#fff' : st.cls === 'upcoming' ? 'var(--green-ok)' : 'var(--ink-faint)'};">${st.label}</span>
+          </div>
+          <div class="dash-event-title">${escapeHtml(e.judul)}</div>
+          <div class="dash-event-meta">
+            <span>${svgIcon('clock', 12)} ${formatWaktu(e.waktu)}</span>
+            <span>${svgIcon('map-pin', 12)} ${escapeHtml(e.lokasi || "Pesantren")}</span>
+          </div>
+        </div>
+        ${photoTag}
+      </div>
+    `;
+  }).join("");
 }
 
 /* =========================================================================
@@ -452,91 +863,47 @@ function resetFilter() {
 
 function renderKlasemen(){
   applyAccessNotes();
-  const date=document.getElementById("filterTanggal").value;
-  const q=document.getElementById("searchInput").value.trim().toLowerCase();
-  let rows=date?dataKlasemen.filter(i=>i.tanggal===date):[...dataKlasemen];
-  if(q)rows=rows.filter(i=>i.sakan.toLowerCase().includes(q));
+  const date = document.getElementById("filterTanggal").value;
+  const q = document.getElementById("searchInput").value.trim();
 
-  const map={};
-  dataKlasemen.forEach(item=>{
-    if(!map[item.sakan])map[item.sakan]={sakan:item.sakan,jumlah:0,keb:0,ked:0,bah:0};
-    const r=map[item.sakan];
-    r.jumlah++;
-    r.keb+=(Number(item.kebersihan)||0);
-    r.ked+=(Number(item.kedisiplinan)||0);
-    r.bah+=(Number(item.bahasa)||0);
-  });
+  // 1. Hitung data via StandingsEngine (In-Process)
+  const dailyRows = StandingsEngine.computeDailyStandings(store.getKlasemen(), { tanggal: date, query: q });
+  const listRekap = StandingsEngine.computeSummary(store.getKlasemen(), { query: q });
+  const metrics = StandingsEngine.computeMetrics(store.getKlasemen(), { tanggal: date, query: q });
+  const podiumData = StandingsEngine.extractPodium(listRekap);
 
-  const listRekap=Object.values(map).map(r=>{
-    const avgKeb = r.jumlah ? r.keb/r.jumlah : 0;
-    const avgKed = r.jumlah ? r.ked/r.jumlah : 0;
-    const avgBah = r.jumlah ? r.bah/r.jumlah : 0;
-    const combinedAvg = r.jumlah ? ((avgKeb + avgKed + avgBah) / 3).toFixed(1) : 0;
-    return {
-      sakan: r.sakan,
-      jumlah: r.jumlah,
-      avgKeb: avgKeb.toFixed(1),
-      avgKed: avgKed.toFixed(1),
-      avgBah: avgBah.toFixed(1),
-      avgCombined: Number(combinedAvg)
-    };
-  }).sort((a,b)=>b.avgCombined-a.avgCombined);
-
-  const count = rows.length;
-  let sumKeb = 0, sumKed = 0, sumBah = 0;
-  rows.forEach(i => {
-    sumKeb += (Number(i.kebersihan) || 0);
-    sumKed += (Number(i.kedisiplinan) || 0);
-    sumBah += (Number(i.bahasa) || 0);
-  });
-
-  const gAvgKeb = count ? sumKeb / count : 0;
-  const gAvgKed = count ? sumKed / count : 0;
-  const gAvgBah = count ? sumBah / count : 0;
-  const gAvgCombined = count ? (gAvgKeb + gAvgKed + gAvgBah) / 3 : 0;
-
-  document.getElementById("statAvgKeb").textContent = gAvgKeb.toFixed(1);
-  document.getElementById("statAvgKed").textContent = gAvgKed.toFixed(1);
-  document.getElementById("statAvgBah").textContent = gAvgBah.toFixed(1);
-  document.getElementById("statAvgTotal").textContent = gAvgCombined.toFixed(1);
+  document.getElementById("statAvgKeb").textContent = metrics.avgKeb;
+  document.getElementById("statAvgKed").textContent = metrics.avgKed;
+  document.getElementById("statAvgBah").textContent = metrics.avgBah;
+  document.getElementById("statAvgTotal").textContent = metrics.avgCombined;
   
-  const pod=document.getElementById("podium");
-  const filteredList = q ? listRekap.filter(i=>i.sakan.toLowerCase().includes(q)) : listRekap;
-  if(!filteredList.length || filteredList.every(i=>i.jumlah===0)){pod.innerHTML='<div class="podium-empty">Belum ada data.</div>';}
-  else{
-    const top3=filteredList.slice(0,3);
-    const podiumOrder = top3.length === 1 ? [top3[0]] : top3.length === 2 ? [top3[1], top3[0]] : [top3[1], top3[0], top3[2]];
-    const ranks = top3.length === 1 ? [1] : top3.length === 2 ? [2, 1] : [2, 1, 3];
-    const cssClasses = top3.length === 1 ? ["p1"] : top3.length === 2 ? ["p2", "p1"] : ["p2", "p1", "p3"];
-
-    pod.innerHTML='<div class="podium">'+podiumOrder.map((item,i)=>'<div class="podium-slot '+cssClasses[i]+'"><div class="name">'+escapeHtml(item.sakan)+'</div><div class="pts">Avg: '+item.avgCombined+'</div><div class="podium-block">'+ranks[i]+'</div></div>').join("")+'</div>';
+  const pod = document.getElementById("podium");
+  if (!podiumData.hasData) {
+    pod.innerHTML = '<div class="podium-empty">Belum ada data.</div>';
+  } else {
+    pod.innerHTML = '<div class="podium">' + podiumData.slots.map(s => 
+      '<div class="podium-slot ' + s.cssClass + '">' +
+        '<div class="name">' + escapeHtml(s.sakan) + '</div>' +
+        '<div class="pts">Avg: ' + s.score + '</div>' +
+        '<div class="podium-block">' + s.rank + '</div>' +
+      '</div>'
+    ).join("") + '</div>';
   }
   
-  const sortedHarian=[...rows].sort((a,b)=>{
-    const avgA = (((Number(a.kebersihan)||0) + (Number(a.kedisiplinan)||0) + (Number(a.bahasa)||0)) / 3);
-    const avgB = (((Number(b.kebersihan)||0) + (Number(b.kedisiplinan)||0) + (Number(b.bahasa)||0)) / 3);
-    return avgB - avgA;
-  });
-  
-  const isAdmin=canEditKlasemenAny();
-  const tbody=document.getElementById("harianTbody");
-  if(!sortedHarian.length){tbody.innerHTML='<tr class="empty-row"><td colspan="'+(isAdmin?8:7)+'">Tidak ada data.</td></tr>';}
-  else{
-    tbody.innerHTML=sortedHarian.map((item,i)=>{
-      const keb=item.kebersihan==null||item.kebersihan===""?null:Number(item.kebersihan);
-      const ked=item.kedisiplinan==null||item.kedisiplinan===""?null:Number(item.kedisiplinan);
-      const bah=item.bahasa==null||item.bahasa===""?null:Number(item.bahasa);
-      
-      const validCount = [keb, ked, bah].filter(v => v !== null).length;
-      const rowAvg = validCount > 0 ? (( (keb||0) + (ked||0) + (bah||0) ) / validCount).toFixed(1) : "–";
-
-      const kebStr = keb==null?'<span class="pill empty">–</span>':'<span class="pill">'+keb+'</span>';
-      const kedStr = ked==null?'<span class="pill empty">–</span>':'<span class="pill">'+ked+'</span>';
-      const bahStr = bah==null?'<span class="pill empty">–</span>':'<span class="pill">'+bah+'</span>';
-      const avgStr = rowAvg==="–"?'<span class="pill empty">–</span>':'<span class="pill total">'+rowAvg+'</span>';
+  const isAdmin = canEditKlasemenAny();
+  const tbody = document.getElementById("harianTbody");
+  if (!dailyRows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="' + (isAdmin ? 8 : 7) + '">Tidak ada data.</td></tr>';
+  } else {
+    tbody.innerHTML = dailyRows.map((item) => {
+      const kebStr = item.kebersihan == null ? '<span class="pill empty">–</span>' : '<span class="pill">' + item.kebersihan + '</span>';
+      const kedStr = item.kedisiplinan == null ? '<span class="pill empty">–</span>' : '<span class="pill">' + item.kedisiplinan + '</span>';
+      const bahStr = item.bahasa == null ? '<span class="pill empty">–</span>' : '<span class="pill">' + item.bahasa + '</span>';
+      const avgStr = item.rowAvg == null ? '<span class="pill empty">–</span>' : '<span class="pill total">' + item.rowAvg.toFixed(1) + '</span>';
 
       const sakanEsc = item.sakan.replace(/'/g, "\\'");
-      return '<tr><td class="center"><span class="rank-num">'+(i+1)+'</span></td><td>'+formatTanggal(item.tanggal)+'</td><td class="sakan-name">'+escapeHtml(item.sakan)+'</td><td class="center">'+kebStr+'</td><td class="center">'+kedStr+'</td><td class="center">'+bahStr+'</td><td class="center">'+avgStr+'</td>'+(isAdmin?'<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\''+item.tanggal+'\',\''+sakanEsc+'\')">✏️</button>'+(canDeleteKlasemen()?'<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\''+item.tanggal+'\',\''+sakanEsc+'\')">🗑️</button>':'')+'</div></td>':'')+'</tr>';
+      const syncBadge = renderSyncBadge(item._syncStatus, item._syncId, item._syncError);
+      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(item.sakan) + syncBadge + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
     }).join("");
   }
   
@@ -692,47 +1059,188 @@ async function simpanKlasemen(){
   const rawT = document.getElementById("kTanggal").value;
   const s = document.getElementById("kSakan").value;
   const t = normalizeDateStr(rawT);
-  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).",true);return;}
-  if(!s){showToast("Pilih sakan.",true);return;}
-  const rd=(id)=>{const inp=document.getElementById(id);const v=inp.value.trim();return v===""?null:parseInt(v);};
-  const nk=rd("fKebersihan"), nd=rd("fKedisiplinan"), nb=rd("fBahasa");
-  for(const v of[nk,nd,nb]){if(v!==undefined&&v!==null&&(isNaN(v)||v<0||v>100)){showToast("Poin harus bernilai 0–100.",true);return;}}
   
-  const btn = document.getElementById("btnSaveKlasemen");
-  btn.disabled = true; btn.textContent = "Menyimpan...";
+  const rd = (id) => {
+    const inp = document.getElementById(id);
+    const v = inp ? inp.value.trim() : "";
+    return v === "" ? null : v;
+  };
+  const nk = rd("fKebersihan"), nd = rd("fKedisiplinan"), nb = rd("fBahasa");
 
-  // Optimistic update lokal
-  let rec=findKlasemenRecord(t,s);
-  if(!rec){rec={id:Date.now(),tanggal:t,sakan:s,kebersihan:null,kedisiplinan:null,bahasa:null,totalPoin:0};dataKlasemen.push(rec);}
-  if(nk!==undefined)rec.kebersihan=nk;
-  if(nd!==undefined)rec.kedisiplinan=nd;
-  if(nb!==undefined)rec.bahasa=nb;
-  rec.totalPoin=(rec.kebersihan||0)+(rec.kedisiplinan||0)+(rec.bahasa||0);
-  saveData(KEY_DATA,dataKlasemen);
-  
+  const validation = StandingsEngine.validateEntry({
+    tanggal: t,
+    sakan: s,
+    kebersihan: nk,
+    kedisiplinan: nd,
+    bahasa: nb
+  });
+
+  if (!validation.ok) {
+    showToast(`[${validation.code}] ${validation.message}`, true);
+    return;
+  }
+
+  const btn = document.getElementById("btnSaveKlasemen");
+  btn.disabled = true;
+
+  // WhatsApp-style Optimistic local commit (0ms)
+  await store.saveKlasemen(validation.value);
+  btn.disabled = false;
   closeModal("modalKlasemen");
   renderKlasemen();
+  showToast("Nilai tersimpan secara lokal. Sedang disinkronkan...");
+}
 
-  // Kirim ke proxy Vercel
-  const payload = { tanggal:t, sakan:s, kebersihan:nk, kedisiplinan:nd, bahasa:nb };
-  const res = await sendToCloud("save_klasemen", payload);
-  btn.disabled = false; btn.textContent = "Simpan";
-  
-  if(res.status === "success"){
-    showToast(res.local ? "Data tersimpan di penyimpanan lokal." : "Tersimpan & tersinkron ke Google Sheets.");
-  } else {
-    showToast(res.message || "Gagal sinkron ke Google Sheets", true);
+/* ===== INPUT MASSAL HARIAN (1B VERSI A) ===== */
+function openKlasemenBulkModal() {
+  const filterT = document.getElementById("filterTanggal").value;
+  document.getElementById("bulkTanggal").value = filterT || todayStr();
+  const errNote = document.getElementById("bulkErrorNote");
+  if (errNote) errNote.style.display = "none";
+  populateBulkTable();
+  document.getElementById("modalKlasemenBulk").classList.add("show");
+}
+
+function populateBulkTable() {
+  const tbody = document.getElementById("bulkTableTbody");
+  if (!tbody) return;
+  const list = getActiveSakanList();
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="center" style="padding:20px; color:var(--ink-faint);">Belum ada data master sakan.</td></tr>';
+    return;
   }
+
+  const selectedDate = document.getElementById("bulkTanggal").value || todayStr();
+  const existingRecords = store.getKlasemen().filter(r => r.tanggal === selectedDate);
+  const existingMap = new Map();
+  existingRecords.forEach(r => existingMap.set(String(r.sakan || '').toUpperCase(), r));
+
+  tbody.innerHTML = list.map((s, idx) => {
+    const ex = existingMap.get(String(s.nama).toUpperCase());
+    const valKeb = ex && ex.kebersihan != null ? ex.kebersihan : '';
+    const valKed = ex && ex.kedisiplinan != null ? ex.kedisiplinan : '';
+    const valBah = ex && ex.bahasa != null ? ex.bahasa : '';
+
+    const validNums = [valKeb, valKed, valBah].filter(v => v !== '').map(Number);
+    const avgText = validNums.length ? (validNums.reduce((a, b) => a + b, 0) / validNums.length).toFixed(1) : '–';
+
+    const sakanEsc = escapeHtml(s.nama);
+    const sub = s.gedung ? `<div style="font-size:10.5px; color:var(--ink-faint);">${escapeHtml(s.gedung)}</div>` : '';
+
+    return `
+      <tr data-sakan="${sakanEsc}">
+        <td>
+          <div style="font-weight:600; color:var(--ink);">${sakanEsc}</div>
+          ${sub}
+        </td>
+        <td>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="bulk-keb" min="0" max="100" placeholder="–" value="${valKeb}" oninput="onBulkInputChanged(this)">
+        </td>
+        <td>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="bulk-ked" min="0" max="100" placeholder="–" value="${valKed}" oninput="onBulkInputChanged(this)">
+        </td>
+        <td>
+          <input type="number" inputmode="numeric" pattern="[0-9]*" class="bulk-bah" min="0" max="100" placeholder="–" value="${valBah}" oninput="onBulkInputChanged(this)">
+        </td>
+        <td class="center">
+          <span class="bulk-row-avg">${avgText}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function onBulkInputChanged(input) {
+  if (!input) return;
+  input.value = input.value.replace(/[^0-9]/g, '');
+  const val = input.value.trim();
+  if (val !== '') {
+    const n = parseInt(val, 10);
+    if (n < 0 || n > 100) {
+      input.classList.add('invalid');
+    } else {
+      input.classList.remove('invalid');
+    }
+  } else {
+    input.classList.remove('invalid');
+  }
+
+  const tr = input.closest('tr');
+  if (!tr) return;
+  const keb = tr.querySelector('.bulk-keb').value.trim();
+  const ked = tr.querySelector('.bulk-ked').value.trim();
+  const bah = tr.querySelector('.bulk-bah').value.trim();
+  const avgSpan = tr.querySelector('.bulk-row-avg');
+
+  const validVals = [keb, ked, bah].filter(v => v !== '').map(Number).filter(v => !isNaN(v) && v >= 0 && v <= 100);
+  if (validVals.length > 0) {
+    avgSpan.textContent = (validVals.reduce((a, b) => a + b, 0) / validVals.length).toFixed(1);
+  } else {
+    avgSpan.textContent = '–';
+  }
+}
+
+async function simpanKlasemenBulk() {
+  const t = normalizeDateStr(document.getElementById("bulkTanggal").value);
+  const errNote = document.getElementById("bulkErrorNote");
+  if (!t) {
+    if (errNote) {
+      errNote.textContent = "Tanggal penilaian tidak valid.";
+      errNote.style.display = "block";
+    }
+    return;
+  }
+
+  const rows = document.querySelectorAll("#bulkTableTbody tr");
+  const entries = [];
+
+  rows.forEach(tr => {
+    const sakan = tr.getAttribute("data-sakan");
+    const keb = tr.querySelector(".bulk-keb").value.trim();
+    const ked = tr.querySelector(".bulk-ked").value.trim();
+    const bah = tr.querySelector(".bulk-bah").value.trim();
+
+    entries.push({
+      tanggal: t,
+      sakan,
+      kebersihan: keb === "" ? null : keb,
+      kedisiplinan: ked === "" ? null : ked,
+      bahasa: bah === "" ? null : bah
+    });
+  });
+
+  const validation = StandingsEngine.validateBulk(entries);
+  if (!validation.ok) {
+    if (errNote) {
+      errNote.textContent = `[${validation.code}] ${validation.message}`;
+      errNote.style.display = "block";
+    }
+    return;
+  }
+
+  if (errNote) errNote.style.display = "none";
+  const btn = document.getElementById("btnSaveBulkKlasemen");
+  btn.disabled = true;
+
+  // WhatsApp-style Optimistic local bulk commit (0ms)
+  await store.saveKlasemenBulk(validation.validEntries);
+
+  btn.disabled = false;
+  closeModal("modalKlasemenBulk");
+  renderKlasemen();
+  showToast(`${validation.validEntries.length} sakan tersimpan secara lokal. Sedang disinkronkan...`);
 }
 
 async function hapusKlasemen(t,s){
   if(!confirm("Hapus data poin ini?"))return;
-  dataKlasemen=dataKlasemen.filter(i=>!(i.tanggal===t&&i.sakan===s));
-  saveData(KEY_DATA,dataKlasemen);
-  renderKlasemen();
-
-  const res = await sendToCloud("delete_klasemen", { tanggal:t, sakan:s });
-  showToast(res.status==="success" ? "Data dihapus." : "Gagal menghapus di cloud", res.status!=="success");
+  showToast("Menghapus data poin...");
+  const res = await store.deleteKlasemen(t, s);
+  if(res.status === "success"){
+    renderKlasemen();
+    showToast("Data berhasil dihapus.");
+  } else {
+    showToast(res.message || "Gagal menghapus data di server.", true);
+  }
 }
 
 /* =========================================================================
@@ -757,23 +1265,9 @@ function switchLigaTab(tab) {
 function renderligaMenu() {
   applyAccessNotes();
 
-  // Pisahkan Jadwal vs Hasil
-  const jadwalList = [];
-  const hasilList = [];
-
-  dataLiga.forEach(m => {
-    const hasSkor = m.skorA !== "" && m.skorA != null && m.skorB !== "" && m.skorB != null;
-    if (m.status === "SELESAI" || hasSkor) {
-      hasilList.push(m);
-    } else {
-      jadwalList.push(m);
-    }
-  });
-
-  // Urutkan jadwal: tanggal & waktu terdekat di atas
-  jadwalList.sort((a, b) => (String(a.tanggal || '') + String(a.waktu || '')).localeCompare(String(b.tanggal || '') + String(b.waktu || '')));
-  // Urutkan hasil: tanggal terbaru di atas
-  hasilList.sort((a, b) => (String(b.tanggal || '')).localeCompare(String(a.tanggal || '')));
+  // Pisahkan Jadwal vs Hasil & Bangun Bagan via TournamentEngine (In-Process)
+  const { jadwalList, hasilList } = TournamentEngine.partitionMatches(store.getMatches());
+  const bracket = TournamentEngine.buildBracket(store.getMatches());
 
   // 1. Render Panel Jadwal
   const jadwalContainer = document.getElementById("jadwalListContainer");
@@ -788,9 +1282,16 @@ function renderligaMenu() {
       return `
         <div class="jadwal-match-card">
           <div class="jadwal-match-header">
-            <span><strong>${escapeHtml(m.round || "Pertandingan")}</strong> • 📅 ${formatTanggal(m.tanggal)}${m.waktu ? ' • ⏰ ' + escapeHtml(m.waktu) : ''}${m.lokasi ? ' • 📍 ' + escapeHtml(m.lokasi) : ''}</span>
-            <span style="font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; background:${isLive ? 'var(--clay)' : st.cls === 'today' ? 'var(--gold)' : '#E7EFE9'}; color:${isLive || st.cls === 'today' ? '#fff' : 'var(--green-ok)'};">
-              ${isLive ? 'SEDANG MAIN' : st.label}
+            <div class="jadwal-meta-left">
+              <span class="jadwal-round-tag">${escapeHtml(m.round || "Pertandingan")}</span>
+              <div class="jadwal-meta-items">
+                <span class="jadwal-meta-item">${svgIcon('calendar', 13)} <span>${formatTanggal(m.tanggal)}</span></span>
+                ${m.waktu ? `<span class="jadwal-meta-item">${svgIcon('clock', 13)} <span>${escapeHtml(m.waktu)}</span></span>` : ''}
+                ${m.lokasi ? `<span class="jadwal-meta-item">${svgIcon('map-pin', 13)} <span>${escapeHtml(m.lokasi)}</span></span>` : ''}
+              </div>
+            </div>
+            <span class="jadwal-status-badge ${isLive ? 'live' : st.cls}">
+              ${isLive ? '<span class="dash-live-dot"></span>SEDANG MAIN' : st.label}
             </span>
           </div>
           <div class="jadwal-match-teams">
@@ -800,9 +1301,9 @@ function renderligaMenu() {
           </div>
           ${ce ? `
             <div class="jadwal-match-actions">
-              <button class="btn btn-ghost" style="padding:4px 12px; font-size:12px;" onclick="openJadwalModal('${m.id}')">⚙️ Ubah Info</button>
-              <button class="btn btn-gold" style="padding:4px 14px; font-size:12px;" onclick="openScoreInputModal('${m.id}')">⚽ Input Skor</button>
-              <button class="icon-btn danger" style="width:28px; height:28px;" title="Hapus" onclick="hapusMatch('${m.id}')">🗑️</button>
+              <button class="btn btn-ghost" onclick="openJadwalModal('${m.id}')">${svgIcon('settings', 14)} Ubah Info</button>
+              <button class="btn btn-gold" onclick="openScoreInputModal('${m.id}')">${svgIcon('edit', 14)} Input Skor</button>
+              <button class="icon-btn danger" title="Hapus" onclick="hapusMatch('${m.id}')">${svgIcon('trash', 14)}</button>
             </div>
           ` : ''}
         </div>
@@ -811,79 +1312,138 @@ function renderligaMenu() {
   }
 
   // 2. Render Panel Hasil & Bagan Turnamen (Style C Vertikal)
-  const penyisihan = hasilList.filter(m => m.round === "Penyisihan");
-  const semifinal = hasilList.filter(m => m.round === "Semifinal");
-  const final = hasilList.filter(m => m.round === "Final");
-
-  let finalWinner = "Menunggu Pertandingan Final";
-  if (final.length > 0 && Number(final[0].skorA) !== Number(final[0].skorB)) {
-    finalWinner = Number(final[0].skorA) > Number(final[0].skorB) ? final[0].timA : final[0].timB;
-  }
-
   const bracketContainer = document.getElementById("bracketTreeContainer");
   bracketContainer.innerHTML = `
     <!-- BABAK PENYISIHAN (8 BESAR) -->
     <div class="bracket-round-col">
       <div class="bracket-col-title">Babak Penyisihan (8 Besar)</div>
-      ${penyisihan.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Belum ada hasil penyisihan</div>' :
-        penyisihan.map(m => renderBracketMatchBox(m, ce)).join('')}
+      ${bracket.rounds.penyisihan.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Belum ada hasil penyisihan</div>' :
+        bracket.rounds.penyisihan.map(m => renderBracketMatchBox(m, ce)).join('')}
     </div>
 
     <!-- BABAK SEMIFINAL (4 BESAR) -->
     <div class="bracket-round-col">
       <div class="bracket-col-title">Semifinal (4 Besar)</div>
-      ${semifinal.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Menunggu Penyisihan Selesai</div>' :
-        semifinal.map(m => renderBracketMatchBox(m, ce)).join('')}
+      ${bracket.rounds.semifinal.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Menunggu Penyisihan Selesai</div>' :
+        bracket.rounds.semifinal.map(m => renderBracketMatchBox(m, ce)).join('')}
     </div>
 
     <!-- BABAK FINAL & JUARA -->
     <div class="bracket-round-col">
       <div class="bracket-col-title">Grand Final &amp; Juara</div>
-      ${final.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Menunggu Semifinal Selesai</div>' :
-        final.map(m => renderBracketMatchBox(m, ce, true)).join('')}
+      ${bracket.rounds.final.length === 0 ? '<div class="empty-row" style="font-size:12px; padding:20px; text-align:center;">Menunggu Semifinal Selesai</div>' :
+        bracket.rounds.final.map(m => renderBracketMatchBox(m, ce, true)).join('')}
 
-      <div class="champion-box" style="margin-top:14px;">
-        <h3>🏆 Juara Utama Liga Bola</h3>
-        <div class="champion-name">${escapeHtml(finalWinner)}</div>
-      </div>
+      ${bracket.isDecided ? `
+        <div class="champion-box" style="margin-top:14px;">
+          <div class="champion-trophy-badge">
+            ${svgIcon('trophy', 26)}
+          </div>
+          <div class="champion-title">Juara Utama Liga Bola</div>
+          <div class="champion-name">${escapeHtml(bracket.champion)}</div>
+        </div>
+      ` : `
+        <div class="champion-box-pending" style="margin-top:14px;">
+          <div class="champion-pending-icon">
+            ${svgIcon('trophy', 22)}
+          </div>
+          <div class="champion-pending-title">Juara Ditentukan di Grand Final</div>
+          <div class="champion-pending-sub">Menunggu laga final selesai dimainkan</div>
+        </div>
+      `}
     </div>
   `;
 
-  // 3. Render Tabel Rekap Skor
+  // 3. Render Rekap Riwayat Skor: Desktop Table & Mobile Cards
   const mt = document.getElementById("matchTbody");
+  const mc = document.getElementById("matchCardsMobile");
+
   if (!hasilList.length) {
-    mt.innerHTML = '<tr class="empty-row"><td colspan="' + (ce ? 5 : 4) + '">Belum ada riwayat hasil pertandingan.</td></tr>';
+    if (mt) mt.innerHTML = '<tr class="empty-row"><td colspan="' + (ce ? 5 : 4) + '">Belum ada riwayat hasil pertandingan.</td></tr>';
+    if (mc) mc.innerHTML = '<div style="text-align:center; padding:24px 10px; color:var(--ink-faint); font-size:13px; background:var(--parchment); border-radius:10px; border:1.5px dashed var(--line);">Belum ada riwayat hasil pertandingan.</div>';
   } else {
-    mt.innerHTML = hasilList.map(m => `
-      <tr>
-        <td><span class="pill">${escapeHtml(m.round || "Penyisihan")}</span></td>
-        <td>${formatTanggal(m.tanggal)}</td>
-        <td>${escapeHtml(m.timA)} vs ${escapeHtml(m.timB)}</td>
-        <td class="center"><span class="pill total">${m.skorA} - ${m.skorB}</span></td>
-        ${ce ? '<td class="center"><button class="icon-btn" title="Koreksi Skor" onclick="openScoreInputModal(\'' + m.id + '\')">✏️</button> <button class="icon-btn danger" title="Hapus" onclick="hapusMatch(\'' + m.id + '\')">🗑️</button></td>' : ''}
-      </tr>
-    `).join("");
+    if (mt) {
+      mt.innerHTML = hasilList.map(m => `
+        <tr>
+          <td><span class="pill">${escapeHtml(m.round || "Penyisihan")}</span></td>
+          <td>${formatTanggal(m.tanggal)}</td>
+          <td>${escapeHtml(m.timA)} vs ${escapeHtml(m.timB)} ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}</td>
+          <td class="center"><span class="pill total">${m.skorA} - ${m.skorB}</span></td>
+          ${ce ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Koreksi Skor" onclick="openScoreInputModal(\'' + m.id + '\')">' + svgIcon('edit', 14) + '</button><button class="icon-btn danger" title="Hapus" onclick="hapusMatch(\'' + m.id + '\')">' + svgIcon('trash', 14) + '</button></div></td>' : ''}
+        </tr>
+      `).join("");
+    }
+    if (mc) {
+      mc.innerHTML = hasilList.map(m => {
+        const sa = Number(m.skorA);
+        const sb = Number(m.skorB);
+        const isAWin = sa > sb;
+        const isBWin = sb > sa;
+        return `
+          <div class="rekap-match-card">
+            <div class="rekap-card-head">
+              <span class="pill">${escapeHtml(m.round || "Penyisihan")}</span>
+              ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}
+              <span class="rekap-card-date">${svgIcon('calendar', 12)} <span>${formatTanggal(m.tanggal)}</span></span>
+            </div>
+            <div class="rekap-card-teams">
+              <div class="rekap-card-team ${isAWin ? 'winner' : (isBWin ? 'loser' : '')}">
+                <span class="rekap-team-label">
+                  ${isAWin ? `<span class="winner-trophy-icon">${svgIcon('trophy', 13)}</span>` : ''}
+                  <span>${escapeHtml(m.timA)}</span>
+                </span>
+                <span class="rekap-team-score ${isBWin ? 'loser' : ''}">${m.skorA}</span>
+              </div>
+              <div class="rekap-card-team ${isBWin ? 'winner' : (isAWin ? 'loser' : '')}">
+                <span class="rekap-team-label">
+                  ${isBWin ? `<span class="winner-trophy-icon">${svgIcon('trophy', 13)}</span>` : ''}
+                  <span>${escapeHtml(m.timB)}</span>
+                </span>
+                <span class="rekap-team-score ${isAWin ? 'loser' : ''}">${m.skorB}</span>
+              </div>
+            </div>
+            ${ce ? `
+              <div class="rekap-card-actions">
+                <button class="btn btn-ghost" onclick="openScoreInputModal('${m.id}')">${svgIcon('edit', 13)} Koreksi Skor</button>
+                <button class="icon-btn danger" title="Hapus" onclick="hapusMatch('${m.id}')">${svgIcon('trash', 13)}</button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join("");
+    }
   }
 }
 
 function renderBracketMatchBox(m, ce, isFinal = false) {
-  const isAWin = Number(m.skorA) > Number(m.skorB);
-  const isBWin = Number(m.skorB) > Number(m.skorA);
+  const sa = Number(m.skorA);
+  const sb = Number(m.skorB);
+  const isAWin = sa > sb;
+  const isBWin = sb > sa;
   return `
     <div class="bracket-match-box" style="${isFinal ? 'border-color:var(--gold);' : ''}">
-      <div class="bracket-team ${isAWin ? 'winner' : ''}">
-        <span>${isFinal && isAWin ? '🏆 ' : ''}${escapeHtml(m.timA)}</span>
-        <span class="bracket-score">${m.skorA}</span>
+      <div class="bracket-team ${isAWin ? 'winner' : (isBWin ? 'loser' : '')}">
+        <span class="bracket-team-name">
+          ${isFinal && isAWin ? `<span class="winner-trophy-icon" title="Juara">${svgIcon('trophy', 14)}</span>` : ''}
+          <span>${escapeHtml(m.timA)}</span>
+        </span>
+        <span class="bracket-score ${isBWin ? 'loser' : ''}">${m.skorA}</span>
       </div>
-      <div class="bracket-team ${isBWin ? 'winner' : ''}">
-        <span>${isFinal && isBWin ? '🏆 ' : ''}${escapeHtml(m.timB)}</span>
-        <span class="bracket-score">${m.skorB}</span>
+      <div class="bracket-team ${isBWin ? 'winner' : (isAWin ? 'loser' : '')}">
+        <span class="bracket-team-name">
+          ${isFinal && isBWin ? `<span class="winner-trophy-icon" title="Juara">${svgIcon('trophy', 14)}</span>` : ''}
+          <span>${escapeHtml(m.timB)}</span>
+        </span>
+        <span class="bracket-score ${isAWin ? 'loser' : ''}">${m.skorB}</span>
       </div>
-      <div class="bracket-date">${formatTanggal(m.tanggal)}${m.lokasi ? ' • ' + escapeHtml(m.lokasi) : ''}</div>
+      <div class="bracket-meta">
+        <span class="bracket-meta-item">${svgIcon('calendar', 11)} ${formatTanggal(m.tanggal)}</span>
+        ${m.lokasi ? `<span class="bracket-meta-item">${svgIcon('map-pin', 11)} ${escapeHtml(m.lokasi)}</span>` : ''}
+      </div>
       ${ce ? `
-        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px; padding-top:6px; border-top:1px dashed var(--line);">
-          <button class="icon-btn" style="width:26px; height:26px; font-size:11px;" title="Koreksi Skor" onclick="openScoreInputModal('${m.id}')">✏️</button>
-          <button class="icon-btn danger" style="width:26px; height:26px; font-size:11px;" title="Hapus" onclick="hapusMatch('${m.id}')">🗑️</button>
+        <div class="bracket-actions">
+          <button class="icon-btn" title="Koreksi Skor" onclick="openScoreInputModal('${m.id}')">${svgIcon('edit', 14)}</button>
+          <button class="icon-btn danger" title="Hapus" onclick="hapusMatch('${m.id}')">${svgIcon('trash', 14)}</button>
         </div>
       ` : ''}
     </div>
@@ -969,25 +1529,33 @@ async function simpanMatch() {
 
   const t = normalizeDateStr(rawT);
   if (!t) { showToast("Format tanggal tidak valid (YYYY-MM-DD).", true); return; }
-  if (!a || !b) { showToast("Pilih Tim A dan Tim B (Gedung).", true); return; }
-  if (a === b) { showToast("Tim tidak boleh sama.", true); return; }
 
   let sa = "";
   let sb = "";
   let status = "UPCOMING";
 
   if (mode === "skor") {
-    sa = parseInt(document.getElementById("mSkorA").value, 10);
-    sb = parseInt(document.getElementById("mSkorB").value, 10);
-    if (isNaN(sa) || isNaN(sb)) { showToast("Isi skor untuk kedua tim.", true); return; }
-    if (sa < 0 || sb < 0) { showToast("Skor tidak boleh negatif.", true); return; }
-    if (sa === sb) { showToast("Sistem gugur tidak boleh seri. Harus ada pemenang.", true); return; }
+    const rawA = document.getElementById("mSkorA").value;
+    const rawB = document.getElementById("mSkorB").value;
+    const validation = TournamentEngine.validateScore({ timA: a, timB: b }, rawA, rawB);
+    if (!validation.ok) {
+      showToast(validation.error, true);
+      return;
+    }
+    sa = validation.value.skorA;
+    sb = validation.value.skorB;
     status = "SELESAI";
+  } else {
+    const validation = TournamentEngine.validateSchedule({ timA: a, timB: b, tanggal: t });
+    if (!validation.ok) {
+      showToast(validation.error, true);
+      return;
+    }
   }
 
   const btn = document.getElementById("btnSaveLiga");
   btn.disabled = true;
-  btn.textContent = "Menyimpan...";
+  btn.innerHTML = `${svgIcon('loader', 14, 'svg-spinner')} Menyimpan...`;
 
   const targetId = matchId || Date.now().toString();
   const matchObj = {
@@ -1003,31 +1571,29 @@ async function simpanMatch() {
     status: status
   };
 
-  const existingIdx = dataLiga.findIndex(i => String(i.id) === String(targetId));
-  if (existingIdx > -1) {
-    dataLiga[existingIdx] = matchObj;
-  } else {
-    dataLiga.push(matchObj);
-  }
-
-  saveData(KEY_LIGA, dataLiga);
-  closeModal("modalLiga");
-  renderligaMenu();
-
-  const res = await sendToCloud("save_match", matchObj);
   btn.disabled = false;
   btn.textContent = "Simpan";
-  showToast(res.status === "success" ? (mode === "skor" ? "Skor berhasil disimpan!" : "Jadwal berhasil disimpan!") : "Tersimpan lokal, gagal sync cloud.", res.status !== "success");
+  closeModal("modalLiga");
+
+  // WhatsApp-style Optimistic local commit (0ms)
+  await store.saveMatch(matchObj);
+  renderligaMenu();
+  if (mode === "skor") {
+    switchLigaTab("hasil");
+  }
+  showToast(mode === "skor" ? "Skor tersimpan secara lokal. Sedang disinkronkan..." : "Jadwal tersimpan secara lokal. Sedang disinkronkan...");
 }
 
 async function hapusMatch(id) {
   if (!confirm("Hapus data pertandingan ini?")) return;
-  dataLiga = dataLiga.filter(i => String(i.id) !== String(id));
-  saveData(KEY_LIGA, dataLiga);
-  renderligaMenu();
-
-  const res = await sendToCloud("delete_match", { id: id });
-  showToast(res.status === "success" ? "Dihapus." : "Gagal menghapus di cloud.", res.status !== "success");
+  showToast("Menghapus pertandingan...");
+  const res = await store.deleteMatch(id);
+  if (res.status === "success") {
+    renderligaMenu();
+    showToast("Pertandingan berhasil dihapus.");
+  } else {
+    showToast(res.message || "Gagal menghapus di server.", true);
+  }
 }
 
 /* =========================================================================
@@ -1072,14 +1638,14 @@ function renderEvent(){
         <div style="flex:1;">
           <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
             <span style="font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:999px; ${badgeColor}">${katLabel}</span>
-            <span style="font-size:12px;color:var(--ink-faint);">🕒 ${formatWaktu(e.waktu)} • 📍 ${escapeHtml(e.lokasi||"–")}</span>
+            <span style="font-size:12px;color:var(--ink-faint);">${svgIcon('clock', 12)} ${formatWaktu(e.waktu)} • ${svgIcon('map-pin', 12)} ${escapeHtml(e.lokasi||"–")}</span>
           </div>
-          <strong style="font-size:15px; color:var(--ink);">${escapeHtml(e.judul)}</strong>
+          <strong style="font-size:15px; color:var(--ink);">${escapeHtml(e.judul)} ${renderSyncBadge(e._syncStatus, e._syncId, e._syncError)}</strong>
           ${e.deskripsi?'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">'+escapeHtml(e.deskripsi)+'</div>':''}
         </div>
         ${photoTag}
         <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold)":st.cls==="upcoming"?"#E7EFE9":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};">${st.label}</span>
-        ${ce?'<button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent(\''+e.id+'\')">🗑️</button>':''}
+        ${ce?'<button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent(\''+e.id+'\')">'+svgIcon('trash', 14)+'</button>':''}
       </div>
     `;
   }).join("");
@@ -1158,27 +1724,7 @@ async function simpanEvent(){
   const j=document.getElementById("eJudul").value.trim(), l=document.getElementById("eLokasi").value.trim(), d=document.getElementById("eDeskripsi").value.trim();
   if(!j){showToast("Judul kegiatan wajib diisi.",true);return;}
   
-  const btn = document.getElementById("btnSaveEvent");
-  btn.disabled = true; btn.textContent = "Menyimpan...";
-
   const newId = Date.now().toString();
-  const eventObj = {
-    id: newId,
-    kategori: kat,
-    tanggal: t,
-    waktu: w,
-    judul: j,
-    lokasi: l,
-    deskripsi: d,
-    foto: tempBase64Image || ""
-  };
-
-  dataEvent.push(eventObj);
-  saveData(KEY_EVENT, dataEvent);
-  
-  closeModal("modalEvent");
-  renderEvent();
-
   const payload = {
     id: newId,
     kategori: kat,
@@ -1187,28 +1733,31 @@ async function simpanEvent(){
     judul: j,
     lokasi: l,
     deskripsi: d,
+    foto: tempBase64Image || "",
     fotoBase64: tempBase64Image || ""
   };
 
-  const res = await sendToCloud("save_event", payload);
-  btn.disabled = false; btn.textContent = "Simpan";
-  
-  if(res.status === "success"){
-    showToast("Event berhasil disimpan!");
-    syncDataFromCloud();
-  } else {
-    showToast(res.message || "Tersimpan lokal, gagal sync cloud.", true);
-  }
+  btn.disabled = false;
+  btn.textContent = "Simpan";
+  closeModal("modalEvent");
+  clearImageUpload();
+
+  // WhatsApp-style Optimistic local commit (0ms)
+  await store.saveEvent(payload);
+  renderEvent();
+  showToast("Agenda event tersimpan secara lokal. Sedang disinkronkan...");
 }
 
 async function hapusEvent(id){
   if(!confirm("Hapus agenda/event ini?"))return;
-  dataEvent=dataEvent.filter(i=>String(i.id)!==String(id));
-  saveData(KEY_EVENT,dataEvent);
-  renderEvent();
-
-  const res = await sendToCloud("delete_event", { id: id });
-  showToast(res.status==="success" ? "Dihapus." : "Gagal menghapus di cloud.", res.status!=="success");
+  showToast("Menghapus event...");
+  const res = await store.deleteEvent(id);
+  if(res.status === "success"){
+    renderEvent();
+    showToast("Event berhasil dihapus.");
+  } else {
+    showToast(res.message || "Gagal menghapus event di server.", true);
+  }
 }
 
 /* =========================================================================
@@ -1218,25 +1767,26 @@ document.getElementById("passwordInput").addEventListener("keypress",e=>{if(e.ke
 document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.key==="Enter")document.getElementById("passwordInput").focus();});
 
 (async function init(){
-  // 1. Muat data awal dari localStorage
-  dataKlasemen=loadData(KEY_DATA);
-  dataLiga=loadData(KEY_LIGA);
-  dataEvent=loadData(KEY_EVENT);
-  dataGedung=[];
-  dataSakan=[];
+  // 1. Cek session login
+  const session = loadSession();
+  const token = (session && session.user) ? (session.token || "") : "";
+
+  // 2. Inisialisasi DataStore (muat dari localStorage & set auth token)
+  store.init(token);
   fillSakanSelect();
   fillTeamSelects();
   renderSakanPills();
-  
-  // 2. Cek session login
-  const session=loadSession();
-  if(session&&session.user){
-    currentUser=session.user;currentRole=session.role;currentLabel=session.label;currentAuthToken=session.token||"";currentView=session.view||"homepage";
-    document.getElementById("displayUsernameTop").textContent=currentUser;
-    document.getElementById("displayUsernameSub").textContent=currentUser;
-    const chip=document.getElementById("roleChip");
-    chip.textContent=currentLabel;
-    chip.className="role-chip r-"+currentRole;
+
+  if(session && session.user){
+    currentUser = session.user;
+    currentRole = session.role;
+    currentLabel = session.label;
+    currentAuthToken = token;
+    currentView = session.view || "homepage";
+    updateDisplayUsername(currentUser);
+    const chip = document.getElementById("roleChip");
+    chip.textContent = currentLabel;
+    chip.className = "role-chip r-" + currentRole;
     
     document.getElementById("dashboard").classList.remove("hidden");
     document.getElementById("loginModal").classList.remove("show");
