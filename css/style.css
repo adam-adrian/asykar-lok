@@ -62,6 +62,7 @@ button{font-family:inherit;cursor:pointer;}
 .sync-dot{width:7px; height:7px; border-radius:50%; background:var(--gold-light);}
 .sync-dot.online{background:#10B981;}
 .sync-dot.loading{background:var(--gold-light); animation:spin 1s linear infinite;}
+.sync-dot.error{background:#EF4444;}
 
 /* ===== POP-UP LOGIN UTAMA ===== */
 .login-veil{display:none; position:fixed; inset:0; background:rgba(10,25,47,.85); z-index:3000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);}

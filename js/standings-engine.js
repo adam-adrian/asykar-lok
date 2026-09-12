@@ -305,6 +305,12 @@
       if (keb !== null) { item.sumKeb += keb; item.countKeb++; }
       if (ked !== null) { item.sumKed += ked; item.countKed++; }
       if (bah !== null) { item.sumBah += bah; item.countBah++; }
+
+      if (r._syncStatus === 'pending' || r._syncStatus === 'failed') {
+        item._syncStatus = r._syncStatus;
+        item._syncId = r._syncId;
+        item._syncError = r._syncError;
+      }
     });
 
     let list = Object.values(map).map(item => {
@@ -322,7 +328,10 @@
         avgKeb: avgKeb.toFixed(1),
         avgKed: avgKed.toFixed(1),
         avgBah: avgBah.toFixed(1),
-        avgCombined: Number(combined.toFixed(1))
+        avgCombined: Number(combined.toFixed(1)),
+        _syncStatus: item._syncStatus || null,
+        _syncId: item._syncId || null,
+        _syncError: item._syncError || null
       };
     });
 

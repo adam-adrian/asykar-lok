@@ -738,7 +738,7 @@ function renderDashTurnamenWidget(liveMatch, jadwalList, hasilList) {
     container.innerHTML = `
       <div class="dash-match-box">
         <div class="dash-match-meta">
-          <span><strong>${escapeHtml(nextMatch.round || "Laga")}</strong> • ${svgIcon('calendar', 12)} ${formatTanggal(nextMatch.tanggal)}${nextMatch.waktu ? ' • ' + svgIcon('clock', 12) + ' ' + escapeHtml(nextMatch.waktu) : ''}</span>
+          <span><strong>${escapeHtml(nextMatch.round || "Laga")}</strong> ${renderSyncBadge(nextMatch._syncStatus, nextMatch._syncId, nextMatch._syncError)} • ${svgIcon('calendar', 12)} ${formatTanggal(nextMatch.tanggal)}${nextMatch.waktu ? ' • ' + svgIcon('clock', 12) + ' ' + escapeHtml(nextMatch.waktu) : ''}</span>
           <span style="font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold)' : '#E7EFE9'}; color:${st.cls === 'today' ? '#fff' : 'var(--green-ok)'};">
             ${st.label}
           </span>
@@ -762,7 +762,7 @@ function renderDashTurnamenWidget(liveMatch, jadwalList, hasilList) {
     container.innerHTML = `
       <div class="dash-match-box">
         <div class="dash-match-meta">
-          <span><strong>${escapeHtml(last.round || "Hasil Terakhir")}</strong> • ${formatTanggal(last.tanggal)}</span>
+          <span><strong>${escapeHtml(last.round || "Hasil Terakhir")}</strong> ${renderSyncBadge(last._syncStatus, last._syncId, last._syncError)} • ${formatTanggal(last.tanggal)}</span>
           <span style="font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; background:var(--parchment-dim); color:var(--ink-faint);">
             SELESAI
           </span>
@@ -836,7 +836,7 @@ function renderDashEventWidget(upcomingEvents, listEvent) {
             <span style="font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:999px; background:var(--parchment-dim); color:var(--ink-soft);">${escapeHtml(e.kategori || "Umum")}</span>
             <span style="font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold)' : st.cls === 'upcoming' ? '#E7EFE9' : 'var(--parchment-dim)'}; color:${st.cls === 'today' ? '#fff' : st.cls === 'upcoming' ? 'var(--green-ok)' : 'var(--ink-faint)'};">${st.label}</span>
           </div>
-          <div class="dash-event-title">${escapeHtml(e.judul)}</div>
+          <div class="dash-event-title">${escapeHtml(e.judul)} ${renderSyncBadge(e._syncStatus, e._syncId, e._syncError)}</div>
           <div class="dash-event-meta">
             <span>${svgIcon('clock', 12)} ${formatWaktu(e.waktu)}</span>
             <span>${svgIcon('map-pin', 12)} ${escapeHtml(e.lokasi || "Pesantren")}</span>
@@ -903,24 +903,25 @@ function renderKlasemen(){
 
       const sakanEsc = item.sakan.replace(/'/g, "\\'");
       const syncBadge = renderSyncBadge(item._syncStatus, item._syncId, item._syncError);
-      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(item.sakan) + syncBadge + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
+      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(item.sakan) + (syncBadge ? ' ' + syncBadge : '') + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
     }).join("");
   }
   
   const rt=document.getElementById("rekapTbody");
   if(!listRekap.length){rt.innerHTML='<tr class="empty-row"><td colspan="7">Belum ada rekap.</td></tr>';}
   else{
-    rt.innerHTML=listRekap.map((r,i)=>
-      '<tr>'+
+    rt.innerHTML=listRekap.map((r,i)=> {
+      const syncBadge = renderSyncBadge(r._syncStatus, r._syncId, r._syncError);
+      return '<tr>'+
       '<td class="center"><span class="rank-num">'+(i+1)+'</span></td>'+
-      '<td class="sakan-name">'+escapeHtml(r.sakan)+'</td>'+
+      '<td class="sakan-name">'+escapeHtml(r.sakan) + (syncBadge ? ' ' + syncBadge : '') +'</td>'+
       '<td class="center">'+r.jumlah+'×</td>'+
       '<td class="center"><span class="pill">'+r.avgKeb+'</span></td>'+
       '<td class="center"><span class="pill">'+r.avgKed+'</span></td>'+
       '<td class="center"><span class="pill">'+r.avgBah+'</span></td>'+
       '<td class="center"><span class="pill total">'+r.avgCombined+'</span></td>'+
-      '</tr>'
-    ).join("");
+      '</tr>';
+    }).join("");
   }
 }
 
@@ -1284,6 +1285,7 @@ function renderligaMenu() {
           <div class="jadwal-match-header">
             <div class="jadwal-meta-left">
               <span class="jadwal-round-tag">${escapeHtml(m.round || "Pertandingan")}</span>
+              ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}
               <div class="jadwal-meta-items">
                 <span class="jadwal-meta-item">${svgIcon('calendar', 13)} <span>${formatTanggal(m.tanggal)}</span></span>
                 ${m.waktu ? `<span class="jadwal-meta-item">${svgIcon('clock', 13)} <span>${escapeHtml(m.waktu)}</span></span>` : ''}
@@ -1439,6 +1441,7 @@ function renderBracketMatchBox(m, ce, isFinal = false) {
       <div class="bracket-meta">
         <span class="bracket-meta-item">${svgIcon('calendar', 11)} ${formatTanggal(m.tanggal)}</span>
         ${m.lokasi ? `<span class="bracket-meta-item">${svgIcon('map-pin', 11)} ${escapeHtml(m.lokasi)}</span>` : ''}
+        ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}
       </div>
       ${ce ? `
         <div class="bracket-actions">

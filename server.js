@@ -284,7 +284,7 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (action === 'save_klasemen_bulk') {
-        const entries = Array.isArray(payload.entries) ? payload.entries : [];
+        const entries = Array.isArray(payload) ? payload : (Array.isArray(payload.entries) ? payload.entries : []);
         entries.forEach(item => {
           const t = item.tanggal;
           const s = item.sakan;
