@@ -29,6 +29,14 @@ const sampleEvents = [
   }
 ];
 
+const sampleMatches = [
+  { id: 'm-1', round: 'Penyisihan', tanggal: '2026-09-12', waktu: '15:30 WIB', lokasi: 'Lapangan Timur', timA: 'QAZVIN', timB: 'TIRMIDZ', skorA: 3, skorB: 1, status: 'SELESAI' },
+  { id: 'm-2', round: 'Penyisihan', tanggal: '2026-09-12', waktu: '16:30 WIB', lokasi: 'Lapangan Barat', timA: 'NAISABUR', timB: 'BUKHARA', skorA: 2, skorB: 0, status: 'SELESAI' },
+  { id: 'm-3', round: 'Semifinal', tanggal: '2026-09-14', waktu: '15:30 WIB', lokasi: 'Lapangan Utama', timA: 'QAZVIN', timB: 'NAISABUR', skorA: 2, skorB: 1, status: 'SELESAI' },
+  { id: 'm-4', round: 'Final', tanggal: '2026-09-16', waktu: '15:30 WIB', lokasi: 'Lapangan Utama', timA: 'QAZVIN', timB: 'SIJISTAN', skorA: 1, skorB: 0, status: 'SELESAI' },
+  { id: 'm-5', round: 'Penyisihan', tanggal: '2026-09-18', waktu: '16:00 WIB', lokasi: 'Lapangan Timur', timA: 'HAMADAN', timB: 'ZARAGOZA', skorA: null, skorB: null, status: 'JADWAL' }
+];
+
 async function run() {
   const browser = spawn('helium-browser', [
     '--headless',
@@ -69,31 +77,73 @@ async function run() {
     const injectCode = `
       localStorage.setItem('lok-klasemen-v5', JSON.stringify(${JSON.stringify(sampleRecords)}));
       localStorage.setItem('lok-event-v5', JSON.stringify(${JSON.stringify(sampleEvents)}));
+      localStorage.setItem('lok-liga-v5', JSON.stringify(${JSON.stringify(sampleMatches)}));
       store.state.klasemen = ${JSON.stringify(sampleRecords)};
       store.state.event = ${JSON.stringify(sampleEvents)};
+      store.state.liga = ${JSON.stringify(sampleMatches)};
       renderDashboard();
     `;
 
     await send('Runtime.evaluate', { expression: injectCode });
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(r => setTimeout(r, 500));
 
-    // Desktop screenshot
-    const shotDesktop = await send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/desktop_phase2_full_data.png', Buffer.from(shotDesktop.data, 'base64'));
-    console.log('Saved desktop_phase2_full_data.png');
+    // 1. Desktop Klasemen
+    await send('Runtime.evaluate', { expression: `switchView('klasemen')` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotKlasemen = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/desktop_phase3_klasemen.png', Buffer.from(shotKlasemen.data, 'base64'));
 
-    // Mobile screenshot
+    // 2. Desktop Liga Jadwal
+    await send('Runtime.evaluate', { expression: `switchView('liga'); switchLigaTab('jadwal');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotLigaJadwal = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/desktop_phase3_liga_jadwal.png', Buffer.from(shotLigaJadwal.data, 'base64'));
+
+    // 3. Desktop Liga Hasil & Bracket
+    await send('Runtime.evaluate', { expression: `switchLigaTab('hasil');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotLigaHasil = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/desktop_phase3_liga_hasil.png', Buffer.from(shotLigaHasil.data, 'base64'));
+
+    // 4. Desktop Event
+    await send('Runtime.evaluate', { expression: `switchView('event');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotEvent = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/desktop_phase3_event.png', Buffer.from(shotEvent.data, 'base64'));
+
+    // --- MOBILE SCREENSHOTS (390x844) ---
     await send('Emulation.setDeviceMetricsOverride', {
       width: 390,
       height: 844,
       deviceScaleFactor: 2,
       mobile: true
     });
-    await new Promise(r => setTimeout(r, 400));
-    const shotMobile = await send('Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/mobile_phase2_full_data.png', Buffer.from(shotMobile.data, 'base64'));
-    console.log('Saved mobile_phase2_full_data.png');
 
+    // Mobile Klasemen
+    await send('Runtime.evaluate', { expression: `switchView('klasemen');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotMobileKlasemen = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/mobile_phase3_klasemen.png', Buffer.from(shotMobileKlasemen.data, 'base64'));
+
+    // Mobile Liga Jadwal
+    await send('Runtime.evaluate', { expression: `switchView('liga'); switchLigaTab('jadwal');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotMobileLigaJadwal = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/mobile_phase3_liga_jadwal.png', Buffer.from(shotMobileLigaJadwal.data, 'base64'));
+
+    // Mobile Liga Hasil & Bracket
+    await send('Runtime.evaluate', { expression: `switchLigaTab('hasil');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotMobileLigaHasil = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/mobile_phase3_liga_hasil.png', Buffer.from(shotMobileLigaHasil.data, 'base64'));
+
+    // Mobile Event
+    await send('Runtime.evaluate', { expression: `switchView('event');` });
+    await new Promise(r => setTimeout(r, 400));
+    const shotMobileEvent = await send('Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync('/home/neikami/.gemini/antigravity-cli/brain/d5f78be6-33d9-4793-b797-384305d679a7/mobile_phase3_event.png', Buffer.from(shotMobileEvent.data, 'base64'));
+
+    console.log('All Phase 3 desktop & mobile baseline views captured successfully!');
     ws.close();
   } finally {
     browser.kill();
