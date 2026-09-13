@@ -5,3 +5,4 @@ node_modules/
 .local-db.json
 .DS_Store
 .agents/
+.impeccable/

@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=5.6">
+<link rel="stylesheet" href="css/style.css?v=5.8">
 </head>
 <body>
 
@@ -36,7 +36,7 @@
 <header class="topbar" id="appHeader">
     <button class="topbar-left" onclick="switchView('homepage')" title="Kembali ke Beranda">
       <div class="topbar-mark">LK</div>
-      <h1>League Of Kindness</h1>
+      <span class="topbar-brand-name">League Of Kindness</span>
     </button>
 
     <nav class="topbar-nav">
@@ -155,7 +155,7 @@
                 <svg class="svg-icon md" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
               </div>
               <div>
-                <h3 class="dash-widget-title">Klasemen Kebaikan</h3>
+                <h2 class="dash-widget-title">Klasemen Kebaikan</h2>
                 <div class="dash-widget-sub">Kebersihan, Kedisiplinan, Bahasa</div>
               </div>
             </div>
@@ -176,7 +176,7 @@
                 <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
               </div>
               <div>
-                <h3 class="dash-widget-title">Turnamen Bola</h3>
+                <h2 class="dash-widget-title">Turnamen Bola</h2>
                 <div class="dash-widget-sub">Jadwal Tanding &amp; Sistem Gugur</div>
               </div>
             </div>
@@ -197,7 +197,7 @@
                 <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
               </div>
               <div>
-                <h3 class="dash-widget-title">Agenda &amp; Kegiatan</h3>
+                <h2 class="dash-widget-title">Agenda &amp; Kegiatan</h2>
                 <div class="dash-widget-sub">Jadwal &amp; Dokumentasi Pesantren</div>
               </div>
             </div>
@@ -519,7 +519,7 @@
       <label>Foto / Poster Dokumentasi (Opsional)</label>
       <input type="file" id="eFotoFile" accept="image/*" onchange="handleImagePreview(event)">
       <div id="imgPreviewWrapper" class="img-preview-wrapper">
-        <img id="imgPreview" src="" class="img-preview">
+        <img id="imgPreview" src="" class="img-preview" alt="Pratinjau Foto" data-impeccable-ignore="broken-image">
         <button type="button" class="btn btn-ghost btn-clear-img" onclick="clearImageUpload()">Hapus</button>
       </div>
     </div>
@@ -533,7 +533,7 @@
 
 <!-- LIGHTBOX MODAL UNTUK PERBESAR GAMBAR -->
 <div id="imageLightbox" onclick="closeLightbox()">
-  <img id="lightboxImg" src="" alt="Perbesar Gambar">
+  <img id="lightboxImg" src="" alt="Perbesar Gambar" data-impeccable-ignore="broken-image">
 </div>
 
 <div id="toast"></div>
