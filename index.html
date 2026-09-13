@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=5.4">
+<link rel="stylesheet" href="css/style.css?v=5.6">
 </head>
 <body>
 
@@ -25,18 +25,15 @@
       <label>Password</label>
       <input type="password" id="passwordInput" placeholder="Masukkan password" maxlength="30">
     </div>
-    <div style="display:flex; gap:10px; margin-top:16px;">
-      <button class="btn btn-gold" id="btnLoginSubmit" onclick="login()" style="flex:1;">Masuk</button>
-      <button class="btn btn-ghost" onclick="closeLoginModal()" style="flex:1;">Batal</button>
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="btnLoginSubmit" onclick="login()">Masuk</button>
+      <button class="btn btn-ghost" onclick="closeLoginModal()">Batal</button>
     </div>
   </div>
 </div>
 
-<!-- ===== DASHBOARD UTAMA ===== -->
-<div id="dashboard">
-  
-  <!-- UNIFIED TOPBAR HEADER -->
-  <header class="topbar">
+<!-- ===== 1. HEADER BAR ===== -->
+<header class="topbar" id="appHeader">
     <button class="topbar-left" onclick="switchView('homepage')" title="Kembali ke Beranda">
       <div class="topbar-mark">LK</div>
       <h1>League Of Kindness</h1>
@@ -50,7 +47,7 @@
     </nav>
 
     <div class="topbar-right">
-      <div class="sync-badge" id="syncStatusBadge" onclick="syncDataFromCloud(true)" style="cursor:pointer;" title="Klik untuk refresh data dari cloud">
+      <div class="sync-badge" id="syncStatusBadge" onclick="syncDataFromCloud(true)" title="Klik untuk refresh data dari cloud">
         <span class="sync-dot" id="syncDot"></span>
         <span id="syncText">Cloud Sync</span>
       </div>
@@ -83,6 +80,9 @@
       </div>
     </div>
   </header>
+
+  <!-- ===== 2. MAIN VIEW (PAGES) ===== -->
+  <main class="app-main" id="appMain">
 
   <!-- HOMEPAGE / DASHBOARD UTAMA -->
   <div class="page-panel" id="view-homepage">
@@ -214,7 +214,7 @@
     </div>
 
     <section class="pub-footer-section" id="sakanSection">
-      <div style="font-size:11.5px; font-weight:700; letter-spacing:.12em; color:var(--gold-light); text-transform:uppercase; margin-bottom:12px;">SAKAN-SAKAN KAMI</div>
+      <div class="pub-sakan-eyebrow">SAKAN-SAKAN KAMI</div>
       <h2>Nama-Nama Bersejarah</h2>
       <p>Terinspirasi dari kota-kota peradaban Islam: Qazvin, Naisabur, Bukhara, Hamadan, dan lainnya.</p>
 
@@ -225,7 +225,7 @@
   <!-- KLASEMEN -->
     <div class="page page-panel hidden" id="page-klasemen">
       <div class="toolbar">
-        <div class="field" style="margin:0;"><label>Tanggal</label><input type="date" id="filterTanggal" onchange="renderKlasemen()"></div>
+        <div class="field"><label>Tanggal</label><input type="date" id="filterTanggal" onchange="renderKlasemen()"></div>
         <button class="btn btn-ghost" onclick="resetFilter()">Reset</button>
         <div class="search-field">
           <input type="text" id="searchInput" placeholder="Cari sakan..." oninput="renderKlasemen()">
@@ -253,8 +253,8 @@
       <div class="ledger" id="panelHarian">
         <div class="ledger-head">
           <div class="ledger-title">Data Poin Harian</div>
-          <div style="display:flex; gap:8px;">
-            <button class="btn btn-secondary hidden" id="addBulkKlasemenBtn" onclick="openKlasemenBulkModal()" style="font-size:12.5px; padding:6px 14px;">
+          <div class="row-actions">
+            <button class="btn btn-secondary btn-sm hidden" id="addBulkKlasemenBtn" onclick="openKlasemenBulkModal()">
               <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
               Input Massal
             </button>
@@ -304,14 +304,14 @@
         <div class="ledger-head">
           <div>
             <div class="ledger-title">Jadwal Pertandingan Mendatang</div>
-            <p style="font-size:13px; color:var(--ink-faint); margin-top:2px;">Daftar laga yang akan dan sedang berlangsung antar gedung.</p>
+            <p class="section-sub">Daftar laga yang akan dan sedang berlangsung antar gedung.</p>
           </div>
           <button class="btn btn-primary hidden" id="addJadwalBolaBtn" onclick="openJadwalModal()">
             <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Tambah Jadwal Bola
           </button>
         </div>
-        <div id="jadwalListContainer" style="margin-top:14px;">
+        <div id="jadwalListContainer" class="section-spacer">
           <!-- Rendered via JS -->
         </div>
       </div>
@@ -321,16 +321,16 @@
         <div class="ledger-head">
           <div>
             <div class="ledger-title">Hasil &amp; Alur Babak Turnamen</div>
-            <p style="font-size:13px; color:var(--ink-faint); margin-top:2px;">Skor resmi babak gugur hingga penentuan juara utama.</p>
+            <p class="section-sub">Skor resmi babak gugur hingga penentuan juara utama.</p>
           </div>
         </div>
 
-        <div class="bracket-tree-wrap" id="bracketTreeContainer" style="margin-top:14px;">
+        <div class="bracket-tree-wrap section-spacer" id="bracketTreeContainer">
           <!-- Rendered via JS (Penyisihan, Semifinal, Final & Juara) -->
         </div>
 
-        <div class="rekap-skor-wrap" style="margin-top:26px;">
-          <div class="ledger-title" style="font-size:16px; margin-bottom:12px;">Rekap Riwayat Skor</div>
+        <div class="rekap-skor-wrap">
+          <div class="ledger-title rekap-title">Rekap Riwayat Skor</div>
           
           <!-- Desktop Table View -->
           <div class="rekap-table-wrap">
@@ -348,15 +348,16 @@
 
     <!-- EVENT -->
     <div class="page page-panel hidden" id="page-event">
-      <div class="ledger-head" style="padding-top:0;">
-        <div class="ledger-title" style="font-size:22px; margin-bottom:14px;">Daftar Agenda &amp; Dokumentasi Kegiatan</div>
+      <div class="ledger-head event-ledger-head">
+        <div class="ledger-title event-title">Daftar Agenda &amp; Dokumentasi Kegiatan</div>
         <button class="btn btn-primary hidden" id="addEventBtn" onclick="openEventModal()">+ Tambah Event</button>
       </div>
       <div id="eventList"></div>
     </div>
+  </main>
 
-  <!-- ===== BOTTOM NAVIGATION BAR (KHUSUS TAMPILAN HP) ===== -->
-  <div class="mobile-bottom-nav">
+  <!-- ===== 3. BOTTOM NAVIGATION BAR (KHUSUS TAMPILAN HP) ===== -->
+  <nav class="mobile-bottom-nav" id="appBottomNav">
     <button class="mobile-nav-item" id="mNav-homepage" onclick="switchView('homepage')">
       <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
       <span>Beranda</span>
@@ -373,8 +374,7 @@
       <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
       <span>Event</span>
     </button>
-  </div>
-</div>
+  </nav>
 
 <!-- MODALS -->
 <div class="modal-veil" id="modalKlasemen">
@@ -399,8 +399,8 @@
       <input type="number" inputmode="numeric" pattern="[0-9]*" id="fBahasa" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintBahasa')">
       <span class="field-error-hint" id="hintBahasa">Nilai harus angka 0 sampai 100</span>
     </div>
-    <div id="dupeNote" style="display:none;color:var(--green-ok);font-size:12px;font-weight:600;margin-bottom:10px;">Data sakan &amp; tanggal ini sudah ada — nilai akan diperbarui.</div>
-    <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
+    <div id="dupeNote" class="dupe-note">Data sakan &amp; tanggal ini sudah ada — nilai akan diperbarui.</div>
+    <div class="modal-actions">
       <button class="btn btn-primary" id="btnSaveKlasemen" onclick="simpanKlasemen()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalKlasemen')">Batal</button>
     </div>
@@ -409,19 +409,19 @@
 
 <!-- MODAL INPUT MASSAL HARIAN (1B VERSI A) -->
 <div class="modal-veil" id="modalKlasemenBulk">
-  <div class="modal-box" style="max-width:720px; width:95%; max-height:90vh; display:flex; flex-direction:column;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-      <h3 style="margin:0; font-size:19px;">Input Massal Poin Harian</h3>
-      <button class="btn btn-ghost" style="padding:3px 8px; font-size:15px;" onclick="closeModal('modalKlasemenBulk')">✕</button>
+  <div class="modal-box modal-lg">
+    <div class="modal-header-between">
+      <h3 class="modal-bulk-title">Input Massal Poin Harian</h3>
+      <button class="btn btn-ghost btn-close-modal" onclick="closeModal('modalKlasemenBulk')">✕</button>
     </div>
-    <p style="font-size:12.5px; color:var(--ink-faint); margin-bottom:14px;">Masukkan nilai untuk seluruh sakan sekaligus. Tersimpan instan (optimis) dan disinkronkan ke cloud dalam 1 batch.</p>
+    <p class="modal-sub">Masukkan nilai untuk seluruh sakan sekaligus. Tersimpan instan (optimis) dan disinkronkan ke cloud dalam 1 batch.</p>
     
-    <div class="field" style="margin-bottom:12px; max-width:220px;">
+    <div class="field field-date-pick">
       <label>Tanggal Penilaian</label>
       <input type="date" id="bulkTanggal" onchange="populateBulkTable()">
     </div>
 
-    <div style="overflow-y:auto; flex:1; border:1px solid var(--line); border-radius:10px; margin-bottom:14px; background:#fff;">
+    <div class="bulk-table-scroll">
       <table class="bulk-input-table">
         <thead>
           <tr>
@@ -438,9 +438,9 @@
       </table>
     </div>
 
-    <div id="bulkErrorNote" style="display:none; color:var(--clay); font-size:12px; font-weight:600; margin-bottom:10px; padding:6px 10px; background:#FEF2F2; border:1px solid #FCA5A5; border-radius:6px;"></div>
+    <div id="bulkErrorNote" class="bulk-error-note"></div>
 
-    <div class="modal-actions" style="display:flex; justify-content:flex-end; gap:10px;">
+    <div class="modal-actions modal-actions-right">
       <button class="btn btn-ghost" onclick="closeModal('modalKlasemenBulk')">Batal</button>
       <button class="btn btn-primary" id="btnSaveBulkKlasemen" onclick="simpanKlasemenBulk()">Simpan Rekap Semua</button>
     </div>
@@ -471,9 +471,9 @@
     </div>
 
     <!-- FIELD SKOR (Otomatis tampil saat input skor) -->
-    <div id="mSkorSection" style="display:none; background:var(--parchment); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:16px;">
-      <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:8px;">Hasil Skor Akhir</div>
-      <div class="field-row" style="margin-bottom:0;">
+    <div id="mSkorSection" class="match-skor-section">
+      <div class="skor-section-title">Hasil Skor Akhir</div>
+      <div class="field-row field-row-nomargin">
         <div class="field" id="fieldSkorA">
           <label id="labelSkorA">Skor Tim A</label>
           <input type="number" inputmode="numeric" pattern="[0-9]*" id="mSkorA" min="0" max="999" placeholder="0" oninput="liveValidateSkor()" onfocus="this.select()">
@@ -485,10 +485,10 @@
           <span class="field-error-hint" id="hintSkorB">Skor 0–999</span>
         </div>
       </div>
-      <p id="antiDrawHint" style="font-size:11px; color:var(--ink-faint); margin-top:6px;">* Sistem gugur: skor tidak boleh sama (harus ada pemenang).</p>
+      <p class="anti-draw-hint" id="antiDrawHint">* Sistem gugur: skor tidak boleh sama (harus ada pemenang).</p>
     </div>
 
-    <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
+    <div class="modal-actions">
       <button class="btn btn-primary" id="btnSaveLiga" onclick="simpanMatch()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalLiga')">Batal</button>
     </div>
@@ -518,13 +518,13 @@
     <div class="field">
       <label>Foto / Poster Dokumentasi (Opsional)</label>
       <input type="file" id="eFotoFile" accept="image/*" onchange="handleImagePreview(event)">
-      <div id="imgPreviewWrapper" style="display:none; margin-top:8px; position:relative;">
-        <img id="imgPreview" src="" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px; border:1px solid var(--line);">
-        <button type="button" class="btn btn-ghost" style="position:absolute; top:6px; right:6px; padding:3px 8px; font-size:11px; background:#fff;" onclick="clearImageUpload()">Hapus</button>
+      <div id="imgPreviewWrapper" class="img-preview-wrapper">
+        <img id="imgPreview" src="" class="img-preview">
+        <button type="button" class="btn btn-ghost btn-clear-img" onclick="clearImageUpload()">Hapus</button>
       </div>
     </div>
 
-    <div class="modal-actions" style="margin-top:20px; display:flex; gap:10px;">
+    <div class="modal-actions">
       <button class="btn btn-primary" id="btnSaveEvent" onclick="simpanEvent()">Simpan</button>
       <button class="btn btn-ghost" onclick="closeModal('modalEvent')">Batal</button>
     </div>
