@@ -805,7 +805,7 @@ function renderDashTurnamenWidget(liveMatch, jadwalList, hasilList) {
       <div class="dash-match-box">
         <div class="dash-match-meta">
           <span><strong>${escapeHtml(nextMatch.round || "Laga")}</strong> ${renderSyncBadge(nextMatch._syncStatus, nextMatch._syncId, nextMatch._syncError)} • ${svgIcon('calendar', 12)} ${formatTanggal(nextMatch.tanggal)}${nextMatch.waktu ? ' • ' + svgIcon('clock', 12) + ' ' + escapeHtml(nextMatch.waktu) : ''}</span>
-          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold)' : '#E7EFE9'}; color:${st.cls === 'today' ? '#fff' : 'var(--green-ok)'};">
+          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold-deep)' : 'var(--green-subtle)'}; color:${st.cls === 'today' ? '#fff' : 'var(--green-ok)'}; border:1px solid ${st.cls === 'today' ? 'transparent' : 'var(--green-border)'};">
             ${st.label}
           </span>
         </div>
@@ -900,7 +900,7 @@ function renderDashEventWidget(upcomingEvents, listEvent) {
         <div class="dash-event-info">
           <div style="display:flex; gap:6px; align-items:center; margin-bottom:3px; flex-wrap:wrap;">
             <span style="font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; background:var(--parchment-dim); color:var(--ink-soft);">${escapeHtml(e.kategori || "Umum")}</span>
-            <span style="font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold)' : st.cls === 'upcoming' ? '#E7EFE9' : 'var(--parchment-dim)'}; color:${st.cls === 'today' ? '#fff' : st.cls === 'upcoming' ? 'var(--green-ok)' : 'var(--ink-faint)'};">${st.label}</span>
+            <span style="font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold-deep)' : st.cls === 'upcoming' ? 'var(--green-subtle)' : 'var(--parchment-dim)'}; color:${st.cls === 'today' ? '#fff' : st.cls === 'upcoming' ? 'var(--green-ok)' : 'var(--ink-faint)'}; border:1px solid ${st.cls === 'upcoming' ? 'var(--green-border)' : 'transparent'};">${st.label}</span>
           </div>
           <div class="dash-event-title">${escapeHtml(e.judul)} ${renderSyncBadge(e._syncStatus, e._syncId, e._syncError)}</div>
           <div class="dash-event-meta">
@@ -1713,7 +1713,7 @@ function renderEvent(){
           ${e.deskripsi?'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">'+escapeHtml(e.deskripsi)+'</div>':''}
         </div>
         ${photoTag}
-        <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold)":st.cls==="upcoming"?"#E7EFE9":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};">${st.label}</span>
+        <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold-deep)":st.cls==="upcoming"?"var(--green-subtle)":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};border:1px solid ${st.cls==="upcoming"?"var(--green-border)":"transparent"};">${st.label}</span>
         ${ce?'<button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent(\''+e.id+'\')">'+svgIcon('trash', 14)+'</button>':''}
       </div>
     `;
