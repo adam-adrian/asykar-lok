@@ -4,7 +4,13 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import dns from 'node:dns';
 import { fileURLToPath } from 'node:url';
+
+// Paksa urutan resolusi IPv4 terlebih dahulu untuk mencegah ENETUNREACH saat host tidak memiliki rute IPv6
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -156,11 +162,31 @@ const server = http.createServer(async (req, res) => {
         if (text.startsWith('{')) {
           const data = JSON.parse(text);
           if (data.status === 'success') {
+            // Cache user sukses ke db.users lokal agar offline fallback tetap punya kredensial ini
+            if (data.user && data.user.username) {
+              const uIdx = db.users.findIndex(u => String(u.username).toLowerCase() === String(data.user.username).toLowerCase());
+              const userEntry = {
+                username: data.user.username,
+                password,
+                role: data.user.role || 'admin_sakan',
+                label: data.user.label || data.user.username,
+                status: 'active'
+              };
+              if (uIdx > -1) {
+                db.users[uIdx] = { ...db.users[uIdx], ...userEntry };
+              } else {
+                db.users.push(userEntry);
+              }
+              persistDb();
+            }
             return sendJson(res, 200, data);
+          } else {
+            // Apps Script explicitly rejected credentials
+            return sendJson(res, 401, data);
           }
         }
       } catch (err) {
-        console.warn('Apps Script login gagal, mencoba database lokal:', err.message);
+        console.warn('Apps Script login gagal, mencoba database lokal:', err.message, err.cause ? err.cause.message || err.cause : '');
       }
     }
 
