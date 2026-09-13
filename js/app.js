@@ -1868,9 +1868,24 @@ document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.ke
   applyUserSessionUI();
 
   const hash = window.location.hash.replace("#", "");
-  const initialView = ["klasemen", "liga", "event"].includes(hash) ? hash : currentView;
-  history.replaceState({ view: initialView }, "", initialView === "homepage" ? window.location.pathname : "#" + initialView);
+  const [viewPart, subPart] = hash.split("/");
+  const initialView = ["klasemen", "liga", "event"].includes(viewPart) ? viewPart : currentView;
+  history.replaceState({ view: initialView }, "", initialView === "homepage" ? window.location.pathname : "#" + hash);
   switchView(initialView, false);
+
+  if (viewPart === "liga" && subPart === "hasil") {
+    switchLigaTab("hasil");
+  } else if (hash === "login") {
+    openLoginModal();
+  } else if (hash === "modal-klasemen") {
+    document.getElementById("modalKlasemen").classList.add("show");
+  } else if (hash === "modal-bulk") {
+    document.getElementById("modalKlasemenBulk").classList.add("show");
+  } else if (hash === "modal-liga") {
+    document.getElementById("modalLiga").classList.add("show");
+  } else if (hash === "modal-event") {
+    document.getElementById("modalEvent").classList.add("show");
+  }
 
   // 3. Sinkronkan dengan Cloud via Proxy Vercel
   await syncDataFromCloud();
