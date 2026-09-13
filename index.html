@@ -103,9 +103,9 @@
         </div>
       </section>
 
-      <!-- 4 QUICK STAT METRICS -->
-      <section class="dash-metrics-grid">
-        <div class="dash-metric-card" onclick="scrollToSakan()" title="Lihat Daftar Sakan Terdaftar">
+      <!-- QUICK METRICS STRIP -->
+      <section class="dash-metrics-strip" aria-label="Ringkasan Cepat Metrik">
+        <div class="dash-metric-item" onclick="scrollToSakan()" title="Lihat Daftar Sakan Terdaftar" role="button" tabindex="0">
           <div class="dash-metric-icon">
             <svg class="svg-icon md" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
           </div>
@@ -114,7 +114,7 @@
             <strong class="dash-metric-value" id="dashStatSakan">16 Sakan</strong>
           </div>
         </div>
-        <div class="dash-metric-card" onclick="switchView('klasemen')" title="Buka Klasemen Kebaikan Lengkap">
+        <div class="dash-metric-item" onclick="switchView('klasemen')" title="Buka Klasemen Kebaikan Lengkap" role="button" tabindex="0">
           <div class="dash-metric-icon">
             <svg class="svg-icon md" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
           </div>
@@ -123,7 +123,7 @@
             <strong class="dash-metric-value" id="dashStatTopSakan">–</strong>
           </div>
         </div>
-        <div class="dash-metric-card" onclick="switchView('liga')" title="Buka Bagan & Jadwal Turnamen">
+        <div class="dash-metric-item" onclick="switchView('liga')" title="Buka Bagan & Jadwal Turnamen" role="button" tabindex="0">
           <div class="dash-metric-icon">
             <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
           </div>
@@ -132,7 +132,7 @@
             <strong class="dash-metric-value" id="dashStatLaga">–</strong>
           </div>
         </div>
-        <div class="dash-metric-card" onclick="switchView('event')" title="Buka Agenda Pesantren">
+        <div class="dash-metric-item" onclick="switchView('event')" title="Buka Agenda Pesantren" role="button" tabindex="0">
           <div class="dash-metric-icon">
             <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
           </div>
@@ -143,68 +143,53 @@
         </div>
       </section>
 
-      <!-- 3 DASHBOARD PILLAR WIDGETS -->
-      <section class="dash-widgets-grid">
+      <!-- 3 DASHBOARD EDITORIAL PILLARS -->
+      <section class="dash-pillars-grid">
         
-        <!-- WIDGET 1: KLASEMEN KEBAIKAN -->
-        <div class="dash-widget-box">
-          <div class="dash-widget-head">
-            <div class="dash-widget-title-wrap">
-              <div class="dash-widget-icon">
-                <svg class="svg-icon md" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-              </div>
-              <div>
-                <h2 class="dash-widget-title">Klasemen Kebaikan</h2>
-                <div class="dash-widget-sub">Kebersihan, Kedisiplinan, Bahasa</div>
-              </div>
+        <!-- PILLAR 1: KLASEMEN KEBAIKAN -->
+        <div class="dash-pillar">
+          <div class="dash-pillar-head">
+            <div>
+              <h2 class="dash-pillar-title">Klasemen Kebaikan</h2>
+              <div class="dash-pillar-sub">Kebersihan, Kedisiplinan, Bahasa</div>
             </div>
-            <button class="dash-widget-link-btn" onclick="switchView('klasemen')">
+            <button class="dash-pillar-link" onclick="switchView('klasemen')">
               Lihat Detail <span>→</span>
             </button>
           </div>
-          <div class="dash-widget-body" id="dashKlasemenContent">
+          <div class="dash-pillar-body" id="dashKlasemenContent">
             <!-- Diisi dinamis oleh renderDashboard() -->
           </div>
         </div>
 
-        <!-- WIDGET 2: TURNAMEN SEPAK BOLA -->
-        <div class="dash-widget-box">
-          <div class="dash-widget-head">
-            <div class="dash-widget-title-wrap">
-              <div class="dash-widget-icon">
-                <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
-              </div>
-              <div>
-                <h2 class="dash-widget-title">Turnamen Bola</h2>
-                <div class="dash-widget-sub">Jadwal Tanding &amp; Sistem Gugur</div>
-              </div>
+        <!-- PILLAR 2: TURNAMEN SEPAK BOLA -->
+        <div class="dash-pillar">
+          <div class="dash-pillar-head">
+            <div>
+              <h2 class="dash-pillar-title">Turnamen Bola</h2>
+              <div class="dash-pillar-sub">Jadwal Tanding &amp; Sistem Gugur</div>
             </div>
-            <button class="dash-widget-link-btn" onclick="switchView('liga')">
+            <button class="dash-pillar-link" onclick="switchView('liga')">
               Buka Bagan <span>→</span>
             </button>
           </div>
-          <div class="dash-widget-body" id="dashTurnamenContent">
+          <div class="dash-pillar-body" id="dashTurnamenContent">
             <!-- Diisi dinamis oleh renderDashboard() -->
           </div>
         </div>
 
-        <!-- WIDGET 3: AGENDA & DOKUMENTASI -->
-        <div class="dash-widget-box">
-          <div class="dash-widget-head">
-            <div class="dash-widget-title-wrap">
-              <div class="dash-widget-icon">
-                <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
-              </div>
-              <div>
-                <h2 class="dash-widget-title">Agenda &amp; Kegiatan</h2>
-                <div class="dash-widget-sub">Jadwal &amp; Dokumentasi Pesantren</div>
-              </div>
+        <!-- PILLAR 3: AGENDA & KEGIATAN -->
+        <div class="dash-pillar">
+          <div class="dash-pillar-head">
+            <div>
+              <h2 class="dash-pillar-title">Agenda &amp; Kegiatan</h2>
+              <div class="dash-pillar-sub">Jadwal &amp; Dokumentasi Pesantren</div>
             </div>
-            <button class="dash-widget-link-btn" onclick="switchView('event')">
+            <button class="dash-pillar-link" onclick="switchView('event')">
               Semua Agenda <span>→</span>
             </button>
           </div>
-          <div class="dash-widget-body" id="dashEventContent">
+          <div class="dash-pillar-body" id="dashEventContent">
             <!-- Diisi dinamis oleh renderDashboard() -->
           </div>
         </div>
