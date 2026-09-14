@@ -78,6 +78,49 @@ describe('StandingsEngine (In-Process Pure Calculation)', () => {
     assert.equal(metrics.count, 0);
     assert.equal(metrics.avgCombined, '0.0');
   });
+
+  test('computeSummary: menggabungkan variasi huruf besar/kecil sakan menjadi 1 rekap tanpa fragmentasi', () => {
+    const records = [
+      { tanggal: '2026-09-10', sakan: 'QAZVIN ATAS', kebersihan: 90, kedisiplinan: 90, bahasa: 90 },
+      { tanggal: '2026-09-11', sakan: 'qazvin atas ', kebersihan: 80, kedisiplinan: 80, bahasa: 80 }
+    ];
+    const summary = StandingsEngine.computeSummary(records);
+    assert.equal(summary.length, 1, 'Harus disatukan dalam 1 entri rekap');
+    assert.equal(summary[0].sakan, 'QAZVIN ATAS');
+    assert.equal(summary[0].jumlah, 2);
+    assert.equal(summary[0].avgCombined, 85.0);
+  });
+
+  test('computeDailyStandings & computeSummary: mendukung standar tied ranking (nilai seri berbagi peringkat)', () => {
+    const records = [
+      { tanggal: '2026-09-14', sakan: 'SAKAN A', kebersihan: 95, kedisiplinan: 95, bahasa: 95 }, // avg 95.0 -> Rank 1
+      { tanggal: '2026-09-14', sakan: 'SAKAN B', kebersihan: 90, kedisiplinan: 90, bahasa: 90 }, // avg 90.0 -> Rank 2 (Tied)
+      { tanggal: '2026-09-14', sakan: 'SAKAN C', kebersihan: 90, kedisiplinan: 90, bahasa: 90 }, // avg 90.0 -> Rank 2 (Tied)
+      { tanggal: '2026-09-14', sakan: 'SAKAN D', kebersihan: 80, kedisiplinan: 80, bahasa: 80 }  // avg 80.0 -> Rank 4
+    ];
+
+    const daily = StandingsEngine.computeDailyStandings(records, { tanggal: '2026-09-14' });
+    const rankA = daily.find(d => d.sakan === 'SAKAN A').rank;
+    const rankB = daily.find(d => d.sakan === 'SAKAN B').rank;
+    const rankC = daily.find(d => d.sakan === 'SAKAN C').rank;
+    const rankD = daily.find(d => d.sakan === 'SAKAN D').rank;
+
+    assert.equal(rankA, 1);
+    assert.equal(rankB, 2);
+    assert.equal(rankC, 2, 'Sakan C dengan skor identik dengan Sakan B harus berbagi Rank 2');
+    assert.equal(rankD, 4, 'Sakan D berikutnya harus menempati Rank 4 (bukan 3)');
+
+    const summary = StandingsEngine.computeSummary(records);
+    const sumA = summary.find(s => s.sakan === 'SAKAN A').rank;
+    const sumB = summary.find(s => s.sakan === 'SAKAN B').rank;
+    const sumC = summary.find(s => s.sakan === 'SAKAN C').rank;
+    const sumD = summary.find(s => s.sakan === 'SAKAN D').rank;
+
+    assert.equal(sumA, 1);
+    assert.equal(sumB, 2);
+    assert.equal(sumC, 2);
+    assert.equal(sumD, 4);
+  });
 });
 
 describe('TournamentEngine (In-Process Pure Calculation)', () => {

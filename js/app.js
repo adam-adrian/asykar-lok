@@ -345,10 +345,10 @@ async function syncDataFromCloud(isManual = false){
 async function sendToCloud(action, payload){
   try {
     const res = await store.adapter.push(action, payload, currentAuthToken);
-    if(res && res.code === "unauthorized"){
+    const isUnauthorized = res && (res.code === "ERR_UNAUTHORIZED" || res.code === "unauthorized");
+    if(isUnauthorized){
       updateSyncStatus("local", "Sesi berakhir");
-      resetToLogin();
-      showToast("Sesi berakhir. Silakan masuk kembali.", true);
+      forceLogout("Sesi berakhir. Silakan masuk kembali.");
       return res;
     }
     updateSyncStatus("online", res.local ? "Mode Lokal" : "Cloud Terhubung");
@@ -458,8 +458,7 @@ async function login() {
   }
 }
 
-function logout() {
-  if (!confirm("Keluar dari akun admin?")) return;
+function forceLogout(message) {
   currentUser = "Tamu";
   currentRole = "tamu";
   currentLabel = "Tamu";
@@ -467,13 +466,18 @@ function logout() {
   clearSession();
   store.setAuthToken("");
   applyUserSessionUI();
-  showToast("Anda telah keluar. Mode publik (view-only) aktif.");
+  if (message) showToast(message, true);
 
   // Refresh tampilan aktif agar tombol aksi admin tersembunyi
   if (currentView === "klasemen") renderKlasemen();
   else if (currentView === "liga") renderligaMenu();
   else if (currentView === "event") renderEvent();
   else if (currentView === "homepage") renderDashboard();
+}
+
+function logout() {
+  if (!confirm("Keluar dari akun admin?")) return;
+  forceLogout("Anda telah keluar. Mode publik (view-only) aktif.");
 }
 
 function applyUserSessionUI() {
@@ -1599,6 +1603,7 @@ async function simpanMatch() {
   const t = normalizeDateStr(rawT);
   if (!t) { showToast("Format tanggal tidak valid (YYYY-MM-DD).", true); return; }
 
+  const existing = matchId ? store.getMatches().find(m => String(m.id) === String(matchId)) : null;
   let sa = "";
   let sb = "";
   let status = "UPCOMING";
@@ -1619,6 +1624,11 @@ async function simpanMatch() {
     if (!validation.ok) {
       showToast(validation.error, true);
       return;
+    }
+    if (existing) {
+      sa = (existing.skorA !== undefined && existing.skorA !== null) ? existing.skorA : "";
+      sb = (existing.skorB !== undefined && existing.skorB !== null) ? existing.skorB : "";
+      status = existing.status || (sa !== "" && sb !== "" ? "SELESAI" : "UPCOMING");
     }
   }
 

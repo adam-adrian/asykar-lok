@@ -17,7 +17,11 @@ export default async function handler(req, res) {
   const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL;
 
   try {
-    const { username, password } = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch (err) { body = {}; }
+    }
+    const { username, password } = (body && typeof body === 'object') ? body : {};
 
     if (!username || !password) {
       return res.status(400).json({ status: 'error', message: 'Username dan password wajib diisi.' });
@@ -46,7 +50,9 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         action: 'login',
         payload: { username, password }
-      })
+      }),
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000)
     });
 
     const data = await response.json();

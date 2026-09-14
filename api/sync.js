@@ -42,7 +42,11 @@ export default async function handler(req, res) {
   try {
     // 1. GET Request: Ambil data publik dari Google Sheets
     if (req.method === 'GET') {
-      const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET', redirect: 'follow' });
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000)
+      });
       const data = await response.json();
       return res.status(200).json(data);
     }
@@ -65,11 +69,14 @@ export default async function handler(req, res) {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ ...body, token }),
-        redirect: 'follow'
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000)
       });
       const data = await response.json();
-      const code = data && data.code;
-      const httpStatus = code === 'unauthorized' ? 401 : code === 'forbidden' ? 403 : 200;
+      const code = (data && data.code) || '';
+      const isUnauthorized = code === 'ERR_UNAUTHORIZED' || code === 'unauthorized';
+      const isForbidden = code === 'ERR_FORBIDDEN' || code === 'forbidden';
+      const httpStatus = isUnauthorized ? 401 : isForbidden ? 403 : (data && data.status === 'error' ? 400 : 200);
       return res.status(httpStatus).json(data);
     }
 

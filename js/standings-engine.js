@@ -261,11 +261,20 @@
       return String(a.sakan).localeCompare(String(b.sakan));
     });
 
-    // 4. Tetapkan peringkat
-    return evaluated.map((row, idx) => ({
-      ...row,
-      rank: idx + 1
-    }));
+    // 4. Tetapkan peringkat (standar kompetisi tied ranking: 1, 2, 2, 4)
+    let currentDailyRank = 1;
+    return evaluated.map((row, idx) => {
+      if (idx > 0) {
+        const prev = evaluated[idx - 1];
+        if (row.rowAvg !== prev.rowAvg) {
+          currentDailyRank = idx + 1;
+        }
+      }
+      return {
+        ...row,
+        rank: currentDailyRank
+      };
+    });
   }
 
   /**
@@ -279,12 +288,13 @@
     const map = {};
 
     records.forEach(r => {
-      const sakan = String(r.sakan || '').trim();
-      if (!sakan) return;
+      const sakanRaw = String(r.sakan || '').trim();
+      if (!sakanRaw) return;
+      const sakanKey = sakanRaw.toUpperCase();
 
-      if (!map[sakan]) {
-        map[sakan] = {
-          sakan,
+      if (!map[sakanKey]) {
+        map[sakanKey] = {
+          sakan: sakanKey,
           jumlah: 0,
           sumKeb: 0, countKeb: 0,
           sumKed: 0, countKed: 0,
@@ -292,7 +302,7 @@
         };
       }
 
-      const item = map[sakan];
+      const item = map[sakanKey];
       const keb = parseScore(r.kebersihan);
       const ked = parseScore(r.kedisiplinan);
       const bah = parseScore(r.bahasa);
@@ -344,10 +354,19 @@
       return a.sakan.localeCompare(b.sakan);
     });
 
-    return list.map((item, idx) => ({
-      ...item,
-      rank: idx + 1
-    }));
+    let currentSummaryRank = 1;
+    return list.map((item, idx) => {
+      if (idx > 0) {
+        const prev = list[idx - 1];
+        if (item.avgCombined !== prev.avgCombined) {
+          currentSummaryRank = idx + 1;
+        }
+      }
+      return {
+        ...item,
+        rank: currentSummaryRank
+      };
+    });
   }
 
   /**
