@@ -240,29 +240,33 @@
               <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
               Input Massal
             </button>
-            <button class="btn btn-primary hidden" id="addKlasemenBtn" onclick="openKlasemenModal()">+ Tambah Poin</button>
+            <button class="btn btn-primary btn-sm hidden" id="addKlasemenBtn" onclick="openKlasemenModal()">+ Tambah Poin</button>
           </div>
         </div>
-        <table>
-          <thead><tr>
-            <th class="center">#</th><th>Tanggal</th><th>Sakan</th>
-            <th class="center">Kebersihan</th><th class="center">Kedisiplinan</th><th class="center">Bahasa</th>
-            <th class="center">Rata-rata Harian</th><th class="center hidden" id="actionHead">Aksi</th>
-          </tr></thead>
-          <tbody id="harianTbody"></tbody>
-        </table>
+        <div class="ledger-table-wrap">
+          <table>
+            <thead><tr>
+              <th class="center">#</th><th>Tanggal</th><th>Sakan</th>
+              <th class="center">Kebersihan</th><th class="center">Kedisiplinan</th><th class="center">Bahasa</th>
+              <th class="center">Rata-rata Harian</th><th class="center hidden" id="actionHead">Aksi</th>
+            </tr></thead>
+            <tbody id="harianTbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="ledger hidden" id="panelRekap">
         <div class="ledger-head"><div class="ledger-title">Rekap Rata-rata Poin per Sakan</div></div>
-        <table>
-          <thead><tr>
-            <th class="center">#</th><th>Sakan</th><th class="center">Jumlah Input</th>
-            <th class="center">Rata-rata Kebersihan</th><th class="center">Rata-rata Kedisiplinan</th><th class="center">Rata-rata Bahasa</th>
-            <th class="center">Rata-rata Gabungan</th>
-          </tr></thead>
-          <tbody id="rekapTbody"></tbody>
-        </table>
+        <div class="ledger-table-wrap">
+          <table>
+            <thead><tr>
+              <th class="center">#</th><th>Sakan</th><th class="center">Jumlah Input</th>
+              <th class="center">Rata-rata Kebersihan</th><th class="center">Rata-rata Kedisiplinan</th><th class="center">Rata-rata Bahasa</th>
+              <th class="center">Rata-rata Gabungan</th>
+            </tr></thead>
+            <tbody id="rekapTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
