@@ -26,6 +26,7 @@ const AUTH_URL = "/api/login";
 
 // Instansiasi DataStore tunggal (Tingkat 1)
 const store = new DataStoreModule.DataStore(new DataStoreModule.HttpTransportAdapter(API_URL));
+window.store = store;
 
 // Observer reaktif terkalibrasi untuk status sinkronisasi pasif
 store.subscribe(snap => {
@@ -633,21 +634,19 @@ function applyAccessNotes(){
    ========================================================================= */
 function renderDashboard() {
   // 1. Greeting Dinamis
-  const hour = new Date().getHours();
-  let salam = "Selamat Datang";
-  if (hour >= 4 && hour < 11) salam = "Selamat Pagi";
-  else if (hour >= 11 && hour < 15) salam = "Selamat Siang";
-  else if (hour >= 15 && hour < 18) salam = "Selamat Sore";
-  else salam = "Selamat Malam";
-
   const greetTitle = document.getElementById("dashGreetingTitle");
   if (greetTitle) {
-    const name = currentUser ? escapeHtml(currentUser) : "Tamu";
-    greetTitle.innerHTML = `${salam}, <span>${name}</span>`;
+    const isLogged = currentRole && currentRole !== "tamu";
+    if (isLogged) {
+      const displayName = escapeHtml(currentLabel || currentUser || "Admin");
+      greetTitle.innerHTML = `Ahlan wa Sahlan, <span>${displayName}</span>`;
+    } else {
+      greetTitle.innerHTML = `Ahlan wa Sahlan di <span>Liga Kebaikan</span>`;
+    }
   }
 
-  const greetSub = document.getElementById("dashGreetingSub");
-  if (greetSub) {
+  const greetDate = document.getElementById("dashGreetingDate");
+  if (greetDate) {
     const now = new Date();
     const dateFormatted = now.toLocaleDateString("id-ID", {
       weekday: "long",
@@ -655,7 +654,7 @@ function renderDashboard() {
       month: "long",
       year: "numeric"
     });
-    greetSub.textContent = `${dateFormatted} • Pusat Informasi & Liga Kebaikan`;
+    greetDate.textContent = dateFormatted;
   }
 
   // 2. Metrik Sakan Terdaftar
@@ -733,7 +732,7 @@ function renderDashKlasemenWidget(listRekap, topSakan) {
       <div class="dash-mvp-badge">${svgIcon('crown', 12)} Sakan Teladan</div>
       <div class="dash-mvp-main">
         <div class="dash-mvp-name">${escapeHtml(topSakan.sakan)}</div>
-        <div class="dash-mvp-score">${topSakan.avgCombined} <span>/10</span></div>
+        <div class="dash-mvp-score">${topSakan.avgCombined} <span>/100</span></div>
       </div>
       <div class="dash-mvp-breakdown">
         <span class="dash-mvp-sub-pill">Kebersihan: <strong>${topSakan.avgKeb}</strong></span>
@@ -748,7 +747,7 @@ function renderDashKlasemenWidget(listRekap, topSakan) {
   if (runnerUps.length > 0) {
     html += '<div style="display:flex; flex-direction:column; gap:6px;">';
     runnerUps.forEach((r, idx) => {
-      const rankNum = idx + 2;
+      const rankNum = r.rank || (idx + 2);
       html += `
         <div class="dash-runnerup-item">
           <div class="dash-runnerup-left">
@@ -1015,23 +1014,37 @@ function getActiveGedungList() {
 }
 
 function getActiveSakanList() {
-  if (!Array.isArray(dataSakan) || dataSakan.length === 0) return [];
-  return dataSakan
-    .filter(s => s && (typeof s === "string" || (s.nama && String(s.nama).trim())))
-    .map(s => {
-      if (typeof s === "string") {
-        return { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s.trim(), gedung: "", urutan: 999, aktif: true };
-      }
-      return {
-        id: s.id || String(s.nama).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-        nama: String(s.nama).trim(),
-        gedung: String(s.gedung || "").trim(),
-        urutan: Number(s.urutan) || 999,
-        aktif: s.aktif !== false && String(s.aktif).toLowerCase() !== "false"
-      };
-    })
-    .filter(s => s.aktif)
-    .sort((a, b) => a.urutan - b.urutan);
+  if (Array.isArray(dataSakan) && dataSakan.length > 0) {
+    return dataSakan
+      .filter(s => s && (typeof s === "string" || (s.nama && String(s.nama).trim())))
+      .map(s => {
+        if (typeof s === "string") {
+          return { id: s.toLowerCase().replace(/\s+/g, '-'), nama: s.trim(), gedung: "", urutan: 999, aktif: true };
+        }
+        return {
+          id: s.id || String(s.nama).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+          nama: String(s.nama).trim(),
+          gedung: String(s.gedung || "").trim(),
+          urutan: Number(s.urutan) || 999,
+          aktif: s.aktif !== false && String(s.aktif).toLowerCase() !== "false"
+        };
+      })
+      .filter(s => s.aktif)
+      .sort((a, b) => a.urutan - b.urutan);
+  }
+  // Fallback jika master dataSakan belum tersedia/disinkron, ekstrak dari riwayat klasemen
+  const klasemen = typeof store !== "undefined" && store.getKlasemen ? store.getKlasemen() : [];
+  if (Array.isArray(klasemen) && klasemen.length > 0) {
+    const unique = [...new Set(klasemen.map(k => String(k.sakan || '').trim()).filter(Boolean))];
+    return unique.sort().map((nama, idx) => ({
+      id: nama.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      nama,
+      gedung: "",
+      urutan: idx + 1,
+      aktif: true
+    }));
+  }
+  return [];
 }
 
 function renderSakanPills() {
