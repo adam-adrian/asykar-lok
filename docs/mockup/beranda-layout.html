@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rekonstruksi Beranda Impeccable - League of Kindness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Manuskrip Impeccable Palette */
+      --ink: #16302A;
+      --ink-soft: #26473E;
+      --ink-faint: #566E65;
+      
+      --canvas: #F6F1E3;
+      --surface: #FFFEFB;
+      --surface-float: #FFFFFF;
+      --surface-subtle: #FAF7EF;
+      --surface-inset: #F2ECE0;
+      
+      --line: #DFD5B8;
+      --line-subtle: #EBE3CE;
+      
+      --gold: #B08A2E;
+      --gold-light: #D9B65C;
+      --gold-deep: #8D6513;
+      --gold-subtle: rgba(176,138,46,.08);
+      
+      --clay: #A9503A;
+      --clay-subtle: #FBEDE8;
+      --clay-border: #F0D3C6;
+      
+      --green-ok: #367052;
+      --green-subtle: #E8F0EA;
+      --green-border: #C7DCCB;
+      
+      --radius-sm: 8px;
+      --radius: 14px;
+      --radius-pill: 999px;
+      
+      --tnum: tabular-nums;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0D1C18;
+      color: var(--ink);
+      padding: 24px 16px 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* CONTROL HEADER */
+    .control-header {
+      max-width: 1180px;
+      margin: 0 auto 28px;
+      background: #142A24;
+      border: 1px solid #224239;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+    }
+    .control-header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #F6F1E3;
+      margin-bottom: 6px;
+    }
+    .control-header p {
+      font-size: 13.5px;
+      color: #9CB8AD;
+      line-height: 1.5;
+      max-width: 860px;
+      margin-bottom: 16px;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #0A1714;
+      border: 1px solid #224239;
+      color: #9CB8AD;
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s ease;
+    }
+    .tab-btn:hover {
+      background: #193830;
+      color: #fff;
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      border-color: var(--gold-light);
+      color: #0D1C18;
+      font-weight: 700;
+    }
+
+    /* STAGE WRAPPER */
+    .mockup-stage {
+      max-width: 1180px;
+      margin: 0 auto 44px;
+      background: var(--canvas);
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .stage-header-bar {
+      background: #0A1714;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1E3831;
+      color: #9CB8AD;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+    .stage-badge {
+      background: var(--gold-deep);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .stage-canvas {
+      padding: 28px 32px 36px;
+    }
+
+    /* SIMULATED TOPBAR */
+    .sim-topbar {
+      background: #102420;
+      border-radius: var(--radius);
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .sim-brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .sim-logo-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: var(--radius-pill);
+      background: var(--gold);
+      color: #102420;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 700;
+    }
+    .sim-nav-pills {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,.07);
+      padding: 3px 5px;
+      border-radius: var(--radius-pill);
+    }
+    .sim-nav-btn {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      color: #A6C2B8;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .sim-nav-btn.active {
+      background: var(--gold-deep);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    /* ICONS SYSTEM (SVG INLINE) */
+    .svg-ico {
+      display: inline-block;
+      vertical-align: -0.15em;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+
+    /* HERO CARD */
+    .dash-hero-card {
+      background: var(--surface);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 22px 26px;
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .dash-greeting-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(22px, 3.2vw, 28px);
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .dash-greeting-title span { color: var(--gold-deep); }
+    .dash-greeting-sub {
+      color: var(--ink-faint);
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      line-height: 1.4;
+    }
+    .dash-greeting-ar {
+      font-family: 'Amiri', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold-deep);
+    }
+    .dash-greeting-dot {
+      color: var(--line);
+      font-weight: 700;
+      margin: 0 3px;
+    }
+    .dash-btn-sync {
+      padding: 8px 16px;
+      font-size: 12.5px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      background: var(--surface);
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: all .15s ease;
+    }
+    .dash-btn-sync:hover {
+      border-color: var(--gold);
+      color: var(--gold-deep);
+      background: var(--surface-subtle);
+    }
+
+    /* SECTION HEADERS (MANUSCRIPT BASELINE) */
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      border-bottom: 1.5px solid var(--line);
+      gap: 12px;
+    }
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-sub {
+      font-size: 12px;
+      color: var(--ink-faint);
+      margin-top: 3px;
+    }
+    .section-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      text-decoration: none;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: all .15s ease;
+    }
+    .section-link:hover {
+      color: var(--gold-deep);
+      background: var(--surface-subtle);
+    }
+
+    /* 2-COLUMN ASYMMETRIC GRID (OPSI A REFINED) */
+    .asymmetric-grid {
+      display: grid;
+      grid-template-columns: 1.65fr 1.35fr;
+      gap: 32px;
+      align-items: start;
+    }
+
+    /* PRIMARY STAGE: KLASEMEN ADAB */
+    .main-stage-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* SAKAN TELADAN SPOTLIGHT (CONTINUOUS MANUSCRIPT WITH TONAL SEPARATION) */
+    .sakan-spotlight {
+      background: var(--ink);
+      color: #FFFFFF;
+      border-radius: var(--radius);
+      padding: 22px 24px;
+      margin-bottom: 14px;
+    }
+    .spotlight-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .spotlight-meta-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold-light);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .spotlight-rank-hint {
+      font-size: 11.5px;
+      color: #9CB8AD;
+      font-variant-numeric: var(--tnum);
+    }
+    .spotlight-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .spotlight-name {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(22px, 2.8vw, 26px);
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: .01em;
+    }
+    .spotlight-score-wrap {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .spotlight-score-num {
+      font-family: 'Fraunces', serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+      font-variant-numeric: var(--tnum);
+    }
+    .spotlight-score-scale {
+      font-size: 12px;
+      color: #9CB8AD;
+      font-weight: 500;
+    }
+    /* 3 PILAR ADAB (TABULAR METRIC TILES - NO PLASTIC BARS) */
+    .spotlight-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.12);
+    }
+    .spotlight-metric-tile {
+      background: rgba(255,255,255,.05);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .spotlight-metric-name {
+      font-size: 11px;
+      color: #9CB8AD;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .spotlight-metric-val {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFFFFF;
+      font-variant-numeric: var(--tnum);
+    }
+
+    /* RUNNER UP LEDGER TABLE (FLAT AT REST, NO BOX IN BOX) */
+    .runner-ledger {
+      background: var(--surface);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .runner-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line-subtle);
+      font-size: 13px;
+    }
+    .runner-row:last-child {
+      border-bottom: none;
+    }
+    .runner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .runner-pos {
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-inset);
+      color: var(--ink-soft);
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-variant-numeric: var(--tnum);
+    }
+    .runner-sakan {
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: .01em;
+    }
+    .runner-score {
+      font-weight: 700;
+      color: var(--ink-soft);
+      font-variant-numeric: var(--tnum);
+    }
+    .ledger-footer-note {
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      text-align: center;
+      padding: 4px 0 0;
+      font-variant-numeric: var(--tnum);
+    }
+
+    /* ACTIVITY RAIL (RIGHT COLUMN) */
+    .activity-rail-col {
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    /* MATCH CARD (SINGLE ELEVATION: BORDER ONLY) */
+    .match-card {
+      background: var(--surface-float);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      transition: border-color .15s ease;
+    }
+    .match-card:hover {
+      border-color: var(--gold);
+    }
+    .match-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      margin-bottom: 8px;
+    }
+    .match-status-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .match-status-pill.today {
+      background: var(--gold-deep);
+      color: #FFFFFF;
+    }
+    .match-status-pill.done {
+      background: var(--surface-inset);
+      color: var(--ink-faint);
+    }
+    .match-teams-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .match-vs-divider {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-faint);
+      background: var(--surface-subtle);
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+    }
+    .match-score-pill {
+      font-family: 'Fraunces', serif;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--ink);
+      color: #FFFFFF;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-variant-numeric: var(--tnum);
+    }
+    .match-loc-row {
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* EVENT CARD (SINGLE ELEVATION: BORDER ONLY) */
+    .event-card {
+      background: var(--surface-float);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      transition: border-color .15s ease;
+    }
+    .event-card:hover {
+      border-color: var(--gold);
+    }
+    .event-date-col {
+      width: 42px;
+      height: 46px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .event-date-day {
+      font-family: 'Fraunces', serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1;
+      font-variant-numeric: var(--tnum);
+    }
+    .event-date-mo {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .event-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .event-badge-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 2px;
+    }
+    .event-cat-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: var(--surface-subtle);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line-subtle);
+    }
+    .event-today-tag {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      background: var(--gold-deep);
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+    }
+    .event-upcoming-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--green-ok);
+      background: var(--green-subtle);
+      padding: 1px 6px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--green-border);
+    }
+    .event-title-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .event-time-loc {
+      font-size: 11px;
+      color: var(--ink-faint);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-variant-numeric: var(--tnum);
+    }
+
+    /* FOOTER SAKAN */
+    .dash-footer-band {
+      margin-top: 36px;
+      padding: 24px 20px;
+      background: #112822;
+      border-radius: var(--radius);
+      color: #FFFFFF;
+      text-align: center;
+    }
+    .dash-footer-band h3 {
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+      margin-bottom: 4px;
+      color: #F6F1E3;
+    }
+    .dash-footer-band p {
+      font-size: 12.5px;
+      color: #A3C2B8;
+      max-width: 580px;
+      margin: 0 auto 16px;
+      line-height: 1.5;
+    }
+    .footer-sakan-pills {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .footer-sakan-pill {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      color: #E2ECE7;
+      letter-spacing: .04em;
+    }
+
+    /* MOBILE PREVIEW SPECIFIC (@media max-width: 860px) */
+    @media (max-width: 860px) {
+      body { padding: 14px 10px 60px; }
+      .control-header { padding: 16px 18px; }
+      .stage-canvas { padding: 18px 14px; }
+      .sim-topbar { padding: 8px 12px; margin-bottom: 18px; }
+      .sim-nav-pills { display: none; }
+      
+      .dash-hero-card {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 18px 16px;
+        gap: 14px;
+        margin-bottom: 22px;
+      }
+      .dash-btn-sync {
+        width: 100%;
+        justify-content: center;
+      }
+      .dash-greeting-title { font-size: 22px; }
+      .dash-greeting-sub { font-size: 12.5px; }
+
+      /* COLLAPSE 2-COLUMN TO SINGLE COLUMN VERTICAL FLOW */
+      .asymmetric-grid {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .section-head {
+        align-items: center;
+      }
+      .section-title {
+        font-size: 18px;
+      }
+
+      .sakan-spotlight {
+        padding: 18px 16px;
+      }
+      .spotlight-body {
+        margin-bottom: 14px;
+      }
+      .spotlight-name {
+        font-size: 22px;
+      }
+      .spotlight-score-num {
+        font-size: 30px;
+      }
+      .spotlight-metrics-grid {
+        gap: 8px;
+      }
+      .spotlight-metric-tile {
+        padding: 6px 10px;
+      }
+      .spotlight-metric-val {
+        font-size: 13px;
+      }
+
+      .activity-rail-col {
+        gap: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- CONTROL PANEL -->
+  <header class="control-header">
+    <h1>Eksplorasi Rekonstruksi Layout Beranda (Impeccable Standard)</h1>
+    <p>Layout ini menerapkan prinsip kanonik <em>The Living Manuscript</em>: menghapus strip 4 metrik yang menduplikasi isi di bawahnya, meniadakan progress bar palsu, menolak kicker melayang, dan menata hierarki membaca yang berwibawa.</p>
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="btn-desktop" onclick="switchMode('desktop')">Tampilan Desktop (1180px)</button>
+      <button class="tab-btn" id="btn-mobile" onclick="switchMode('mobile')">Tampilan Mobile (HP 390px)</button>
+    </div>
+  </header>
+
+  <!-- STAGE CONTAINER -->
+  <main class="mockup-stage" id="stageContainer">
+    <div class="stage-header-bar">
+      <span id="stageTitle">TAMPILAN DESKTOP: OPSI A (PANGGUNG UTAMA ~60% + LINIMASA ~40%)</span>
+      <span class="stage-badge">ZERO DUPLICATION</span>
+    </div>
+
+    <div class="stage-canvas">
+      
+      <!-- Topbar Simulasi -->
+      <div class="sim-topbar">
+        <div class="sim-brand">
+          <div class="sim-logo-circle">LK</div>
+          <span>League Of Kindness</span>
+        </div>
+        <nav class="sim-nav-pills">
+          <span class="sim-nav-btn active">Beranda</span>
+          <span class="sim-nav-btn">Klasemen</span>
+          <span class="sim-nav-btn">Turnamen Bola</span>
+          <span class="sim-nav-btn">Jadwal Event</span>
+        </nav>
+      </div>
+
+      <!-- Hero Card Manuskrip -->
+      <section class="dash-hero-card">
+        <div>
+          <h2 class="dash-greeting-title">Ahlan wa Sahlan di <span>Liga Kebaikan</span></h2>
+          <div class="dash-greeting-sub">
+            <span class="dash-greeting-ar" dir="rtl">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</span>
+            <span class="dash-greeting-dot">•</span>
+            <span>Senin, 14 September 2026</span>
+            <span class="dash-greeting-dot">•</span>
+            <span>Pusat Informasi & Catatan Kehormatan Adab</span>
+          </div>
+        </div>
+        <button class="dash-btn-sync">
+          <svg class="svg-ico" width="14" height="14" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          Segarkan Data
+        </button>
+      </section>
+
+      <!-- 2-COLUMN ASYMMETRIC GRID -->
+      <div class="asymmetric-grid">
+        
+        <!-- SISI KIRI: PANGGUNG UTAMA KLASEMEN -->
+        <div class="main-stage-col">
+          <div class="section-head">
+            <div>
+              <h2 class="section-title">Klasemen Kehormatan Adab</h2>
+              <div class="section-sub">Akumulasi penilaian kebersihan, kedisiplinan, dan bahasa santri</div>
+            </div>
+            <a href="#klasemen" class="section-link">
+              Buka Ledger Lengkap
+              <svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+          </div>
+
+          <!-- Sakan Teladan Spotlight Card -->
+          <div class="sakan-spotlight">
+            <div class="spotlight-top">
+              <div class="spotlight-meta-label">
+                <svg class="svg-ico" width="13" height="13" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+                Sakan Teladan Pekan Ini
+              </div>
+              <span class="spotlight-rank-hint">Peringkat 1 dari 3</span>
+            </div>
+
+            <div class="spotlight-body">
+              <div class="spotlight-name">QAZVIN ATAS</div>
+              <div class="spotlight-score-wrap">
+                <span class="spotlight-score-num">93</span>
+                <span class="spotlight-score-scale">/100</span>
+              </div>
+            </div>
+
+            <!-- Tabular Metric Tiles -->
+            <div class="spotlight-metrics-grid">
+              <div class="spotlight-metric-tile">
+                <span class="spotlight-metric-name">Kebersihan</span>
+                <span class="spotlight-metric-val">97.0</span>
+              </div>
+              <div class="spotlight-metric-tile">
+                <span class="spotlight-metric-name">Kedisiplinan</span>
+                <span class="spotlight-metric-val">93.0</span>
+              </div>
+              <div class="spotlight-metric-tile">
+                <span class="spotlight-metric-name">Bahasa</span>
+                <span class="spotlight-metric-val">89.0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Runner Up Ledger List -->
+          <div class="runner-ledger">
+            <div class="runner-row">
+              <div class="runner-left">
+                <span class="runner-pos">2</span>
+                <span class="runner-sakan">NAISABUR</span>
+              </div>
+              <span class="runner-score">Avg 87.5</span>
+            </div>
+            <div class="runner-row">
+              <div class="runner-left">
+                <span class="runner-pos">3</span>
+                <span class="runner-sakan">BUKHARA</span>
+              </div>
+              <span class="runner-score">Avg 82.2</span>
+            </div>
+          </div>
+
+          <div class="ledger-footer-note">Rata-rata kebaikan seluruh sakan: <strong>87.6</strong></div>
+        </div>
+
+        <!-- SISI KANAN: LINIMASA DINAMIKA (ACTIVITY RAIL) -->
+        <div class="activity-rail-col">
+          
+          <!-- Sub-seksi 1: Turnamen Bola -->
+          <section>
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Turnamen Bola</h2>
+                <div class="section-sub">Jadwal Tanding & Hasil Laga</div>
+              </div>
+              <a href="#liga" class="section-link">
+                Buka Bagan
+                <svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+            </div>
+
+            <div class="match-card">
+              <div class="match-card-meta">
+                <span><strong>Semifinal</strong> • 15:30 WIB</span>
+                <span class="match-status-pill today">Hari Ini</span>
+              </div>
+              <div class="match-teams-row">
+                <span>QAZVIN</span>
+                <span class="match-vs-divider">VS</span>
+                <span>NAISABUR</span>
+              </div>
+              <div class="match-loc-row">
+                <svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Lapangan Utama Pesantren
+              </div>
+            </div>
+
+            <div class="match-card">
+              <div class="match-card-meta">
+                <span><strong>Penyisihan</strong> • 12/09/2026</span>
+                <span class="match-status-pill done">SELESAI</span>
+              </div>
+              <div class="match-teams-row">
+                <span>QAZVIN</span>
+                <span class="match-score-pill">3 - 1</span>
+                <span>TIRMIDZ</span>
+              </div>
+              <div class="match-loc-row">
+                <svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Lapangan Timur
+              </div>
+            </div>
+          </section>
+
+          <!-- Sub-seksi 2: Agenda & Kegiatan -->
+          <section>
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Agenda & Kegiatan</h2>
+                <div class="section-sub">Dokumentasi & Jadwal Pesantren</div>
+              </div>
+              <a href="#event" class="section-link">
+                Semua Agenda
+                <svg class="svg-ico" width="12" height="12" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              </a>
+            </div>
+
+            <div class="event-card">
+              <div class="event-date-col">
+                <span class="event-date-day">14</span>
+                <span class="event-date-mo">Sep</span>
+              </div>
+              <div class="event-details">
+                <div class="event-badge-row">
+                  <span class="event-cat-tag">Disiplin</span>
+                  <span class="event-today-tag">Hari Ini</span>
+                </div>
+                <div class="event-title-text">Inspeksi Akbar Kebersihan Kamar Santri</div>
+                <div class="event-time-loc">
+                  <svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  16:00 WIB • Kompleks Sakan
+                </div>
+              </div>
+            </div>
+
+            <div class="event-card">
+              <div class="event-date-col">
+                <span class="event-date-day">16</span>
+                <span class="event-date-mo">Sep</span>
+              </div>
+              <div class="event-details">
+                <div class="event-badge-row">
+                  <span class="event-cat-tag">Bahasa</span>
+                  <span class="event-upcoming-tag">Akan Datang</span>
+                </div>
+                <div class="event-title-text">Muwajjahah Lughawiyyah Santri Baru</div>
+                <div class="event-time-loc">
+                  <svg class="svg-ico" width="11" height="11" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  20:00 WIB • Masjid Jami'
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+      <!-- FOOTER SAKAN -->
+      <footer class="dash-footer-band">
+        <h3>Nama-Nama Bersejarah</h3>
+        <p>Terinspirasi dari kota-kota peradaban Islam: Qazvin, Naisabur, Bukhara, Hamadan, dan lainnya.</p>
+        <div class="footer-sakan-pills">
+          <span class="footer-sakan-pill">BUKHARA</span>
+          <span class="footer-sakan-pill">NAISABUR</span>
+          <span class="footer-sakan-pill">QAZVIN ATAS</span>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+
+  <script>
+    function switchMode(mode) {
+      const stage = document.getElementById('stageContainer');
+      const title = document.getElementById('stageTitle');
+      const btnDesk = document.getElementById('btn-desktop');
+      const btnMob = document.getElementById('btn-mobile');
+
+      if (mode === 'mobile') {
+        stage.style.maxWidth = '420px';
+        stage.classList.add('mobile-sim');
+        title.textContent = 'SIMULASI MOBILE (VIEWPORT 390px): ALUR SATU KOLOM ALAMI';
+        btnMob.classList.add('active');
+        btnDesk.classList.remove('active');
+      } else {
+        stage.style.maxWidth = '1180px';
+        stage.classList.remove('mobile-sim');
+        title.textContent = 'TAMPILAN DESKTOP: OPSI A (PANGGUNG UTAMA ~60% + LINIMASA ~40%)';
+        btnDesk.classList.add('active');
+        btnMob.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>

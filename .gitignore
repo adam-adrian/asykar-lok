@@ -2,4 +2,7 @@ node_modules/
 .vercel
 .env
 .env.local
+.local-db.json
 .DS_Store
+.agents/
+.impeccable/

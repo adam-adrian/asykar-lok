@@ -17,17 +17,29 @@ export default async function handler(req, res) {
   const GOOGLE_SCRIPT_URL = process.env.GOOGLE_SCRIPT_URL;
 
   try {
-    const { username, password } = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch (err) { body = {}; }
+    }
+    const { username, password } = (body && typeof body === 'object') ? body : {};
 
     if (!username || !password) {
       return res.status(400).json({ status: 'error', message: 'Username dan password wajib diisi.' });
     }
 
-    // Jika GOOGLE_SCRIPT_URL belum diset di Vercel Environment Variables
+    // Jika GOOGLE_SCRIPT_URL belum diset (Mode offline demo)
     if (!GOOGLE_SCRIPT_URL) {
-      return res.status(503).json({
+      if (username === 'admin' && (password === 'admin123' || password === 'admin')) {
+        return res.status(200).json({
+          status: 'success',
+          local: true,
+          user: { username: 'admin', role: 'admin_utama', label: 'Admin Utama' },
+          token: 'demo_token_' + Date.now()
+        });
+      }
+      return res.status(401).json({
         status: 'error',
-        message: 'GOOGLE_SCRIPT_URL belum dikonfigurasi di Environment Variables Vercel.'
+        message: 'Username atau password salah (Demo offline: gunakan admin / admin123).'
       });
     }
 
@@ -38,7 +50,9 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         action: 'login',
         payload: { username, password }
-      })
+      }),
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000)
     });
 
     const data = await response.json();
