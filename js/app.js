@@ -183,6 +183,14 @@ function escapeHtml(str) {
   d.textContent = str == null ? '' : str;
   return d.innerHTML;
 }
+function sanitizeImageUrl(url) {
+  if (!url) return '';
+  const str = String(url).trim();
+  if (/^(https?:\/\/|data:image\/|\/)/i.test(str)) {
+    return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  return '';
+}
 function formatTitleCase(str) {
   if (!str) return '';
   return String(str)
@@ -1149,7 +1157,8 @@ function renderDashEventWidget(upcomingEvents, listEvent) {
     }
 
     const st = eventStatus(e.tanggal);
-    const photoTag = e.foto ? `<img src="${e.foto}" class="dash-event-thumb" alt="Poster Kegiatan" title="Klik untuk perbesar" onclick="openLightbox('${e.foto}')">` : '';
+    const safeFoto = sanitizeImageUrl(e.foto);
+    const photoTag = safeFoto ? `<img src="${safeFoto}" class="dash-event-thumb js-lightbox-trigger" alt="Poster Kegiatan" title="Klik untuk perbesar" data-src="${safeFoto}">` : '';
 
     return `
       <div class="dash-event-item">
@@ -2039,7 +2048,8 @@ function renderEvent(){
     const st=eventStatus(e.tanggal);
     const badgeColor = "background:var(--parchment-dim);color:var(--ink-soft);";
     const katLabel = e.kategori || "Event Umum";
-    const photoTag = e.foto ? `<img src="${e.foto}" class="event-thumb-img" alt="Poster Kegiatan" title="Klik untuk perbesar" onclick="openLightbox('${e.foto}')">` : '';
+    const safeFoto = sanitizeImageUrl(e.foto);
+    const photoTag = safeFoto ? `<img src="${safeFoto}" class="event-thumb-img js-lightbox-trigger" alt="Poster Kegiatan" title="Klik untuk perbesar" data-src="${safeFoto}">` : '';
 
     return `
       <div class="event-card">
@@ -2049,7 +2059,7 @@ function renderEvent(){
         </div>
         <div style="flex:1;">
           <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
-            <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; ${badgeColor}">${katLabel}</span>
+            <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; ${badgeColor}">${escapeHtml(katLabel)}</span>
             <span style="font-size:12px;color:var(--ink-faint);">${svgIcon('clock', 12)} ${formatWaktu(e.waktu)} • ${svgIcon('map-pin', 12)} ${escapeHtml(e.lokasi||"–")}</span>
           </div>
           <strong style="font-size:15px; color:var(--ink);">${escapeHtml(e.judul)} ${renderSyncBadge(e._syncStatus, e._syncId, e._syncError)}</strong>
@@ -2109,9 +2119,18 @@ function clearImageUpload(){
 }
 
 function openLightbox(src) {
-  document.getElementById('lightboxImg').src = src;
+  const safe = sanitizeImageUrl(src);
+  if (!safe) return;
+  document.getElementById('lightboxImg').src = safe;
   document.getElementById('imageLightbox').style.display = 'flex';
 }
+
+document.addEventListener('click', (ev) => {
+  const trigger = ev.target.closest('.js-lightbox-trigger');
+  if (trigger && trigger.dataset.src) {
+    openLightbox(trigger.dataset.src);
+  }
+});
 
 function closeLightbox() {
   document.getElementById('imageLightbox').style.display = 'none';
@@ -2220,13 +2239,13 @@ document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.ke
   } else if (hash === "login") {
     openLoginModal();
   } else if (hash === "modal-klasemen") {
-    document.getElementById("modalKlasemen").classList.add("show");
+    if (canEditKlasemenAny()) openKlasemenModal();
   } else if (hash === "modal-bulk") {
-    document.getElementById("modalKlasemenBulk").classList.add("show");
+    if (canEditKlasemenAny()) openBulkInputModal();
   } else if (hash === "modal-liga") {
-    document.getElementById("modalLiga").classList.add("show");
+    if (canEditLiga()) openMatchModal();
   } else if (hash === "modal-event") {
-    document.getElementById("modalEvent").classList.add("show");
+    if (canEditEvent()) openEventModal();
   }
 
   // 3. Sinkronkan dengan Cloud via Proxy Vercel

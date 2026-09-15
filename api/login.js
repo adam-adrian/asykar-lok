@@ -1,7 +1,6 @@
 // api/login.js - Vercel Serverless Function
 export default async function handler(req, res) {
   // Aktifkan CORS untuk fleksibilitas
-  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -39,7 +38,7 @@ export default async function handler(req, res) {
       }
       return res.status(401).json({
         status: 'error',
-        message: 'Username atau password salah (Demo offline: gunakan admin / admin123).'
+        message: 'Username atau password salah.'
       });
     }
 
