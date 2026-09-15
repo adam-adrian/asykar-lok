@@ -654,14 +654,25 @@ function switchView(view, pushToHistory = true){
 
   // Update navigasi mobile (HP)
   document.querySelectorAll(".mobile-nav-item").forEach(b => {
-    b.classList.toggle("active", b.id === "mNav-" + view);
+    const isActive = b.id === "mNav-" + view;
+    b.classList.toggle("active", isActive);
+    if (isActive) {
+      b.setAttribute("aria-current", "page");
+    } else {
+      b.removeAttribute("aria-current");
+    }
   });
 
   // Update navigasi desktop (button group pills di topbar)
   document.querySelectorAll(".nav-pill-btn").forEach(b => {
-    b.classList.toggle("active", b.id === "nav-" + view);
+    const isActive = b.id === "nav-" + view;
+    b.classList.toggle("active", isActive);
+    if (isActive) {
+      b.setAttribute("aria-current", "page");
+    } else {
+      b.removeAttribute("aria-current");
+    }
   });
-
   // Toggle visibilitas halaman
   const isHome = (view === 'homepage');
   const vHome = document.getElementById("view-homepage");

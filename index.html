@@ -39,8 +39,8 @@
       <span class="topbar-brand-name">League Of Kindness</span>
     </button>
 
-    <nav class="topbar-nav">
-      <button class="nav-pill-btn active" id="nav-homepage" onclick="switchView('homepage')">Beranda</button>
+    <nav class="topbar-nav" aria-label="Navigasi Utama">
+      <button class="nav-pill-btn active" id="nav-homepage" onclick="switchView('homepage')" aria-current="page">Beranda</button>
       <button class="nav-pill-btn" id="nav-klasemen" onclick="switchView('klasemen')">Klasemen</button>
       <button class="nav-pill-btn" id="nav-liga" onclick="switchView('liga')">Turnamen Bola</button>
       <button class="nav-pill-btn" id="nav-event" onclick="switchView('event')">Jadwal Event</button>
@@ -358,8 +358,8 @@
   </main>
 
   <!-- ===== 3. BOTTOM NAVIGATION BAR (KHUSUS TAMPILAN HP) ===== -->
-  <nav class="mobile-bottom-nav" id="appBottomNav">
-    <button class="mobile-nav-item" id="mNav-homepage" onclick="switchView('homepage')">
+  <nav class="mobile-bottom-nav" id="appBottomNav" aria-label="Navigasi Bawah">
+    <button class="mobile-nav-item active" id="mNav-homepage" onclick="switchView('homepage')" aria-current="page">
       <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
       <span>Beranda</span>
     </button>
