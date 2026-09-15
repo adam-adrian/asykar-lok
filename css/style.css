@@ -102,13 +102,86 @@ button,.btn,.icon-btn,.dash-hero-metric,.dash-metric-card,.dash-metric-item,.das
 @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ===== SYNC BANNER & STATUS ===== */
-.sync-badge{display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.1); color:var(--gold-light); transition:all .2s; cursor:pointer;}
-.sync-dot{width:8px; height:8px; border-radius:50%; background:var(--gold-light);}
-.sync-dot.online{background:var(--green-ok);}
-.sync-dot.loading{background:var(--gold-light); animation:spin 1s linear infinite;}
-.sync-dot.error{background:var(--clay);}
+/* ===== SYNC BANNER & STATUS (UNIFIED COMPONENT) ===== */
+.sync-badge{
+  height:24px; min-width:24px; width:24px; padding:0; gap:0;
+  border-radius:999px; display:inline-flex; align-items:center; justify-content:center;
+  box-sizing:border-box; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.07);
+  overflow:hidden; cursor:pointer; user-select:none;
+  transition:width .32s var(--ease), padding .32s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
+}
+.sync-badge:hover{
+  width:82px; padding:0 7px; justify-content:flex-start;
+  background:rgba(255,255,255,.13); border-color:rgba(255,255,255,.22);
+}
+.sync-badge:hover span:not(.sync-dot){
+  max-width:58px; opacity:1; margin-left:4.5px;
+}
+.sync-badge:active{transform:scale(.95);}
 
+.sync-badge.loading{
+  width:64px; padding:0 7px; justify-content:flex-start;
+  background:rgba(217,182,92,.12); border-color:rgba(217,182,92,.3);
+}
+.sync-badge.synced-hold,
+.sync-badge.error{
+  width:82px; padding:0 7px; justify-content:flex-start;
+}
+.sync-badge.error{
+  background:rgba(169,80,58,.18); border-color:rgba(169,80,58,.35);
+}
+.sync-badge.local{background:rgba(255,255,255,.05); color:var(--text-inverse-faint);}
+
+.sync-badge span:not(.sync-dot){
+  max-width:0; opacity:0; overflow:hidden; white-space:nowrap;
+  font-size:10px; font-weight:600; line-height:1; margin-left:0; color:var(--text-inverse-muted);
+  display:inline-block;
+  transition:max-width .32s var(--ease), opacity .2s ease, margin-left .32s var(--ease);
+}
+.sync-badge.loading span:not(.sync-dot){
+  max-width:42px; opacity:1; margin-left:4px; color:var(--gold-light);
+}
+.sync-badge.synced-hold span:not(.sync-dot){
+  max-width:58px; opacity:1; margin-left:4.5px; color:var(--text-inverse-muted);
+}
+.sync-badge.error span:not(.sync-dot){
+  max-width:58px; opacity:1; margin-left:4.5px; color:var(--clay-light);
+}
+
+.sync-dot{
+  width:7.5px; height:7.5px; border-radius:50%; background:var(--gold-light);
+  display:inline-block; flex-shrink:0;
+  transition:width .25s var(--ease), height .25s var(--ease), background .25s var(--ease), box-shadow .25s var(--ease), opacity .25s var(--ease);
+}
+.sync-dot.online{
+  width:10px; height:10px;
+  background:var(--green-ok);
+  box-shadow:0 0 0 2px rgba(46,133,94,.25), 0 0 6px rgba(46,133,94,.4);
+}
+.sync-dot.loading{
+  background:var(--gold-light);
+  animation:syncPulse 1.2s ease-in-out infinite;
+}
+.sync-dot.error{
+  background:var(--clay-light);
+  box-shadow:0 0 0 2px rgba(169,80,58,.3);
+}
+.sync-dot.local{
+  background:var(--parchment-dim);
+}
+
+@keyframes syncPulse{
+  0%, 100%{opacity:.3;}
+  50%{opacity:1;}
+}
+
+#syncText{
+  display:inline-block;
+  transition:opacity .15s var(--ease);
+}
+#syncText.text-fade{
+  opacity:0 !important;
+}
 /* ===== POP-UP LOGIN UTAMA ===== */
 .login-veil{display:none; position:fixed; inset:0; background:rgba(22,48,42,.85); z-index:3000; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(6px);}
 .login-veil.show{display:flex;}
@@ -930,9 +1003,7 @@ tbody tr:nth-child(even) td{background:var(--surface-subtle);}
   .topbar-left{gap:8px;}
   .topbar-mark{width:32px; height:32px; font-size:12px;}
   .topbar h1, .topbar-brand-name{font-size:15px;}
-  .topbar-right{gap:6px;}
-  .topbar .sync-badge{padding:3px;}
-  .topbar .sync-badge span:not(.sync-dot){display:none;}
+  .topbar-right{gap:6px; align-items:center;}
   .btn-guest-login{padding:6px 12px; font-size:11.5px; gap:5px; min-height:32px; display:inline-flex; align-items:center;}
   .btn-user-pill{
     padding:3px; border:none; background:none; border-radius:50%; cursor:pointer;
@@ -948,13 +1019,6 @@ tbody tr:nth-child(even) td{background:var(--surface-subtle);}
   }
   .user-pill-name{display:none;}
   .user-caret{display:none;}
-  .podium-wrap{padding:20px 10px 0; border-radius:var(--radius);}
-  .podium{gap:8px;}
-  .podium-slot{width:96px; flex:1; max-width:110px;}
-  .podium-slot .name{font-size:11px; min-height:26px;}
-  .podium-slot .pts{font-size:14px; margin-bottom:6px;}
-  .podium-slot.p1 .podium-block{height:88px;}
-  .podium-slot.p2 .podium-block{height:64px;}
   .podium-slot.p3 .podium-block{height:46px;}
   .field-row{grid-template-columns:1fr; gap:var(--gap-grid);}
   .event-card{flex-wrap:wrap; gap:12px; padding:14px;}

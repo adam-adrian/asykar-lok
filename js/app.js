@@ -404,15 +404,56 @@ function liveValidateSkor() {
   }
 }
 /* ===== CLOUD SYNC & API CALLS ===== */
+let syncHoldTimer = null;
+
 function updateSyncStatus(status, text){
-  const dots = [document.getElementById("syncDot"), document.getElementById("syncDotTop"), document.getElementById("syncDotSub")];
-  const texts = [document.getElementById("syncText"), document.getElementById("syncTextTop"), document.getElementById("syncTextSub")];
-  dots.forEach(d => { if(d) d.className = "sync-dot " + status; });
-  texts.forEach(t => { if(t) t.textContent = text; });
+  const badge = document.getElementById("syncStatusBadge");
+  const dot = document.getElementById("syncDot");
+  const textEl = document.getElementById("syncText");
+  const safeStatus = status || "online";
+
+  if (syncHoldTimer) {
+    clearTimeout(syncHoldTimer);
+    syncHoldTimer = null;
+  }
+
+  function setSmoothText(newText) {
+    if (!textEl) return;
+    if (textEl.textContent === newText) return;
+    textEl.classList.add("text-fade");
+    setTimeout(() => {
+      textEl.textContent = newText;
+      textEl.classList.remove("text-fade");
+    }, 120);
+  }
+
+  let displayText = "Tersinkron";
+  if (safeStatus === "loading") displayText = "Sync...";
+  else if (safeStatus === "error") displayText = "Pending";
+  else if (safeStatus === "local") displayText = "Offline";
+
+  if (safeStatus === "online" && badge && badge.classList.contains("loading")) {
+    badge.className = "sync-badge online synced-hold";
+    if (dot) dot.className = "sync-dot online";
+    setSmoothText(displayText);
+
+    syncHoldTimer = setTimeout(() => {
+      if (badge) badge.classList.remove("synced-hold");
+    }, 900);
+  } else {
+    if (badge) {
+      badge.className = "sync-badge " + safeStatus;
+      badge.setAttribute("title", `Status: ${text || "Cloud Terhubung"} (Klik untuk sinkronisasi)`);
+    }
+    if (dot) {
+      dot.className = "sync-dot " + safeStatus;
+    }
+    setSmoothText(displayText);
+  }
 }
 
 function updateDisplayUsername(name){
-  ["displayUsername", "displayUsernameTop", "displayUsernameSub"].forEach(id => {
+  ["displayUsername", "dropdownUsername"].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.textContent = name || "";
   });
