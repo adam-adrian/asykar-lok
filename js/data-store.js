@@ -6,13 +6,7 @@
  * Sifat: Deep Module dengan port di remote seam (HttpTransport vs InMemoryTransport).
  */
 
-(function (global, factory) {
-  if (typeof exports === 'object' && typeof module !== 'undefined') {
-    module.exports = factory();
-  } else {
-    global.DataStoreModule = factory();
-  }
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+const DataStoreModule = (function () {
   'use strict';
 
   const STORAGE_KEYS = {
@@ -768,4 +762,6 @@
     HttpTransportAdapter,
     InMemoryTransportAdapter
   };
-});
+})();
+
+export default DataStoreModule;
