@@ -6,7 +6,13 @@
  * Sifat: In-Process murni, zero I/O, zero side-effects.
  */
 
-const StandingsEngine = (function () {
+(function (global, factory) {
+  if (typeof exports === 'object' && typeof module !== 'undefined') {
+    module.exports = factory();
+  } else {
+    global.StandingsEngine = factory();
+  }
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
   const ERROR_CODES = {
@@ -462,6 +468,4 @@ const StandingsEngine = (function () {
     extractPodium,
     computeMetrics
   };
-})();
-
-export default StandingsEngine;
+});
