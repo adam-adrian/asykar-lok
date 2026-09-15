@@ -25,29 +25,29 @@
 
   /**
    * Sanitasi & validasi input poin per kategori (0 - 100).
-   * Menerima angka, string angka bulat murni, atau null/empty.
+   * Menerima angka bulat maupun pecahan/desimal (titik maupun koma), atau null/empty.
    */
   function sanitizeScoreInput(val, min = 0, max = 100) {
     if (val === null || val === undefined || val === '') {
       return { ok: true, value: null };
     }
-    const str = String(val).trim();
-    if (!/^-?\d+$/.test(str)) {
+    const str = String(val).trim().replace(',', '.');
+    if (!/^-?\d+(\.\d+)?$/.test(str)) {
       return {
         ok: false,
         code: ERROR_CODES.NOT_A_NUMBER,
-        message: 'Nilai harus berupa angka bilangan bulat murni (tanpa huruf/desimal).'
+        message: 'Nilai harus berupa angka sah (0–100).'
       };
     }
-    const n = parseInt(str, 10);
-    if (n < min || n > max) {
+    const n = parseFloat(str);
+    if (isNaN(n) || n < min || n > max) {
       return {
         ok: false,
         code: ERROR_CODES.OUT_OF_RANGE,
         message: `Nilai poin harus di antara ${min} sampai ${max}.`
       };
     }
-    return { ok: true, value: n };
+    return { ok: true, value: Math.round(n * 100) / 100 };
   }
 
   /**
@@ -207,7 +207,7 @@
    */
   function parseScore(val) {
     if (val === null || val === undefined || val === '') return null;
-    const n = Number(val);
+    const n = Number(String(val).replace(',', '.'));
     return isNaN(n) ? null : n;
   }
 

@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=7.2">
+<link rel="stylesheet" href="css/style.css?v=8.2">
 </head>
 <body>
 
@@ -89,118 +89,127 @@
 
     <!-- DASHBOARD WORKSPACE -->
     <div class="dash-workspace" id="fitur">
-      <!-- HERO & GREETING BAR -->
-      <section class="dash-hero">
-        <div class="dash-hero-content">
-          <h1 class="dash-greeting-title" id="dashGreetingTitle">Ahlan wa Sahlan di <span>Liga Kebaikan</span></h1>
-          <div class="dash-greeting-sub" id="dashGreetingSub">
-            <span class="dash-greeting-ar" id="dashGreetingAr" dir="rtl">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</span>
-            <span class="dash-greeting-dot">·</span>
-            <span id="dashGreetingDate"></span>
-            <span class="dash-greeting-dot">·</span>
-            <span>Pusat Informasi &amp; Catatan Kehormatan Adab</span>
+      <!-- GRAND MASTHEAD (HERO GREETING + INTEGRATED METRICS DECK) -->
+      <section class="dash-hero" id="dashHero" aria-label="Pusat Informasi &amp; Ringkasan Metrik">
+        <!-- TIER 1: SALAM & METADATA -->
+        <div class="dash-hero-masthead">
+          <div class="dash-hero-content">
+            <h1 class="dash-greeting-title" id="dashGreetingTitle">Ahlan wa Sahlan di <span>Liga Kebaikan</span></h1>
+            <div class="dash-greeting-sub" id="dashGreetingSub">
+              <span id="dashGreetingDate"></span>
+              <span class="dash-greeting-dot">·</span>
+              <span>Pusat Informasi &amp; Catatan Kehormatan Adab</span>
+            </div>
+          </div>
+          <div class="dash-hero-actions">
+            <button class="btn btn-ghost dash-btn-sync" onclick="syncDataFromCloud(true)" title="Sinkronisasi Data">
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+              <span>Segarkan Data</span>
+            </button>
           </div>
         </div>
-        <div class="dash-hero-actions">
-          <button class="btn btn-ghost dash-btn-sync" onclick="syncDataFromCloud(true)" title="Sinkronisasi Data">
-            <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
-            <span>Segarkan Data</span>
-          </button>
+
+        <!-- TIER 2: INTEGRATED METRICS DECK (HAIRLINE DIVIDED SHELF) -->
+        <div class="dash-hero-metrics" aria-label="Ringkasan Cepat Metrik">
+          <div class="dash-hero-metric" id="dashHeroMetricTopSakan" onclick="switchView('klasemen')" title="Buka Klasemen Kebaikan Lengkap" role="button" tabindex="0">
+            <div class="dash-hero-metric-icon">
+              <svg class="svg-icon md" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
+            </div>
+            <div class="dash-hero-metric-data">
+              <strong class="dash-hero-metric-val" id="dashStatTopSakan">–</strong>
+              <span class="dash-hero-metric-lbl" id="dashStatTopSakanLbl">Pemimpin Kebaikan</span>
+            </div>
+            <div class="dash-hero-metric-chevron">
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+            </div>
+          </div>
+          <div class="dash-hero-metric" id="dashHeroMetricLaga" onclick="switchView('liga')" title="Buka Bagan &amp; Jadwal Turnamen" role="button" tabindex="0">
+            <div class="dash-hero-metric-icon">
+              <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
+            </div>
+            <div class="dash-hero-metric-data">
+              <strong class="dash-hero-metric-val" id="dashStatLaga">–</strong>
+              <span class="dash-hero-metric-lbl" id="dashStatLagaLbl">Laga Turnamen</span>
+            </div>
+            <div class="dash-hero-metric-chevron">
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+            </div>
+          </div>
+          <div class="dash-hero-metric" id="dashHeroMetricEvent" onclick="switchView('event')" title="Buka Agenda Pesantren" role="button" tabindex="0">
+            <div class="dash-hero-metric-icon">
+              <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+            </div>
+            <div class="dash-hero-metric-data">
+              <strong class="dash-hero-metric-val" id="dashStatEvent">–</strong>
+              <span class="dash-hero-metric-lbl" id="dashStatEventLbl">Agenda Terdekat</span>
+            </div>
+            <div class="dash-hero-metric-chevron">
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- QUICK METRICS STRIP -->
-      <section class="dash-metrics-strip" aria-label="Ringkasan Cepat Metrik">
-        <div class="dash-metric-item" onclick="scrollToSakan()" title="Lihat Daftar Sakan Terdaftar" role="button" tabindex="0">
-          <div class="dash-metric-icon">
-            <svg class="svg-icon md" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
-          </div>
-          <div class="dash-metric-data">
-            <span class="dash-metric-label">Sakan Terdaftar</span>
-            <strong class="dash-metric-value" id="dashStatSakan">16 Sakan</strong>
-          </div>
-        </div>
-        <div class="dash-metric-item" onclick="switchView('klasemen')" title="Buka Klasemen Kebaikan Lengkap" role="button" tabindex="0">
-          <div class="dash-metric-icon">
-            <svg class="svg-icon md" viewBox="0 0 24 24"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>
-          </div>
-          <div class="dash-metric-data">
-            <span class="dash-metric-label">Pemimpin Kebaikan</span>
-            <strong class="dash-metric-value" id="dashStatTopSakan">–</strong>
-          </div>
-        </div>
-        <div class="dash-metric-item" onclick="switchView('liga')" title="Buka Bagan & Jadwal Turnamen" role="button" tabindex="0">
-          <div class="dash-metric-icon">
-            <svg class="svg-icon md" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="m12 7 3.5 2.5v4L12 16l-3.5-2.5v-4z"></path><path d="m12 7V2"></path><path d="m15.5 9.5 4-2"></path><path d="m15.5 13.5 4 2"></path><path d="m12 16v5"></path><path d="m8.5 13.5-4 2"></path><path d="m8.5 9.5-4-2"></path></svg>
-          </div>
-          <div class="dash-metric-data">
-            <span class="dash-metric-label">Laga Turnamen</span>
-            <strong class="dash-metric-value" id="dashStatLaga">–</strong>
-          </div>
-        </div>
-        <div class="dash-metric-item" onclick="switchView('event')" title="Buka Agenda Pesantren" role="button" tabindex="0">
-          <div class="dash-metric-icon">
-            <svg class="svg-icon md" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
-          </div>
-          <div class="dash-metric-data">
-            <span class="dash-metric-label">Agenda Terdekat</span>
-            <strong class="dash-metric-value" id="dashStatEvent">–</strong>
-          </div>
-        </div>
-      </section>
-
-      <!-- 3 DASHBOARD EDITORIAL PILLARS -->
-      <section class="dash-pillars-grid">
+      <!-- 2-COLUMN ASYMMETRIC GRID (MAIN STAGE + ACTIVITY RAIL) -->
+      <div class="dash-asymmetric-grid">
         
-        <!-- PILLAR 1: KLASEMEN KEBAIKAN -->
-        <div class="dash-pillar">
-          <div class="dash-pillar-head">
+        <!-- SISI KIRI: PANGGUNG UTAMA KLASEMEN -->
+        <section class="dash-main-stage" aria-labelledby="dashKlasemenHeading">
+          <div class="dash-section-head">
             <div>
-              <h2 class="dash-pillar-title">Klasemen Kebaikan</h2>
-              <div class="dash-pillar-sub">Kebersihan, Kedisiplinan, Bahasa</div>
+              <h2 class="dash-section-title" id="dashKlasemenHeading">Klasemen Kehormatan Adab</h2>
+              <div class="dash-section-sub">Akumulasi penilaian kebersihan, kedisiplinan, dan bahasa santri</div>
             </div>
-            <button class="dash-pillar-link" onclick="switchView('klasemen')">
-              Lihat Detail <span>→</span>
+            <button class="dash-section-link" onclick="switchView('klasemen')" title="Buka Klasemen Kebaikan Lengkap">
+              <span>Buka Ledger</span>
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
             </button>
           </div>
-          <div class="dash-pillar-body" id="dashKlasemenContent">
+          <div class="dash-stage-body" id="dashKlasemenContent">
             <!-- Diisi dinamis oleh renderDashboard() -->
           </div>
-        </div>
+        </section>
 
-        <!-- PILLAR 2: TURNAMEN SEPAK BOLA -->
-        <div class="dash-pillar">
-          <div class="dash-pillar-head">
-            <div>
-              <h2 class="dash-pillar-title">Turnamen Bola</h2>
-              <div class="dash-pillar-sub">Jadwal Tanding &amp; Sistem Gugur</div>
+        <!-- SISI KANAN: LINIMASA AKTIVITAS (ACTIVITY RAIL) -->
+        <div class="dash-activity-rail">
+          
+          <!-- SUB-SEKSI 1: TURNAMEN BOLA -->
+          <section class="dash-rail-section" aria-labelledby="dashLigaHeading">
+            <div class="dash-section-head">
+              <div>
+                <h2 class="dash-section-title" id="dashLigaHeading">Turnamen Bola</h2>
+                <div class="dash-section-sub">Jadwal Tanding &amp; Hasil Laga</div>
+              </div>
+              <button class="dash-section-link" onclick="switchView('liga')" title="Buka Bagan Turnamen">
+                <span>Buka Bagan</span>
+                <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </button>
             </div>
-            <button class="dash-pillar-link" onclick="switchView('liga')">
-              Buka Bagan <span>→</span>
-            </button>
-          </div>
-          <div class="dash-pillar-body" id="dashTurnamenContent">
-            <!-- Diisi dinamis oleh renderDashboard() -->
-          </div>
-        </div>
-
-        <!-- PILLAR 3: AGENDA & KEGIATAN -->
-        <div class="dash-pillar">
-          <div class="dash-pillar-head">
-            <div>
-              <h2 class="dash-pillar-title">Agenda &amp; Kegiatan</h2>
-              <div class="dash-pillar-sub">Jadwal &amp; Dokumentasi Pesantren</div>
+            <div class="dash-rail-body" id="dashTurnamenContent">
+              <!-- Diisi dinamis oleh renderDashboard() -->
             </div>
-            <button class="dash-pillar-link" onclick="switchView('event')">
-              Semua Agenda <span>→</span>
-            </button>
-          </div>
-          <div class="dash-pillar-body" id="dashEventContent">
-            <!-- Diisi dinamis oleh renderDashboard() -->
-          </div>
+          </section>
+
+          <!-- SUB-SEKSI 2: AGENDA & KEGIATAN -->
+          <section class="dash-rail-section" aria-labelledby="dashEventHeading">
+            <div class="dash-section-head">
+              <div>
+                <h2 class="dash-section-title" id="dashEventHeading">Agenda &amp; Kegiatan</h2>
+                <div class="dash-section-sub">Jadwal &amp; Dokumentasi Pesantren</div>
+              </div>
+              <button class="dash-section-link" onclick="switchView('event')" title="Lihat Semua Agenda">
+                <span>Semua Agenda</span>
+                <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </button>
+            </div>
+            <div class="dash-rail-body" id="dashEventContent">
+              <!-- Diisi dinamis oleh renderDashboard() -->
+            </div>
+          </section>
+
         </div>
 
-      </section>
+      </div>
     </div>
 
     <section class="pub-footer-section" id="sakanSection">
@@ -378,17 +387,17 @@
     </div>
     <div class="field" id="fieldKebersihan">
       <label>Poin Kebersihan (0–100)</label>
-      <input type="number" inputmode="numeric" pattern="[0-9]*" id="fKebersihan" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintKebersihan')">
+      <input type="text" inputmode="decimal" autocomplete="off" id="fKebersihan" placeholder="0–100" oninput="liveValidatePoin(this, 'hintKebersihan')">
       <span class="field-error-hint" id="hintKebersihan">Nilai harus angka 0 sampai 100</span>
     </div>
     <div class="field" id="fieldKedisiplinan">
       <label>Poin Kedisiplinan (0–100)</label>
-      <input type="number" inputmode="numeric" pattern="[0-9]*" id="fKedisiplinan" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintKedisiplinan')">
+      <input type="text" inputmode="decimal" autocomplete="off" id="fKedisiplinan" placeholder="0–100" oninput="liveValidatePoin(this, 'hintKedisiplinan')">
       <span class="field-error-hint" id="hintKedisiplinan">Nilai harus angka 0 sampai 100</span>
     </div>
     <div class="field" id="fieldBahasa">
       <label>Poin Bahasa (0–100)</label>
-      <input type="number" inputmode="numeric" pattern="[0-9]*" id="fBahasa" min="0" max="100" placeholder="0–100" oninput="liveValidatePoin(this, 'hintBahasa')">
+      <input type="text" inputmode="decimal" autocomplete="off" id="fBahasa" placeholder="0–100" oninput="liveValidatePoin(this, 'hintBahasa')">
       <span class="field-error-hint" id="hintBahasa">Nilai harus angka 0 sampai 100</span>
     </div>
     <div id="dupeNote" class="dupe-note">Data sakan &amp; tanggal ini sudah ada — nilai akan diperbarui.</div>
@@ -528,11 +537,11 @@
   <img id="lightboxImg" src="" alt="Perbesar Gambar" data-impeccable-ignore="broken-image">
 </div>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true" onclick="dismissToast()"></div>
 
-<script src="js/standings-engine.js?v=1.0"></script>
+<script src="js/standings-engine.js?v=1.1"></script>
 <script src="js/tournament-engine.js?v=1.0"></script>
 <script src="js/data-store.js?v=1.0"></script>
-<script src="js/app.js?v=6.0"></script>
+<script src="js/app.js?v=7.4"></script>
 </body>
 </html>

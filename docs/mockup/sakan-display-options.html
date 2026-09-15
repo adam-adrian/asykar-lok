@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eksplorasi Display Sakan - Asykar</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      padding: 20px 16px 60px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .preview-header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .preview-header h1 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--ink);
+      margin: 0 0 4px 0;
+    }
+    .preview-header p {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+    .opt-header {
+      margin: 28px 0 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .opt-header h2 {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      color: var(--ink);
+      margin: 0;
+    }
+    .opt-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      background: var(--ochre-subtle);
+      border: 1px solid var(--ochre-border);
+      padding: 1.5px 7.5px;
+      border-radius: 999px;
+    }
+    .opt-desc {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin: 4px 0 14px;
+      line-height: 1.4;
+    }
+
+    /* =========================================================
+       MODEL 1: DIRECTORY SHOWCASE (Di Atas Kanvas Utama Beranda)
+       Menyatu dengan warna perkamen, interaktif dengan data adab
+       ========================================================= */
+    .sakan-dir-section {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sakan-dir-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .sakan-dir-title {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 3px 0;
+    }
+    .sakan-dir-sub {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.35;
+    }
+    .sakan-dir-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .sakan-card-item {
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all .15s ease;
+      text-decoration: none;
+      color: inherit;
+    }
+    .sakan-card-item:hover {
+      border-color: var(--gold);
+      background: var(--card);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(176,138,46,.08);
+    }
+    .sakan-monogram {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1.5px solid var(--gold);
+      color: var(--gold-deep);
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(10,25,47,.04);
+    }
+    .sakan-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+    }
+    .sakan-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.25;
+    }
+    .sakan-meta {
+      font-size: 11px;
+      color: var(--ink-faint);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .sakan-meta-score {
+      font-weight: 700;
+      color: var(--gold-deep);
+    }
+
+    /* =========================================================
+       MODEL 2: REFINED FOOTER CAPSULES (Polesan pada Footer Gelap)
+       Padding lebih proporsional, monogram emas, interaktif
+       ========================================================= */
+    .refined-footer-box {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 32px 18px 28px;
+      text-align: center;
+      color: var(--text-inverse-muted);
+      box-shadow: 0 4px 16px rgba(10,25,47,.08);
+    }
+    .refined-footer-box h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-inverse);
+      margin: 0 0 6px 0;
+    }
+    .refined-footer-box p {
+      font-size: 12.5px;
+      color: var(--gold-light);
+      margin: 0 auto 20px;
+      max-width: 360px;
+      line-height: 1.45;
+    }
+    .refined-footer-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .refined-footer-pill {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--text-inverse);
+      padding: 5px 12px 5px 6px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: all .15s ease;
+      user-select: none;
+    }
+    .refined-footer-pill:hover {
+      background: rgba(255,255,255,.14);
+      border-color: var(--gold-light);
+      transform: translateY(-1px);
+    }
+    .refined-pill-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--gold-deep);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .refined-pill-score {
+      font-size: 10.5px;
+      color: var(--gold-light);
+      opacity: 0.85;
+      font-variant-numeric: tabular-nums;
+      margin-left: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-header">
+    <h1>Eksplorasi Display Sakan</h1>
+    <p>Penerapan Desain "The Living Manuscript" &amp; Impeccable Craft Floor</p>
+  </div>
+
+  <!-- ==================== MODEL 1 ==================== -->
+  <div class="opt-header">
+    <h2>Model 1: Direktori Sakan Terpadu (Parchment Grid)</h2>
+    <span class="opt-badge">Direktori Interaktif</span>
+  </div>
+  <div class="opt-desc">
+    Menjadikan sakan sebagai seksi direktori resmi di atas kanvas Beranda. Dilengkapi monogram inisial, gedung/kamar, serta rata-rata poin. Tiap kartu bisa diklik untuk langsung membuka rincian nilai di Klasemen.
+  </div>
+
+  <div class="sakan-dir-section">
+    <div class="sakan-dir-head">
+      <div>
+        <div class="sakan-dir-title">Sakan Kehormatan Adab</div>
+        <div class="sakan-dir-sub">Dinamai dari mercusuar peradaban keilmuan Islam</div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:11.5px; padding:4px 10px;" onclick="switchView('klasemen')">Lihat Rekap</button>
+    </div>
+    <div class="sakan-dir-grid">
+      <div class="sakan-card-item">
+        <div class="sakan-monogram">Q</div>
+        <div class="sakan-info">
+          <span class="sakan-name">Qazvin Atas</span>
+          <span class="sakan-meta">
+            <span>Lt. 2</span>
+            <span>•</span>
+            <span class="sakan-meta-score">Avg 93.0</span>
+          </span>
+        </div>
+      </div>
+      <div class="sakan-card-item">
+        <div class="sakan-monogram">N</div>
+        <div class="sakan-info">
+          <span class="sakan-name">Naisabur</span>
+          <span class="sakan-meta">
+            <span>Lt. 1</span>
+            <span>•</span>
+            <span class="sakan-meta-score">Avg 87.5</span>
+          </span>
+        </div>
+      </div>
+      <div class="sakan-card-item">
+        <div class="sakan-monogram">B</div>
+        <div class="sakan-info">
+          <span class="sakan-name">Bukhara</span>
+          <span class="sakan-meta">
+            <span>Gedung Timur</span>
+            <span>•</span>
+            <span class="sakan-meta-score">Avg 82.2</span>
+          </span>
+        </div>
+      </div>
+      <div class="sakan-card-item">
+        <div class="sakan-monogram">T</div>
+        <div class="sakan-info">
+          <span class="sakan-name">Tirmidz</span>
+          <span class="sakan-meta">
+            <span>Gedung Barat</span>
+            <span>•</span>
+            <span class="sakan-meta-score">Avg 84.0</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <!-- ==================== MODEL 2 ==================== -->
+  <div class="opt-header">
+    <h2>Model 2: Refined Heritage Pills (Footer Berwibawa)</h2>
+    <span class="opt-badge">Footer Berbobot</span>
+  </div>
+  <div class="opt-desc">
+    Mempertahankan footer hijau tua (--ink) sebagai penutup halaman yang agung, namun memangkas padding raksasa 70px menjadi proporsional (32px), menormalkan Title Case, dan membuat tiap pil interaktif.
+  </div>
+
+  <div class="refined-footer-box">
+    <h3>Nama-Nama Bersejarah</h3>
+    <p>Terinspirasi dari kota-kota peradaban Islam: Qazvin, Naisabur, Bukhara, Hamadan, dan lainnya.</p>
+    <div class="refined-footer-pills">
+      <div class="refined-footer-pill" title="Klik untuk lihat data nilai Qazvin Atas">
+        <div class="refined-pill-dot">Q</div>
+        <span>Qazvin Atas</span>
+        <span class="refined-pill-score">93.0</span>
+      </div>
+      <div class="refined-footer-pill" title="Klik untuk lihat data nilai Naisabur">
+        <div class="refined-pill-dot">N</div>
+        <span>Naisabur</span>
+        <span class="refined-pill-score">87.5</span>
+      </div>
+      <div class="refined-footer-pill" title="Klik untuk lihat data nilai Bukhara">
+        <div class="refined-pill-dot">B</div>
+        <span>Bukhara</span>
+        <span class="refined-pill-score">82.2</span>
+      </div>
+      <div class="refined-footer-pill" title="Klik untuk lihat data nilai Tirmidz">
+        <div class="refined-pill-dot">T</div>
+        <span>Tirmidz</span>
+        <span class="refined-pill-score">84.0</span>
+      </div>
+      <div class="refined-footer-pill" title="Klik untuk lihat data nilai Hamadan">
+        <div class="refined-pill-dot">H</div>
+        <span>Hamadan</span>
+        <span class="refined-pill-score">81.5</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

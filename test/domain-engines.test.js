@@ -237,7 +237,26 @@ describe('TournamentEngine (In-Process Pure Calculation)', () => {
     assert.equal(resMax.ok, false);
     assert.equal(resMax.code, 'ERR_OUT_OF_RANGE');
 
-    // Huruf / desimal ditolak dengan kode ERR_NOT_A_NUMBER
+    // Nilai pecahan / desimal dengan titik maupun koma harus diterima secara sah
+    const resDecimalDot = StandingsEngine.validateEntry({
+      tanggal: '2026-09-12',
+      sakan: 'QAZVIN ATAS',
+      kebersihan: '95.5',
+      kedisiplinan: 82.25
+    });
+    assert.equal(resDecimalDot.ok, true);
+    assert.equal(resDecimalDot.value.kebersihan, 95.5);
+    assert.equal(resDecimalDot.value.kedisiplinan, 82.25);
+
+    const resDecimalComma = StandingsEngine.validateEntry({
+      tanggal: '2026-09-12',
+      sakan: 'QAZVIN ATAS',
+      kebersihan: '88,7'
+    });
+    assert.equal(resDecimalComma.ok, true);
+    assert.equal(resDecimalComma.value.kebersihan, 88.7);
+
+    // Huruf / karakter tidak valid ditolak dengan kode ERR_NOT_A_NUMBER
     const resLetter = StandingsEngine.validateEntry({
       tanggal: '2026-09-12',
       sakan: 'QAZVIN ATAS',

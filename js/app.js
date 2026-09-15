@@ -183,16 +183,97 @@ function escapeHtml(str) {
   d.textContent = str == null ? '' : str;
   return d.innerHTML;
 }
-function showToast(msg, isError = false) {
+function formatTitleCase(str) {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .replace(/(?:^|\s|-|\/)\S/g, c => c.toUpperCase());
+}
+function formatShortDate(t, includeDay = false) {
+  if (!t) return "";
+  let str = String(t).trim();
+  if (str.includes("T")) str = str.split("T")[0];
+  const parts = str.split("-");
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+    const monthStr = months[m] || "";
+    if (includeDay) {
+      const dateObj = new Date(y, m, d);
+      if (!isNaN(dateObj.getTime())) {
+        const dayName = dateObj.toLocaleDateString("id-ID", { weekday: "long" });
+        return `${dayName}, ${d} ${monthStr}`.trim();
+      }
+    }
+    return `${d} ${monthStr}`.trim();
+  }
+  return t;
+}
+function getTeamInitial(name) {
+  if (!name) return '•';
+  const clean = String(name).replace(/^sakan\s+/i, '').trim();
+  return (clean[0] || name[0] || '•').toUpperCase();
+}
+function showToast(msg, typeOrIsError, duration) {
   const toast = document.getElementById('toast');
   if (!toast) return;
-  toast.textContent = msg;
-  toast.className = isError ? 'show err' : 'show';
+
+  // Normalisasi tipe: boolean (dukungan legacy isError) atau string ('success', 'err'/'error', 'info')
+  let type = 'success';
+  if (typeof typeOrIsError === 'boolean') {
+    type = typeOrIsError ? 'err' : 'success';
+  } else if (typeof typeOrIsError === 'string') {
+    type = typeOrIsError === 'error' ? 'err' : typeOrIsError;
+  }
+
+  // Semantic Guard: jangan biarkan pesan in-progress/loading menggunakan visual success
+  const lowerMsg = String(msg || '').toLowerCase();
+  if (type === 'success') {
+    if (/^(mengambil|mencoba|memuat)/.test(lowerMsg) || lowerMsg.includes('sedang berlangsung')) {
+      type = 'info';
+    }
+  }
+
+  // Icon SVG statis (bebas animasi spinner agar user paham data sudah terekam optimis dan tidak perlu menunggu)
+  let iconHtml = '';
+  if (type === 'err') {
+    iconHtml = '<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  } else if (type === 'info') {
+    iconHtml = '<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  } else {
+    iconHtml = '<svg class="svg-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  }
+
+  const closeIconHtml = '<svg class="svg-icon sm" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
+  toast.innerHTML = `
+    <span class="toast-icon">${iconHtml}</span>
+    <span class="toast-msg">${escapeHtml(msg)}</span>
+    <span class="toast-close" title="Tutup">${closeIconHtml}</span>
+  `;
+
+  toast.className = `show ${type}`;
+
+  // Smart duration: Error = 4500ms, Success/Info = 2800ms
+  const autoDuration = duration || (type === 'err' ? 4500 : 2800);
+
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => {
-    toast.className = '';
-  }, 2800);
+    toast.classList.remove('show');
+  }, autoDuration);
 }
+
+function dismissToast() {
+  const toast = document.getElementById('toast');
+  if (toast) {
+    clearTimeout(toast._timer);
+    toast.classList.remove('show');
+  }
+}
+window.dismissToast = dismissToast;
+window.showToast = showToast;
 function closeModal(id) {
   const el = document.getElementById(id);
   if (el) {
@@ -258,7 +339,7 @@ function renderSyncBadge(syncStatus, syncId, errorMsg) {
 
 async function retryItemSync(syncId) {
   if (!syncId) return;
-  showToast("Mencoba menyinkronkan kembali...");
+  showToast("Mencoba menyinkronkan kembali...", "info");
   await store.retryMutation(syncId);
   if (currentView === "klasemen") renderKlasemen();
   else if (currentView === "liga") renderligaMenu();
@@ -267,13 +348,18 @@ async function retryItemSync(syncId) {
 
 function liveValidatePoin(input, hintId) {
   if (!input) return;
-  input.value = input.value.replace(/[^0-9]/g, '');
+  let val = input.value.replace(/[^0-9.,]/g, '');
+  const parts = val.split(/[.,]/);
+  if (parts.length > 2) {
+    val = parts[0] + '.' + parts.slice(1).join('');
+  }
+  input.value = val;
   const parentField = input.closest('.field');
   const hint = document.getElementById(hintId);
-  const val = input.value.trim();
-  if (val !== '') {
-    const n = parseInt(val, 10);
-    if (n < 0 || n > 100) {
+  const trimmed = val.trim();
+  if (trimmed !== '' && trimmed !== '.' && trimmed !== ',') {
+    const n = parseFloat(trimmed.replace(',', '.'));
+    if (isNaN(n) || n < 0 || n > 100) {
       if (parentField) parentField.classList.add('field-invalid');
       if (hint) {
         hint.textContent = 'Maksimal nilai adalah 100';
@@ -325,21 +411,27 @@ function updateDisplayUsername(name){
 }
 
 async function syncDataFromCloud(isManual = false){
-  if(isManual) showToast("Mengambil data terbaru...");
+  if (store.isSyncing) {
+    if (isManual) showToast("Sinkronisasi sedang berlangsung...", "info");
+    return;
+  }
+  if (isManual) showToast("Mengambil data terbaru...", "info");
   store.setAuthToken(currentAuthToken);
   const res = await store.syncFromRemote(isManual);
-  if(res.status === "success"){
+  if (res.status === "success") {
     fillSakanSelect();
     fillTeamSelects();
     renderSakanPills();
-    if(isManual) showToast(res.local ? "Data lokal dimuat." : "Data berhasil disinkronkan!");
+    if (isManual) showToast(res.local ? "Data lokal dimuat." : "Data berhasil disinkronkan!", res.local ? "info" : "success");
 
-    if(currentView === "homepage") renderDashboard();
-    if(currentView === "klasemen") renderKlasemen();
-    if(currentView === "liga") renderligaMenu();
-    if(currentView === "event") renderEvent();
+    if (currentView === "homepage") renderDashboard();
+    if (currentView === "klasemen") renderKlasemen();
+    if (currentView === "liga") renderligaMenu();
+    if (currentView === "event") renderEvent();
+  } else if (res.status === "busy") {
+    if (isManual) showToast("Sinkronisasi sedang berlangsung...", "info");
   } else {
-    if(isManual) showToast("Gagal sync ke server. Menggunakan data lokal.", true);
+    if (isManual) showToast("Gagal sync ke server. Menggunakan data lokal.", true);
   }
 }
 
@@ -540,6 +632,7 @@ document.addEventListener("click", (e) => {
 });
 
 function switchView(view, pushToHistory = true){
+  if (view === "beranda") view = "homepage";
   currentView=view;
   saveSession();
 
@@ -657,32 +750,86 @@ function renderDashboard() {
     greetDate.textContent = dateFormatted;
   }
 
-  // 2. Metrik Sakan Terdaftar
-  const activeSakanList = getActiveSakanList();
-  const statSakan = document.getElementById("dashStatSakan");
-  if (statSakan) statSakan.textContent = `${activeSakanList.length} Sakan`;
-
-  // 3. Agregasi Klasemen Kebaikan via StandingsEngine (In-Process)
+  // 2. Agregasi Klasemen Kebaikan via StandingsEngine (In-Process)
   const listRekap = StandingsEngine.computeSummary(store.getKlasemen());
   const topSakan = listRekap.length ? listRekap[0] : null;
   const statTop = document.getElementById("dashStatTopSakan");
+  const statTopLbl = document.getElementById("dashStatTopSakanLbl");
+  const cardTop = document.getElementById("dashHeroMetricTopSakan");
+
   if (statTop) {
-    statTop.textContent = topSakan && topSakan.jumlah > 0 ? `${topSakan.sakan} (${topSakan.avgCombined})` : "–";
+    if (topSakan && topSakan.jumlah > 0) {
+      statTop.textContent = formatTitleCase(topSakan.sakan);
+      statTop.title = `${formatTitleCase(topSakan.sakan)} (${topSakan.avgCombined} pts)`;
+      if (statTopLbl) statTopLbl.textContent = `Peringkat 1 • ${topSakan.avgCombined} Poin`;
+      if (cardTop) cardTop.title = `Pemimpin Kehormatan Adab: ${formatTitleCase(topSakan.sakan)} (${topSakan.avgCombined} pts)`;
+    } else {
+      statTop.textContent = "Belum Ada Nilai";
+      statTop.title = "Belum ada penilaian adab";
+      if (statTopLbl) statTopLbl.textContent = "Pemimpin Kebaikan";
+      if (cardTop) cardTop.title = "Belum ada rekap nilai adab sakan";
+    }
+  }
+
+  // Helper pemotong judul agenda agar tipografi kartu metrik tetap rapi dan tidak terpotong canggung
+  function formatEventTitle(title) {
+    if (!title) return "";
+    const clean = formatTitleCase(title);
+    if (clean.length <= 18) return clean;
+    const sub = clean.slice(0, 18);
+    const lastSpace = sub.lastIndexOf(" ");
+    return lastSpace > 6 ? sub.slice(0, lastSpace) : sub;
   }
 
   // 4. Data & Metrik Turnamen Bola via TournamentEngine (In-Process)
   const { jadwalList, hasilList, liveMatch } = TournamentEngine.partitionMatches(store.getMatches());
   const statLaga = document.getElementById("dashStatLaga");
+  const statLagaLbl = document.getElementById("dashStatLagaLbl");
+  const cardLaga = document.getElementById("dashHeroMetricLaga");
+
   if (statLaga) {
     if (liveMatch) {
-      statLaga.innerHTML = '<span style="color:var(--clay); font-weight:700;"><span class="dash-live-dot"></span>1 Live</span>';
+      const matchTitle = `${formatTitleCase(liveMatch.timA)} vs ${formatTitleCase(liveMatch.timB)}`;
+      statLaga.innerHTML = `<span style="color:var(--clay); font-weight:700;"><span class="dash-live-dot"></span>${escapeHtml(matchTitle)}</span>`;
+      statLaga.title = matchTitle;
+      if (statLagaLbl) statLagaLbl.textContent = liveMatch.waktu ? `Sedang Main • ${liveMatch.waktu}` : 'Sedang Main';
+      if (cardLaga) cardLaga.title = `Sedang Main: ${matchTitle} (${liveMatch.lokasi || 'Lapangan'})`;
     } else if (jadwalList.length) {
-      const isToday = jadwalList.some(m => eventStatus(m.tanggal).cls === "today");
-      statLaga.textContent = isToday ? "Tanding Hari Ini" : `${jadwalList.length} Terjadwal`;
+      const todayMatches = jadwalList.filter(m => eventStatus(m.tanggal).cls === "today");
+      const targetMatch = todayMatches.length ? todayMatches[0] : jadwalList[0];
+      const isToday = eventStatus(targetMatch.tanggal).cls === "today";
+      const matchTitle = `${formatTitleCase(targetMatch.timA)} vs ${formatTitleCase(targetMatch.timB)}`;
+
+      statLaga.textContent = matchTitle;
+      statLaga.title = matchTitle;
+      if (statLagaLbl) {
+        if (isToday) {
+          statLagaLbl.textContent = targetMatch.waktu ? `Hari Ini • ${targetMatch.waktu}` : 'Hari Ini';
+        } else {
+          statLagaLbl.textContent = `${formatShortDate(targetMatch.tanggal, true)}${targetMatch.waktu ? ' • ' + targetMatch.waktu : ''}`;
+        }
+      }
+      if (cardLaga) cardLaga.title = `${formatTitleCase(targetMatch.round || 'Laga')}: ${matchTitle} (${formatTanggal(targetMatch.tanggal)}${targetMatch.waktu ? ' • ' + targetMatch.waktu : ''})`;
     } else if (hasilList.length) {
-      statLaga.textContent = `${hasilList.length} Selesai`;
+      const bracket = TournamentEngine.buildBracket(store.getMatches());
+      if (bracket.isDecided && bracket.champion) {
+        statLaga.textContent = `${formatTitleCase(bracket.champion)} (Juara)`;
+        statLaga.title = `Juara: ${formatTitleCase(bracket.champion)}`;
+        if (statLagaLbl) statLagaLbl.textContent = "Turnamen Selesai 🏆";
+        if (cardLaga) cardLaga.title = `Juara Utama Turnamen: ${formatTitleCase(bracket.champion)}`;
+      } else {
+        const lastMatch = hasilList[hasilList.length - 1];
+        const matchTitle = `${formatTitleCase(lastMatch.timA)} vs ${formatTitleCase(lastMatch.timB)}`;
+        statLaga.textContent = matchTitle;
+        statLaga.title = matchTitle;
+        if (statLagaLbl) statLagaLbl.textContent = `${hasilList.length} Laga Selesai`;
+        if (cardLaga) cardLaga.title = `Hasil Terakhir: ${formatTitleCase(lastMatch.timA)} ${lastMatch.skorA} - ${lastMatch.skorB} ${formatTitleCase(lastMatch.timB)}`;
+      }
     } else {
-      statLaga.textContent = "Belum Ada";
+      statLaga.textContent = "Belum Ada Laga";
+      statLaga.title = "Belum ada jadwal";
+      if (statLagaLbl) statLagaLbl.textContent = "Turnamen Bola";
+      if (cardLaga) cardLaga.title = "Belum ada jadwal pertandingan bola";
     }
   }
 
@@ -694,12 +841,37 @@ function renderDashboard() {
   });
 
   const statEvent = document.getElementById("dashStatEvent");
+  const statEventLbl = document.getElementById("dashStatEventLbl");
+  const cardEvent = document.getElementById("dashHeroMetricEvent");
+
   if (statEvent) {
     if (upcomingEvents.length) {
-      const hasToday = upcomingEvents.some(e => eventStatus(e.tanggal).cls === "today");
-      statEvent.textContent = hasToday ? "Ada Hari Ini" : `${upcomingEvents.length} Agenda`;
+      const todayEvents = upcomingEvents.filter(e => eventStatus(e.tanggal).cls === "today");
+      const targetEvent = todayEvents.length ? todayEvents[0] : upcomingEvents[0];
+      const isToday = eventStatus(targetEvent.tanggal).cls === "today";
+      const eventTitle = formatTitleCase(targetEvent.judul);
+      const displayTitle = formatEventTitle(targetEvent.judul);
+
+      statEvent.textContent = displayTitle;
+      statEvent.title = eventTitle;
+      if (statEventLbl) {
+        if (isToday) {
+          statEventLbl.textContent = targetEvent.waktu ? `Hari Ini • ${targetEvent.waktu}` : 'Hari Ini';
+        } else {
+          statEventLbl.textContent = `${formatShortDate(targetEvent.tanggal, true)}${targetEvent.waktu ? ' • ' + targetEvent.waktu : ''}`;
+        }
+      }
+      if (cardEvent) cardEvent.title = `${eventTitle} (${formatTanggal(targetEvent.tanggal)}${targetEvent.waktu ? ' • ' + targetEvent.waktu : ''}${targetEvent.lokasi ? ' • ' + targetEvent.lokasi : ''})`;
+    } else if (listEvent.length) {
+      statEvent.textContent = "Semua Selesai";
+      statEvent.title = "Seluruh agenda selesai";
+      if (statEventLbl) statEventLbl.textContent = "Agenda Selesai";
+      if (cardEvent) cardEvent.title = "Seluruh agenda 3 pekan telah selesai terlaksana";
     } else {
-      statEvent.textContent = listEvent.length ? "Semua Selesai" : "Belum Ada";
+      statEvent.textContent = "Belum Ada Agenda";
+      statEvent.title = "Belum ada agenda";
+      if (statEventLbl) statEventLbl.textContent = "Agenda Pesantren";
+      if (cardEvent) cardEvent.title = "Belum ada agenda kegiatan terdaftar";
     }
   }
 
@@ -707,6 +879,7 @@ function renderDashboard() {
   renderDashKlasemenWidget(listRekap, topSakan);
   renderDashTurnamenWidget(liveMatch, jadwalList, hasilList);
   renderDashEventWidget(upcomingEvents, listEvent);
+  renderSakanPills();
 }
 
 function renderDashKlasemenWidget(listRekap, topSakan) {
@@ -727,34 +900,47 @@ function renderDashKlasemenWidget(listRekap, topSakan) {
   }
 
   // MVP Card (Sakan Teladan #1)
+  const totalRanked = listRekap.filter(r => r.jumlah > 0).length;
   let html = `
     <div class="dash-mvp-card">
-      <div class="dash-mvp-badge">${svgIcon('crown', 12)} Sakan Teladan</div>
+      <div class="dash-mvp-top">
+        <div class="dash-mvp-badge">${svgIcon('crown', 12)} Sakan Teladan Pekan Ini</div>
+        <span class="dash-mvp-rank-hint">Peringkat 1 dari ${totalRanked}</span>
+      </div>
       <div class="dash-mvp-main">
-        <div class="dash-mvp-name">${escapeHtml(topSakan.sakan)}</div>
+        <div class="dash-mvp-name">${escapeHtml(formatTitleCase(topSakan.sakan))}</div>
         <div class="dash-mvp-score">${topSakan.avgCombined} <span>/100</span></div>
       </div>
-      <div class="dash-mvp-breakdown">
-        <span class="dash-mvp-sub-pill">Kebersihan: <strong>${topSakan.avgKeb}</strong></span>
-        <span class="dash-mvp-sub-pill">Disiplin: <strong>${topSakan.avgKed}</strong></span>
-        <span class="dash-mvp-sub-pill">Bahasa: <strong>${topSakan.avgBah}</strong></span>
+      <div class="dash-mvp-tiles">
+        <div class="dash-mvp-tile">
+          <span class="dash-mvp-tile-label">Kebersihan</span>
+          <strong class="dash-mvp-tile-val">${topSakan.avgKeb}</strong>
+        </div>
+        <div class="dash-mvp-tile">
+          <span class="dash-mvp-tile-label">Kedisiplinan</span>
+          <strong class="dash-mvp-tile-val">${topSakan.avgKed}</strong>
+        </div>
+        <div class="dash-mvp-tile">
+          <span class="dash-mvp-tile-label">Bahasa</span>
+          <strong class="dash-mvp-tile-val">${topSakan.avgBah}</strong>
+        </div>
       </div>
     </div>
   `;
 
-  // Runner-Up #2 dan #3
+  // Runner-Up #2 dan #3 (Unified Ledger Table, No Box-in-Box)
   const runnerUps = listRekap.slice(1, 3).filter(r => r.jumlah > 0);
   if (runnerUps.length > 0) {
-    html += '<div style="display:flex; flex-direction:column; gap:6px;">';
+    html += '<div class="dash-runner-ledger">';
     runnerUps.forEach((r, idx) => {
       const rankNum = r.rank || (idx + 2);
       html += `
-        <div class="dash-runnerup-item">
-          <div class="dash-runnerup-left">
-            <span class="dash-rank-badge rank-${rankNum}">${rankNum}</span>
-            <span class="dash-runnerup-name">${escapeHtml(r.sakan)}</span>
+        <div class="dash-runner-row">
+          <div class="dash-runner-left">
+            <span class="dash-runner-rank">${rankNum}</span>
+            <span class="dash-runner-name">${escapeHtml(formatTitleCase(r.sakan))}</span>
           </div>
-          <span class="dash-runnerup-score">Avg ${r.avgCombined}</span>
+          <span class="dash-runner-score">Avg ${r.avgCombined}</span>
         </div>
       `;
     });
@@ -771,7 +957,7 @@ function renderDashKlasemenWidget(listRekap, topSakan) {
   });
   if (countTotal > 0) {
     const globalAvg = (totalScore / countTotal).toFixed(1);
-    html += `<div class="dash-avg-summary">Rata-rata kebaikan seluruh sakan: <strong>${globalAvg}</strong></div>`;
+    html += `<div class="dash-ledger-footer">${svgIcon('award', 13)} <span>Rata-rata kebaikan seluruh sakan: <strong>${globalAvg}</strong></span></div>`;
   }
 
   container.innerHTML = html;
@@ -781,81 +967,152 @@ function renderDashTurnamenWidget(liveMatch, jadwalList, hasilList) {
   const container = document.getElementById("dashTurnamenContent");
   if (!container) return;
 
+  const matchesToShow = [];
+
   if (liveMatch) {
+    matchesToShow.push({ match: liveMatch, type: 'live' });
+    if (jadwalList.length > 0) {
+      matchesToShow.push({ match: jadwalList[0], type: 'scheduled' });
+    } else if (hasilList.length > 0) {
+      matchesToShow.push({ match: hasilList[0], type: 'result' });
+    }
+  } else if (jadwalList.length > 0) {
+    matchesToShow.push({ match: jadwalList[0], type: 'scheduled' });
+    if (jadwalList.length > 1) {
+      matchesToShow.push({ match: jadwalList[1], type: 'scheduled' });
+    } else if (hasilList.length > 0) {
+      matchesToShow.push({ match: hasilList[0], type: 'result' });
+    }
+  } else if (hasilList.length > 0) {
+    matchesToShow.push({ match: hasilList[0], type: 'result' });
+    if (hasilList.length > 1) {
+      matchesToShow.push({ match: hasilList[1], type: 'result' });
+    }
+  }
+
+  if (matchesToShow.length === 0) {
     container.innerHTML = `
-      <div class="dash-match-box live">
-        <div class="dash-match-meta">
-          <span><span class="dash-live-dot"></span><strong style="color:var(--clay);">SEDANG BERMAIN</strong> • ${escapeHtml(liveMatch.round || "Pertandingan")}</span>
-          <span>${svgIcon('map-pin', 12)} ${escapeHtml(liveMatch.lokasi || "Lapangan")}</span>
-        </div>
-        <div class="dash-match-teams-row">
-          <span class="dash-match-team">${escapeHtml(liveMatch.timA)}</span>
-          <span class="dash-match-score-badge">${liveMatch.skorA != null && liveMatch.skorA !== '' ? liveMatch.skorA : '0'} - ${liveMatch.skorB != null && liveMatch.skorB !== '' ? liveMatch.skorB : '0'}</span>
-          <span class="dash-match-team right">${escapeHtml(liveMatch.timB)}</span>
-        </div>
-        <div style="font-size:11.5px; color:var(--ink-faint); text-align:center;">
-          Pertandingan bola sedang berlangsung saat ini.
-        </div>
+      <div class="dash-empty-state">
+        <div class="dash-empty-icon">${svgIcon('soccer', 32)}</div>
+        <p>Belum ada jadwal pertandingan bola yang aktif.</p>
+        <button class="btn btn-ghost" style="font-size:12px; margin-top:8px;" onclick="switchView('liga')">Buka Bagan Turnamen</button>
       </div>
     `;
     return;
   }
 
-  if (jadwalList.length > 0) {
-    const nextMatch = jadwalList[0];
-    const st = eventStatus(nextMatch.tanggal);
-    container.innerHTML = `
-      <div class="dash-match-box">
-        <div class="dash-match-meta">
-          <span><strong>${escapeHtml(nextMatch.round || "Laga")}</strong> ${renderSyncBadge(nextMatch._syncStatus, nextMatch._syncId, nextMatch._syncError)} • ${svgIcon('calendar', 12)} ${formatTanggal(nextMatch.tanggal)}${nextMatch.waktu ? ' • ' + svgIcon('clock', 12) + ' ' + escapeHtml(nextMatch.waktu) : ''}</span>
-          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:${st.cls === 'today' ? 'var(--gold-deep)' : 'var(--green-subtle)'}; color:${st.cls === 'today' ? '#fff' : 'var(--green-ok)'}; border:1px solid ${st.cls === 'today' ? 'transparent' : 'var(--green-border)'};">
-            ${st.label}
-          </span>
+  let html = '';
+  matchesToShow.forEach(({ match, type }) => {
+    const isLive = type === 'live';
+    const isComplete = type === 'result';
+    const sA = Number(match.skorA);
+    const sB = Number(match.skorB);
+    const isAWin = isComplete && !isNaN(sA) && !isNaN(sB) && sA > sB;
+    const isBWin = isComplete && !isNaN(sA) && !isNaN(sB) && sB > sA;
+
+    const initialA = getTeamInitial(match.timA);
+    const initialB = getTeamInitial(match.timB);
+    const nameA = escapeHtml(formatTitleCase(match.timA));
+    const nameB = escapeHtml(formatTitleCase(match.timB));
+    const venueName = escapeHtml(match.lokasi || "Lapangan Pesantren");
+
+    if (type === 'live') {
+      html += `
+        <div class="dash-match-box live">
+          <div class="dash-match-meta">
+            <span class="dash-match-round-tag"><span class="dash-live-dot"></span>${escapeHtml(formatTitleCase(match.round || "Pertandingan"))} ${renderSyncBadge(match._syncStatus, match._syncId, match._syncError)}</span>
+            <span class="dash-match-status-badge live"><span class="dash-live-dot" style="background:#fff;"></span>Sedang Main</span>
+          </div>
+          <div class="dash-match-arena">
+            <div class="dash-match-team-col">
+              <div class="dash-match-avatar">${initialA}</div>
+              <div class="dash-match-team-name">${nameA}</div>
+            </div>
+            <div class="dash-match-center-pillar">
+              <div class="dash-match-score-pill">
+                <div class="dash-match-score-val">${match.skorA != null && match.skorA !== '' ? match.skorA : '0'} - ${match.skorB != null && match.skorB !== '' ? match.skorB : '0'}</div>
+                <div class="dash-match-score-lbl">LIVE</div>
+              </div>
+            </div>
+            <div class="dash-match-venue-sub" title="${venueName}">
+              ${svgIcon('map-pin', 11)} <span>${venueName}</span>
+            </div>
+            <div class="dash-match-team-col right">
+              <div class="dash-match-avatar">${initialB}</div>
+              <div class="dash-match-team-name">${nameB}</div>
+            </div>
+          </div>
         </div>
-        <div class="dash-match-teams-row">
-          <span class="dash-match-team">${escapeHtml(nextMatch.timA)}</span>
-          <span class="dash-match-vs">VS</span>
-          <span class="dash-match-team right">${escapeHtml(nextMatch.timB)}</span>
+      `;
+    } else if (type === 'scheduled') {
+      const st = eventStatus(match.tanggal);
+      const cleanWaktu = match.waktu ? match.waktu.replace(/\s*WIB/i, '').trim() : '15:30';
+      const timeSubLbl = st.cls === 'today' ? 'WIB' : formatShortDate(match.tanggal);
+
+      html += `
+        <div class="dash-match-box">
+          <div class="dash-match-meta">
+            <span class="dash-match-round-tag">${escapeHtml(formatTitleCase(match.round || "Pertandingan"))} ${renderSyncBadge(match._syncStatus, match._syncId, match._syncError)}</span>
+            <span class="dash-match-status-badge ${st.cls}">${st.label}</span>
+          </div>
+          <div class="dash-match-arena">
+            <div class="dash-match-team-col">
+              <div class="dash-match-avatar">${initialA}</div>
+              <div class="dash-match-team-name">${nameA}</div>
+            </div>
+            <div class="dash-match-center-pillar">
+              <div class="dash-match-time-pill">
+                <div class="dash-match-time-val">${cleanWaktu}</div>
+                <div class="dash-match-time-lbl">${timeSubLbl}</div>
+              </div>
+            </div>
+            <div class="dash-match-venue-sub" title="${venueName}">
+              ${svgIcon('map-pin', 11)} <span>${venueName}</span>
+            </div>
+            <div class="dash-match-team-col right">
+              <div class="dash-match-avatar">${initialB}</div>
+              <div class="dash-match-team-name">${nameB}</div>
+            </div>
+          </div>
         </div>
-        <div style="font-size:11.5px; color:var(--ink-faint); display:flex; justify-content:space-between; align-items:center;">
-          <span>${svgIcon('map-pin', 12)} ${escapeHtml(nextMatch.lokasi || "Lapangan Pesantren")}</span>
-          ${jadwalList.length > 1 ? `<span style="font-size:11px; color:var(--gold); font-weight:600;">+${jadwalList.length - 1} laga lainnya</span>` : ''}
+      `;
+    } else if (type === 'result') {
+      html += `
+        <div class="dash-match-box">
+          <div class="dash-match-meta">
+            <span class="dash-match-round-tag">${escapeHtml(formatTitleCase(match.round || "Hasil Laga"))} ${renderSyncBadge(match._syncStatus, match._syncId, match._syncError)}</span>
+            <span class="dash-match-status-badge past">Selesai</span>
+          </div>
+          <div class="dash-match-arena">
+            <div class="dash-match-team-col">
+              <div class="dash-match-avatar ${isAWin ? 'winner-av' : ''}">${initialA}</div>
+              <div class="dash-match-team-name ${isAWin ? 'winner' : (isBWin ? 'loser' : '')}">${nameA}</div>
+            </div>
+            <div class="dash-match-center-pillar">
+              <div class="dash-match-score-pill">
+                <div class="dash-match-score-val">${match.skorA} - ${match.skorB}</div>
+                <div class="dash-match-score-lbl">FT</div>
+              </div>
+            </div>
+            <div class="dash-match-venue-sub" title="${venueName}">
+              ${svgIcon('map-pin', 11)} <span>${venueName}</span>
+            </div>
+            <div class="dash-match-team-col right">
+              <div class="dash-match-avatar ${isBWin ? 'winner-av' : ''}">${initialB}</div>
+              <div class="dash-match-team-name ${isBWin ? 'winner' : (isAWin ? 'loser' : '')}">${nameB}</div>
+            </div>
+          </div>
         </div>
-      </div>
-    `;
-    return;
+      `;
+    }
+  });
+
+  const remainingScheduled = jadwalList.length - matchesToShow.filter(m => m.type === 'scheduled').length;
+  if (remainingScheduled > 0) {
+    html += `<div class="dash-avg-summary" style="padding-top:2px;">+${remainingScheduled} jadwal laga lainnya di bagan</div>`;
   }
 
-  if (hasilList.length > 0) {
-    const last = hasilList[0];
-    container.innerHTML = `
-      <div class="dash-match-box">
-        <div class="dash-match-meta">
-          <span><strong>${escapeHtml(last.round || "Hasil Terakhir")}</strong> ${renderSyncBadge(last._syncStatus, last._syncId, last._syncError)} • ${formatTanggal(last.tanggal)}</span>
-          <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--parchment-dim); color:var(--ink-faint);">
-            SELESAI
-          </span>
-        </div>
-        <div class="dash-match-teams-row">
-          <span class="dash-match-team">${escapeHtml(last.timA)}</span>
-          <span class="dash-match-score-badge">${last.skorA} - ${last.skorB}</span>
-          <span class="dash-match-team right">${escapeHtml(last.timB)}</span>
-        </div>
-        <div style="font-size:11.5px; color:var(--ink-faint); text-align:center;">
-          Pertandingan terakhir telah rampung.
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="dash-empty-state">
-      <div class="dash-empty-icon">${svgIcon('soccer', 32)}</div>
-      <p>Belum ada jadwal pertandingan bola yang aktif.</p>
-      <button class="btn btn-ghost" style="font-size:12px; margin-top:8px;" onclick="switchView('liga')">Buka Bagan Turnamen</button>
-    </div>
-  `;
+  container.innerHTML = html;
 }
 
 function renderDashEventWidget(upcomingEvents, listEvent) {
@@ -952,7 +1209,7 @@ function renderKlasemen(){
   } else {
     pod.innerHTML = '<div class="podium">' + podiumData.slots.map(s => 
       '<div class="podium-slot ' + s.cssClass + '">' +
-        '<div class="name">' + escapeHtml(s.sakan) + '</div>' +
+        '<div class="name">' + escapeHtml(formatTitleCase(s.sakan)) + '</div>' +
         '<div class="pts">Avg: ' + s.score + '</div>' +
         '<div class="podium-block">' + s.rank + '</div>' +
       '</div>'
@@ -972,7 +1229,7 @@ function renderKlasemen(){
 
       const sakanEsc = item.sakan.replace(/'/g, "\\'");
       const syncBadge = renderSyncBadge(item._syncStatus, item._syncId, item._syncError);
-      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(item.sakan) + (syncBadge ? ' ' + syncBadge : '') + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
+      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(formatTitleCase(item.sakan)) + (syncBadge ? ' ' + syncBadge : '') + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
     }).join("");
   }
   
@@ -983,7 +1240,7 @@ function renderKlasemen(){
       const syncBadge = renderSyncBadge(r._syncStatus, r._syncId, r._syncError);
       return '<tr>'+
       '<td class="center"><span class="rank-num">'+(i+1)+'</span></td>'+
-      '<td class="sakan-name">'+escapeHtml(r.sakan) + (syncBadge ? ' ' + syncBadge : '') +'</td>'+
+      '<td class="sakan-name">'+escapeHtml(formatTitleCase(r.sakan)) + (syncBadge ? ' ' + syncBadge : '') +'</td>'+
       '<td class="center">'+r.jumlah+'×</td>'+
       '<td class="center"><span class="pill">'+r.avgKeb+'</span></td>'+
       '<td class="center"><span class="pill">'+r.avgKed+'</span></td>'+
@@ -995,22 +1252,63 @@ function renderKlasemen(){
 }
 
 function getActiveGedungList() {
-  if (!Array.isArray(dataGedung) || dataGedung.length === 0) return [];
-  return dataGedung
-    .filter(g => g && (typeof g === "string" || (g.nama && String(g.nama).trim())))
-    .map(g => {
-      if (typeof g === "string") {
-        return { id: g.toLowerCase().replace(/\s+/g, '-'), nama: g.trim(), urutan: 999, aktif: true };
-      }
-      return {
-        id: g.id || String(g.nama).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-        nama: String(g.nama).trim(),
-        urutan: Number(g.urutan) || 999,
-        aktif: g.aktif !== false && String(g.aktif).toLowerCase() !== "false"
-      };
-    })
-    .filter(g => g.aktif)
-    .sort((a, b) => a.urutan - b.urutan);
+  if (Array.isArray(dataGedung) && dataGedung.length > 0) {
+    const list = dataGedung
+      .filter(g => g && (typeof g === "string" || (g.nama && String(g.nama).trim())))
+      .map(g => {
+        if (typeof g === "string") {
+          return { id: g.toLowerCase().replace(/\s+/g, '-'), nama: g.trim(), urutan: 999, aktif: true };
+        }
+        return {
+          id: g.id || String(g.nama).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+          nama: String(g.nama).trim(),
+          urutan: Number(g.urutan) || 999,
+          aktif: g.aktif !== false && String(g.aktif).toLowerCase() !== "false"
+        };
+      })
+      .filter(g => g.aktif)
+      .sort((a, b) => a.urutan - b.urutan);
+    if (list.length > 0) return list;
+  }
+
+  // Fallback 1: Ekstrak dari master sakan yang memiliki atribut gedung
+  const sakanRaw = typeof dataSakan !== "undefined" && Array.isArray(dataSakan) ? dataSakan : [];
+  const fromSakan = [...new Set(sakanRaw.map(s => s && s.gedung ? String(s.gedung).trim() : '').filter(Boolean))];
+  if (fromSakan.length > 0) {
+    return fromSakan.sort().map((nama, idx) => ({
+      id: nama.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      nama,
+      urutan: idx + 1,
+      aktif: true
+    }));
+  }
+
+  // Fallback 2: Ekstrak dari riwayat turnamen liga (tim turnamen adalah gedung)
+  const ligaList = typeof store !== "undefined" && store.getLiga ? store.getLiga() : [];
+  if (Array.isArray(ligaList) && ligaList.length > 0) {
+    const teams = new Set();
+    ligaList.forEach(m => {
+      if (m.timA && String(m.timA).trim()) teams.add(String(m.timA).trim());
+      if (m.timB && String(m.timB).trim()) teams.add(String(m.timB).trim());
+    });
+    if (teams.size > 0) {
+      return [...teams].sort().map((nama, idx) => ({
+        id: nama.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        nama,
+        urutan: idx + 1,
+        aktif: true
+      }));
+    }
+  }
+
+  // Fallback 3: Gedung kota peradaban Islam standar
+  const defaultGedung = ['QAZVIN', 'NAISABUR', 'BUKHARA', 'HAMADAN', 'TIRMIDZ', 'SIJISTAN'];
+  return defaultGedung.map((nama, idx) => ({
+    id: nama.toLowerCase(),
+    nama,
+    urutan: idx + 1,
+    aktif: true
+  }));
 }
 
 function getActiveSakanList() {
@@ -1050,11 +1348,30 @@ function getActiveSakanList() {
 function renderSakanPills() {
   const container = document.getElementById("pubSakanPills");
   if (!container) return;
-  const list = getActiveSakanList();
-  container.innerHTML = list.map(s => {
-    const sub = s.gedung ? ' <span style="opacity:.6; font-size:11px;">(' + escapeHtml(s.gedung) + ')</span>' : '';
-    return '<div class="pub-pill">' + escapeHtml(s.nama) + sub + '</div>';
+  const list = getActiveGedungList();
+  if (!list.length) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = list.map(g => {
+    const nameFormatted = formatTitleCase(g.nama);
+    const initial = nameFormatted.charAt(0).toUpperCase();
+    return `
+      <div class="pub-pill" onclick="filterKlasemenByGedung('${escapeHtml(g.nama)}')" title="Lihat klasemen asrama di Gedung ${escapeHtml(nameFormatted)}">
+        <span class="pub-pill-dot">${initial}</span>
+        <span>${escapeHtml(nameFormatted)}</span>
+      </div>
+    `;
   }).join('');
+}
+
+function filterKlasemenByGedung(gedungName) {
+  if (typeof switchView === "function") switchView("klasemen");
+  const search = document.getElementById("searchInput");
+  if (search) {
+    search.value = formatTitleCase(gedungName);
+    if (typeof renderKlasemen === "function") renderKlasemen();
+  }
 }
 
 function fillSakanSelect() {
@@ -1218,13 +1535,13 @@ function populateBulkTable() {
           ${sub}
         </td>
         <td>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" class="bulk-keb" min="0" max="100" placeholder="–" value="${valKeb}" oninput="onBulkInputChanged(this)">
+          <input type="text" inputmode="decimal" autocomplete="off" class="bulk-keb" placeholder="–" value="${valKeb}" oninput="onBulkInputChanged(this)">
         </td>
         <td>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" class="bulk-ked" min="0" max="100" placeholder="–" value="${valKed}" oninput="onBulkInputChanged(this)">
+          <input type="text" inputmode="decimal" autocomplete="off" class="bulk-ked" placeholder="–" value="${valKed}" oninput="onBulkInputChanged(this)">
         </td>
         <td>
-          <input type="number" inputmode="numeric" pattern="[0-9]*" class="bulk-bah" min="0" max="100" placeholder="–" value="${valBah}" oninput="onBulkInputChanged(this)">
+          <input type="text" inputmode="decimal" autocomplete="off" class="bulk-bah" placeholder="–" value="${valBah}" oninput="onBulkInputChanged(this)">
         </td>
         <td class="center">
           <span class="bulk-row-avg">${avgText}</span>
@@ -1236,11 +1553,16 @@ function populateBulkTable() {
 
 function onBulkInputChanged(input) {
   if (!input) return;
-  input.value = input.value.replace(/[^0-9]/g, '');
-  const val = input.value.trim();
-  if (val !== '') {
-    const n = parseInt(val, 10);
-    if (n < 0 || n > 100) {
+  let val = input.value.replace(/[^0-9.,]/g, '');
+  const parts = val.split(/[.,]/);
+  if (parts.length > 2) {
+    val = parts[0] + '.' + parts.slice(1).join('');
+  }
+  input.value = val;
+  const trimmed = val.trim();
+  if (trimmed !== '' && trimmed !== '.' && trimmed !== ',') {
+    const n = parseFloat(trimmed.replace(',', '.'));
+    if (isNaN(n) || n < 0 || n > 100) {
       input.classList.add('invalid');
     } else {
       input.classList.remove('invalid');
@@ -1251,12 +1573,12 @@ function onBulkInputChanged(input) {
 
   const tr = input.closest('tr');
   if (!tr) return;
-  const keb = tr.querySelector('.bulk-keb').value.trim();
-  const ked = tr.querySelector('.bulk-ked').value.trim();
-  const bah = tr.querySelector('.bulk-bah').value.trim();
+  const keb = tr.querySelector('.bulk-keb').value.trim().replace(',', '.');
+  const ked = tr.querySelector('.bulk-ked').value.trim().replace(',', '.');
+  const bah = tr.querySelector('.bulk-bah').value.trim().replace(',', '.');
   const avgSpan = tr.querySelector('.bulk-row-avg');
 
-  const validVals = [keb, ked, bah].filter(v => v !== '').map(Number).filter(v => !isNaN(v) && v >= 0 && v <= 100);
+  const validVals = [keb, ked, bah].filter(v => v !== '' && !isNaN(Number(v))).map(Number).filter(v => v >= 0 && v <= 100);
   if (validVals.length > 0) {
     avgSpan.textContent = (validVals.reduce((a, b) => a + b, 0) / validVals.length).toFixed(1);
   } else {
@@ -1280,9 +1602,9 @@ async function simpanKlasemenBulk() {
 
   rows.forEach(tr => {
     const sakan = tr.getAttribute("data-sakan");
-    const keb = tr.querySelector(".bulk-keb").value.trim();
-    const ked = tr.querySelector(".bulk-ked").value.trim();
-    const bah = tr.querySelector(".bulk-bah").value.trim();
+    const keb = tr.querySelector(".bulk-keb").value.trim().replace(',', '.');
+    const ked = tr.querySelector(".bulk-ked").value.trim().replace(',', '.');
+    const bah = tr.querySelector(".bulk-bah").value.trim().replace(',', '.');
 
     entries.push({
       tanggal: t,
@@ -1317,7 +1639,6 @@ async function simpanKlasemenBulk() {
 
 async function hapusKlasemen(t,s){
   if(!confirm("Hapus data poin ini?"))return;
-  showToast("Menghapus data poin...");
   const res = await store.deleteKlasemen(t, s);
   if(res.status === "success"){
     renderKlasemen();
@@ -1367,22 +1688,22 @@ function renderligaMenu() {
         <div class="jadwal-match-card">
           <div class="jadwal-match-header">
             <div class="jadwal-meta-left">
-              <span class="jadwal-round-tag">${escapeHtml(m.round || "Pertandingan")}</span>
+              <span class="jadwal-round-tag">${escapeHtml(formatTitleCase(m.round || "Pertandingan"))}</span>
               ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}
               <div class="jadwal-meta-items">
-                <span class="jadwal-meta-item">${svgIcon('calendar', 13)} <span>${formatTanggal(m.tanggal)}</span></span>
-                ${m.waktu ? `<span class="jadwal-meta-item">${svgIcon('clock', 13)} <span>${escapeHtml(m.waktu)}</span></span>` : ''}
-                ${m.lokasi ? `<span class="jadwal-meta-item">${svgIcon('map-pin', 13)} <span>${escapeHtml(m.lokasi)}</span></span>` : ''}
+                <span class="jadwal-meta-item">${svgIcon('calendar', 12)} <span>${formatTanggal(m.tanggal)}</span></span>
+                ${m.waktu ? `<span class="jadwal-meta-item">${svgIcon('clock', 12)} <span>${escapeHtml(m.waktu)}</span></span>` : ''}
+                ${m.lokasi ? `<span class="jadwal-meta-item">${svgIcon('map-pin', 12)} <span>${escapeHtml(m.lokasi)}</span></span>` : ''}
               </div>
             </div>
             <span class="jadwal-status-badge ${isLive ? 'live' : st.cls}">
-              ${isLive ? '<span class="dash-live-dot"></span>SEDANG MAIN' : st.label}
+              ${isLive ? '<span class="dash-live-dot"></span>Sedang Main' : st.label}
             </span>
           </div>
           <div class="jadwal-match-teams">
-            <span style="flex:1; text-align:right; font-size:14px; font-weight:700;">${escapeHtml(m.timA)}</span>
-            <span class="pill" style="margin:0 12px; font-size:11px;">VS</span>
-            <span style="flex:1; text-align:left; font-size:14px; font-weight:700;">${escapeHtml(m.timB)}</span>
+            <span class="jadwal-match-team-a">${escapeHtml(formatTitleCase(m.timA))}</span>
+            <span class="jadwal-match-vs">vs</span>
+            <span class="jadwal-match-team-b">${escapeHtml(formatTitleCase(m.timB))}</span>
           </div>
           ${ce ? `
             <div class="jadwal-match-actions">
@@ -1425,7 +1746,7 @@ function renderligaMenu() {
             ${svgIcon('trophy', 26)}
           </div>
           <div class="champion-title">Juara Utama Liga Bola</div>
-          <div class="champion-name">${escapeHtml(bracket.champion)}</div>
+          <div class="champion-name">${escapeHtml(formatTitleCase(bracket.champion))}</div>
         </div>
       ` : `
         <div class="champion-box-pending" style="margin-top:14px;">
@@ -1450,9 +1771,9 @@ function renderligaMenu() {
     if (mt) {
       mt.innerHTML = hasilList.map(m => `
         <tr>
-          <td><span class="pill">${escapeHtml(m.round || "Penyisihan")}</span></td>
+          <td><span class="pill">${escapeHtml(formatTitleCase(m.round || "Penyisihan"))}</span></td>
           <td>${formatTanggal(m.tanggal)}</td>
-          <td>${escapeHtml(m.timA)} vs ${escapeHtml(m.timB)} ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}</td>
+          <td>${escapeHtml(formatTitleCase(m.timA))} vs ${escapeHtml(formatTitleCase(m.timB))} ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}</td>
           <td class="center"><span class="pill total">${m.skorA} - ${m.skorB}</span></td>
           ${ce ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Koreksi Skor" onclick="openScoreInputModal(\'' + m.id + '\')">' + svgIcon('edit', 14) + '</button><button class="icon-btn danger" title="Hapus" onclick="hapusMatch(\'' + m.id + '\')">' + svgIcon('trash', 14) + '</button></div></td>' : ''}
         </tr>
@@ -1467,7 +1788,7 @@ function renderligaMenu() {
         return `
           <div class="rekap-match-card">
             <div class="rekap-card-head">
-              <span class="pill">${escapeHtml(m.round || "Penyisihan")}</span>
+              <span class="pill">${escapeHtml(formatTitleCase(m.round || "Penyisihan"))}</span>
               ${renderSyncBadge(m._syncStatus, m._syncId, m._syncError)}
               <span class="rekap-card-date">${svgIcon('calendar', 12)} <span>${formatTanggal(m.tanggal)}</span></span>
             </div>
@@ -1475,14 +1796,14 @@ function renderligaMenu() {
               <div class="rekap-card-team ${isAWin ? 'winner' : (isBWin ? 'loser' : '')}">
                 <span class="rekap-team-label">
                   ${isAWin ? `<span class="winner-trophy-icon">${svgIcon('trophy', 13)}</span>` : ''}
-                  <span>${escapeHtml(m.timA)}</span>
+                  <span>${escapeHtml(formatTitleCase(m.timA))}</span>
                 </span>
                 <span class="rekap-team-score ${isBWin ? 'loser' : ''}">${m.skorA}</span>
               </div>
               <div class="rekap-card-team ${isBWin ? 'winner' : (isAWin ? 'loser' : '')}">
                 <span class="rekap-team-label">
                   ${isBWin ? `<span class="winner-trophy-icon">${svgIcon('trophy', 13)}</span>` : ''}
-                  <span>${escapeHtml(m.timB)}</span>
+                  <span>${escapeHtml(formatTitleCase(m.timB))}</span>
                 </span>
                 <span class="rekap-team-score ${isAWin ? 'loser' : ''}">${m.skorB}</span>
               </div>
@@ -1510,14 +1831,14 @@ function renderBracketMatchBox(m, ce, isFinal = false) {
       <div class="bracket-team ${isAWin ? 'winner' : (isBWin ? 'loser' : '')}">
         <span class="bracket-team-name">
           ${isFinal && isAWin ? `<span class="winner-trophy-icon" title="Juara">${svgIcon('trophy', 14)}</span>` : ''}
-          <span>${escapeHtml(m.timA)}</span>
+          <span>${escapeHtml(formatTitleCase(m.timA))}</span>
         </span>
         <span class="bracket-score ${isBWin ? 'loser' : ''}">${m.skorA}</span>
       </div>
       <div class="bracket-team ${isBWin ? 'winner' : (isAWin ? 'loser' : '')}">
         <span class="bracket-team-name">
           ${isFinal && isBWin ? `<span class="winner-trophy-icon" title="Juara">${svgIcon('trophy', 14)}</span>` : ''}
-          <span>${escapeHtml(m.timB)}</span>
+          <span>${escapeHtml(formatTitleCase(m.timB))}</span>
         </span>
         <span class="bracket-score ${isAWin ? 'loser' : ''}">${m.skorB}</span>
       </div>
@@ -1678,7 +1999,6 @@ async function simpanMatch() {
 
 async function hapusMatch(id) {
   if (!confirm("Hapus data pertandingan ini?")) return;
-  showToast("Menghapus pertandingan...");
   const res = await store.deleteMatch(id);
   if (res.status === "success") {
     renderligaMenu();
@@ -1845,7 +2165,6 @@ async function simpanEvent(){
 
 async function hapusEvent(id){
   if(!confirm("Hapus agenda/event ini?"))return;
-  showToast("Menghapus event...");
   const res = await store.deleteEvent(id);
   if(res.status === "success"){
     renderEvent();

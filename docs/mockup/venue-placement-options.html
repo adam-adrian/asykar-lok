@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eksplorasi Penempatan Info Lokasi - Opsi A</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      padding: 20px 16px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .var-title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 22px 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .var-tag {
+      font-family: var(--font-sans);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: var(--gold-subtle);
+      color: var(--gold-deep);
+    }
+    .var-desc {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+
+    /* Common Card Base */
+    .venue-card {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 13px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+    }
+    .venue-card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .venue-arena {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+    .venue-team {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .venue-team.right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+    .venue-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+    .venue-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      word-break: break-word;
+    }
+    .venue-pillar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      min-width: 62px;
+      text-align: center;
+    }
+    .venue-pillar-time {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .venue-pillar-sub {
+      font-size: 9.5px;
+      font-weight: 600;
+      color: var(--ink-faint);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Varian 1: Centered Micro-Footer (Panggung Laga) */
+    .venue-strip-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      padding-top: 8px;
+      border-top: 1px dashed var(--line-subtle);
+    }
+    .venue-strip-center .svg-icon {
+      width: 12px;
+      height: 12px;
+      color: var(--ink-faint);
+      opacity: 0.8;
+      flex-shrink: 0;
+    }
+
+    /* Varian 2: Inset Pill di Bawah */
+    .venue-pill-bottom {
+      display: flex;
+      justify-content: center;
+      padding-top: 2px;
+    }
+    .venue-capsule {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+    .venue-capsule .svg-icon {
+      width: 11px;
+      height: 11px;
+      color: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    /* Varian 3: Unified Single Chip di Eyebrow */
+    .venue-unified-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      padding: 2.5px 8px;
+      border-radius: var(--radius-sm);
+    }
+    .venue-unified-chip .svg-icon {
+      width: 11.5px;
+      height: 11.5px;
+      color: var(--ink-faint);
+      margin-left: 2px;
+      flex-shrink: 0;
+    }
+    .venue-chip-sep {
+      color: var(--line);
+      margin: 0 1px;
+    }
+
+    /* Varian 4: Subtitle Tepat di Bawah Pilar Tengah */
+    .venue-pillar-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .venue-center-subtext {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10.5px;
+      color: var(--ink-faint);
+      white-space: nowrap;
+      line-height: 1;
+    }
+    .venue-center-subtext .svg-icon {
+      width: 10px;
+      height: 10px;
+      color: var(--ink-faint);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div style="border-bottom: 1px solid var(--line); padding-bottom: 10px;">
+    <h1 style="font-family:var(--font-serif); font-size:18px; margin:0 0 4px 0;">Penempatan Info Lokasi</h1>
+    <p style="font-size:12px; color:var(--ink-soft); margin:0;">Memperbaiki info lokasi agar tidak 'misah sendiri' pada Opsi A</p>
+  </div>
+
+  <!-- ==================== VARIAN 1 ==================== -->
+  <div class="var-title">
+    <span>Varian 1: Centered Stage Bar di Bawah</span>
+    <span class="var-tag">Paling Bersih</span>
+  </div>
+  <div class="var-desc">
+    Eyebrow atas hanya untuk Round & Status. Lokasi dijadikan "panggung" di bawah matchup dengan garis pembatas halus rata tengah.
+  </div>
+
+  <div class="venue-card">
+    <div class="venue-card-meta">
+      <span style="font-size:11.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-subtle); border:1px solid var(--line-subtle); padding:2px 8px; border-radius:var(--radius-sm);">Semifinal</span>
+      <span class="dash-match-status-badge today">Hari Ini</span>
+    </div>
+    <div class="venue-arena">
+      <div class="venue-team">
+        <div class="venue-badge">U</div>
+        <div class="venue-name">Umar bin Khattab</div>
+      </div>
+      <div class="venue-pillar">
+        <div class="venue-pillar-time">15:30</div>
+        <div class="venue-pillar-sub">WIB</div>
+      </div>
+      <div class="venue-team right">
+        <div class="venue-badge">A</div>
+        <div class="venue-name">Ali bin Abi Thalib</div>
+      </div>
+    </div>
+    <div class="venue-strip-center">
+      <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+      <span>Lapangan Utama Pesantren</span>
+    </div>
+  </div>
+
+  <!-- ==================== VARIAN 2 ==================== -->
+  <div class="var-title">
+    <span>Varian 2: Unified Pill di Eyebrow</span>
+    <span class="var-tag">Satu Chip Utuh</span>
+  </div>
+  <div class="var-desc">
+    Babak dan lokasi digabung ke dalam SATU chip utuh, sehingga lokasi tidak mengambang tanpa wadah di tengah header.
+  </div>
+
+  <div class="venue-card">
+    <div class="venue-card-meta">
+      <div class="venue-unified-chip">
+        <span>Semifinal</span>
+        <span class="venue-chip-sep">•</span>
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Lapangan Utama</span>
+      </div>
+      <span class="dash-match-status-badge today">Hari Ini</span>
+    </div>
+    <div class="venue-arena">
+      <div class="venue-team">
+        <div class="venue-badge">U</div>
+        <div class="venue-name">Umar bin Khattab</div>
+      </div>
+      <div class="venue-pillar">
+        <div class="venue-pillar-time">15:30</div>
+        <div class="venue-pillar-sub">WIB</div>
+      </div>
+      <div class="venue-team right">
+        <div class="venue-badge">A</div>
+        <div class="venue-name">Ali bin Abi Thalib</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VARIAN 3 ==================== -->
+  <div class="var-title">
+    <span>Varian 3: Sub-keterangan di Bawah Center Pillar</span>
+    <span class="var-tag">Paling Kompak</span>
+  </div>
+  <div class="var-desc">
+    Lokasi ditaruh tepat di bawah box jam/skor di pilar tengah. Seluruh konteks 'kapan & di mana' terkumpul di tengah.
+  </div>
+
+  <div class="venue-card">
+    <div class="venue-card-meta">
+      <span style="font-size:11.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-subtle); border:1px solid var(--line-subtle); padding:2px 8px; border-radius:var(--radius-sm);">Semifinal</span>
+      <span class="dash-match-status-badge today">Hari Ini</span>
+    </div>
+    <div class="venue-arena">
+      <div class="venue-team">
+        <div class="venue-badge">U</div>
+        <div class="venue-name">Umar bin Khattab</div>
+      </div>
+      <div class="venue-pillar-group">
+        <div class="venue-pillar">
+          <div class="venue-pillar-time">15:30</div>
+          <div class="venue-pillar-sub">WIB</div>
+        </div>
+        <div class="venue-center-subtext">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Lap. Utama</span>
+        </div>
+      </div>
+      <div class="venue-team right">
+        <div class="venue-badge">A</div>
+        <div class="venue-name">Ali bin Abi Thalib</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== VARIAN 4 ==================== -->
+  <div class="var-title">
+    <span>Varian 4: Pill Kapsul Lapangan di Bawah</span>
+    <span class="var-tag">Badge Mandiri</span>
+  </div>
+  <div class="var-desc">
+    Lokasi disajikan sebagai kapsul mandiri di bagian bawah tengah tanpa garis batas penuh.
+  </div>
+
+  <div class="venue-card">
+    <div class="venue-card-meta">
+      <span style="font-size:11.5px; font-weight:700; color:var(--ink-soft); background:var(--surface-subtle); border:1px solid var(--line-subtle); padding:2px 8px; border-radius:var(--radius-sm);">Semifinal</span>
+      <span class="dash-match-status-badge today">Hari Ini</span>
+    </div>
+    <div class="venue-arena">
+      <div class="venue-team">
+        <div class="venue-badge">U</div>
+        <div class="venue-name">Umar bin Khattab</div>
+      </div>
+      <div class="venue-pillar">
+        <div class="venue-pillar-time">15:30</div>
+        <div class="venue-pillar-sub">WIB</div>
+      </div>
+      <div class="venue-team right">
+        <div class="venue-badge">A</div>
+        <div class="venue-name">Ali bin Abi Thalib</div>
+      </div>
+    </div>
+    <div class="venue-pill-bottom">
+      <div class="venue-capsule">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Lapangan Utama Pesantren</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
