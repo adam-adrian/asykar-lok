@@ -125,6 +125,15 @@
     }
   }
 
+  function safeStorageRemove(key) {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      localStorage.removeItem(key);
+    } catch (e) {
+      // Ignored
+    }
+  }
+
   /**
    * Core Deep Module: DataStore
    */
@@ -292,6 +301,9 @@
           found._syncStatus = status;
           found._syncError = error;
           found._syncId = syncId;
+          if (status === 'synced' && found.fotoBase64) {
+            delete found.fotoBase64;
+          }
         }
         safeStorageSet(STORAGE_KEYS.EVENT, this.state.event);
       }
@@ -718,10 +730,11 @@
       // Bersihkan pending delete_event untuk ID yang sama jika ada (re-create)
       this.outbox = this.outbox.filter(o => !(o.entity === 'event' && o.action === 'delete_event' && String(o.payload.id) === eventIdStr));
 
-      // 1. Optimistic Local Commit
+      // 1. Optimistic Local Commit (hindari duplikasi fotoBase64 di cache lokal)
       const idx = this.state.event.findIndex(i => String(i.id) === eventIdStr);
+      const { fotoBase64, ...eventForState } = eventObj;
       const entryToSave = {
-        ...eventObj,
+        ...eventForState,
         _syncStatus: 'pending',
         _syncId: syncId,
         _syncError: null
@@ -760,7 +773,29 @@
 
       return { status: 'success', optimistic: true, syncId };
     }
+    /**
+     * Bersihkan seluruh cache data lokal dan outbox dari localStorage & memory.
+     * Dipanggil saat logout untuk menjamin zero credential/data leak di shared device.
+     */
+    clearLocalData() {
+      this.authToken = '';
+      this.outbox = [];
+      safeStorageRemove(STORAGE_KEYS.OUTBOX);
+      safeStorageRemove(STORAGE_KEYS.KLASEMEN);
+      safeStorageRemove(STORAGE_KEYS.LIGA);
+      safeStorageRemove(STORAGE_KEYS.EVENT);
+      safeStorageRemove(STORAGE_KEYS.GEDUNG);
+      safeStorageRemove(STORAGE_KEYS.SAKAN);
+      this.state.klasemen = [];
+      this.state.liga = [];
+      this.state.event = [];
+      this.state.gedung = [];
+      this.state.sakan = [];
+      this._setSyncStatus('online', 'Siap');
+      this._notify();
+    }
   }
+
 
   return {
     STORAGE_KEYS,

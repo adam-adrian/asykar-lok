@@ -243,6 +243,7 @@ describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () =
     assert.equal(adapter.pushedActions.length, 1);
     assert.equal(adapter.pushedActions[0].action, 'save_event');
     assert.equal(adapter.pushedActions[0].authToken, 'evt_token');
+    assert.equal(store.getEvents()[0].fotoBase64, undefined, 'fotoBase64 tidak boleh disimpan di state.event');
 
     // 2. Update event yang sudah ada
     await store.saveEvent({
@@ -258,6 +259,24 @@ describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () =
     assert.equal(store.getEvents()[0].waktu, '20:00');
     assert.equal(store.getEvents()[0].judul, 'Kajian Rutin Adab Santri (Diundur)');
     assert.equal(adapter.pushedActions.length, 2);
+  });
+
+  test('clearLocalData: mengosongkan outbox, authToken, dan reset state in-memory saat logout', async () => {
+    const adapter = new InMemoryTransportAdapter();
+    adapter.failNextPush = true; // Biarkan outbox terisi
+    const store = new DataStore(adapter);
+    store.init('token_secret_123');
+
+    await store.saveMatch({ id: 'm-pending', timA: 'A', timB: 'B' });
+    assert.equal(store.getOutbox().length, 1);
+    assert.equal(store.getMatches().length, 1);
+
+    store.clearLocalData();
+    assert.equal(store.authToken, '');
+    assert.equal(store.getOutbox().length, 0);
+    assert.equal(store.getMatches().length, 0);
+    assert.equal(store.getKlasemen().length, 0);
+    assert.equal(store.getEvents().length, 0);
   });
 
   test('retryAllFailed: mutasi massal yang berstatus failed berhasil diulang kembali saat jaringan pulih', async () => {

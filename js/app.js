@@ -606,15 +606,13 @@ function forceLogout(message) {
   currentLabel = "Tamu";
   currentAuthToken = "";
   clearSession();
-  store.setAuthToken("");
+  clearImageUpload();
+  store.clearLocalData();
   applyUserSessionUI();
   if (message) showToast(message, true);
 
-  // Refresh tampilan aktif agar tombol aksi admin tersembunyi
-  if (currentView === "klasemen") renderKlasemen();
-  else if (currentView === "liga") renderligaMenu();
-  else if (currentView === "event") renderEvent();
-  else if (currentView === "homepage") renderDashboard();
+  // Tarik ulang data publik bersih dari server
+  syncDataFromCloud();
 }
 
 function logout() {
