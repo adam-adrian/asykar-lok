@@ -456,10 +456,8 @@ function doPost(e) {
         const folderId = getFolderId();
         if (payload.fotoBase64) {
           fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
-        } else if (payload.foto) {
+        } else if (payload.foto !== undefined && payload.foto !== null) {
           fotoUrl = payload.foto;
-        } else if (payload.foto === "" || payload.foto === null) {
-          fotoUrl = "";
         } else if (rowIndex > -1) {
           fotoUrl = existingFoto;
         }

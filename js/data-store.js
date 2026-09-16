@@ -192,23 +192,23 @@
     }
 
     getKlasemen() {
-      return this.state.klasemen;
+      return Array.isArray(this.state.klasemen) ? [...this.state.klasemen] : [];
     }
 
     getMatches() {
-      return this.state.liga;
+      return Array.isArray(this.state.liga) ? [...this.state.liga] : [];
     }
 
     getEvents() {
-      return this.state.event;
+      return Array.isArray(this.state.event) ? [...this.state.event] : [];
     }
 
     getGedung() {
-      return this.state.gedung;
+      return Array.isArray(this.state.gedung) ? [...this.state.gedung] : [];
     }
 
     getSakan() {
-      return this.state.sakan;
+      return Array.isArray(this.state.sakan) ? [...this.state.sakan] : [];
     }
 
     getOutbox() {
@@ -732,7 +732,7 @@
 
       // 1. Optimistic Local Commit (hindari duplikasi fotoBase64 di cache lokal)
       const idx = this.state.event.findIndex(i => String(i.id) === eventIdStr);
-      const { fotoBase64, ...eventForState } = eventObj;
+      const { fotoBase64: _fotoBase64, ...eventForState } = eventObj;
       const entryToSave = {
         ...eventForState,
         _syncStatus: 'pending',

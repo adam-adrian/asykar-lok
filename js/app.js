@@ -43,47 +43,7 @@ let currentView="homepage";
 let editingKlasemenKey=null;
 let tempBase64Image = "";
 
-// State proxy bridges untuk menjamin kompatibilitas fungsi legacy
-Object.defineProperty(window, 'dataKlasemen', {
-  get: () => store.getKlasemen(),
-  set: (val) => { store.state.klasemen = val; }
-});
-Object.defineProperty(window, 'dataLiga', {
-  get: () => store.getMatches(),
-  set: (val) => { store.state.liga = val; }
-});
-Object.defineProperty(window, 'dataEvent', {
-  get: () => store.getEvents(),
-  set: (val) => { store.state.event = val; }
-});
-Object.defineProperty(window, 'dataGedung', {
-  get: () => store.getGedung(),
-  set: (val) => { store.state.gedung = val; }
-});
-Object.defineProperty(window, 'dataSakan', {
-  get: () => store.getSakan(),
-  set: (val) => { store.state.sakan = val; }
-});
-
-const KEY_DATA="lok-klasemen-v5", KEY_LIGA="lok-liga-v5", KEY_EVENT="lok-event-v5", KEY_SESSION="lok-session-v5";
-
-/* ===== LOCAL STORAGE HELPERS ===== */
-function loadData(key) {
-  try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : [];
-  } catch (e) {
-    console.error('Gagal membaca localStorage:', e);
-    return [];
-  }
-}
-function saveData(key, data) {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {
-    console.error('Gagal menulis localStorage:', e);
-  }
-}
+const KEY_SESSION = "lok-session-v5";
 const SESSION_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6 Jam batas usia sesi login admin
 
 function loadSession() {
@@ -123,8 +83,6 @@ function checkSessionExpiry() {
     }
   }
 }
-window.addEventListener("focus", checkSessionExpiry);
-setInterval(checkSessionExpiry, 5 * 60 * 1000);
 function clearSession() {
   try {
     sessionStorage.removeItem(KEY_SESSION);
@@ -140,7 +98,7 @@ function normalizeDateStr(val){
   if(!val) return "";
   let s = String(val).trim();
   if(s.includes("T")) s = s.split("T")[0];
-  s = s.replace(/[\/\.]/g, "-");
+  s = s.replace(/[/.]/g, "-");
   
   // Tangani format DD-MM-YYYY -> YYYY-MM-DD
   const ddmmyyyy = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(s);
@@ -937,7 +895,7 @@ function renderDashboard() {
   }
 
   // 5. Data & Metrik Agenda Event
-  const listEvent = [...dataEvent].sort((a, b) => (String(a.tanggal || '') + String(a.waktu || '')).localeCompare(String(b.tanggal || '') + String(b.waktu || '')));
+  const listEvent = store.getEvents().sort((a, b) => (String(a.tanggal || '') + String(a.waktu || '')).localeCompare(String(b.tanggal || '') + String(b.waktu || '')));
   const upcomingEvents = listEvent.filter(e => {
     const st = eventStatus(e.tanggal);
     return st.cls === "today" || st.cls === "upcoming";
@@ -989,7 +947,7 @@ function renderDashKlasemenWidget(listRekap, topSakan) {
   const container = document.getElementById("dashKlasemenContent");
   if (!container) return;
 
-  const hasValidData = listRekap.length > 0 && listRekap.some(r => r.jumlah > 0);
+  const hasValidData = listRekap.some(r => r.jumlah > 0);
 
   if (!hasValidData) {
     container.innerHTML = `
@@ -1282,7 +1240,7 @@ function renderDashEventWidget(upcomingEvents, listEvent) {
    MODUL 1: KLASEMEN KEBAIKAN
    ========================================================================= */
 function findKlasemenRecord(tanggal, sakan) {
-  return dataKlasemen.find(i => i.tanggal === tanggal && i.sakan === sakan);
+  return store.getKlasemen().find(i => i.tanggal === tanggal && i.sakan === sakan);
 }
 
 function resetFilter() {
@@ -1356,8 +1314,9 @@ function renderKlasemen(){
 }
 
 function getActiveGedungList() {
-  if (Array.isArray(dataGedung) && dataGedung.length > 0) {
-    const list = dataGedung
+  const gedungData = store.getGedung();
+  if (Array.isArray(gedungData) && gedungData.length > 0) {
+    const list = gedungData
       .filter(g => g && (typeof g === "string" || (g.nama && String(g.nama).trim())))
       .map(g => {
         if (typeof g === "string") {
@@ -1376,7 +1335,7 @@ function getActiveGedungList() {
   }
 
   // Fallback 1: Ekstrak dari master sakan yang memiliki atribut gedung
-  const sakanRaw = typeof dataSakan !== "undefined" && Array.isArray(dataSakan) ? dataSakan : [];
+  const sakanRaw = store.getSakan();
   const fromSakan = [...new Set(sakanRaw.map(s => s && s.gedung ? String(s.gedung).trim() : '').filter(Boolean))];
   if (fromSakan.length > 0) {
     return fromSakan.sort().map((nama, idx) => ({
@@ -1388,7 +1347,7 @@ function getActiveGedungList() {
   }
 
   // Fallback 2: Ekstrak dari riwayat turnamen liga (tim turnamen adalah gedung)
-  const ligaList = typeof store !== "undefined" && store.getLiga ? store.getLiga() : [];
+  const ligaList = store.getMatches();
   if (Array.isArray(ligaList) && ligaList.length > 0) {
     const teams = new Set();
     ligaList.forEach(m => {
@@ -1416,8 +1375,9 @@ function getActiveGedungList() {
 }
 
 function getActiveSakanList() {
-  if (Array.isArray(dataSakan) && dataSakan.length > 0) {
-    return dataSakan
+  const sakanData = store.getSakan();
+  if (Array.isArray(sakanData) && sakanData.length > 0) {
+    return sakanData
       .filter(s => s && (typeof s === "string" || (s.nama && String(s.nama).trim())))
       .map(s => {
         if (typeof s === "string") {
@@ -1434,8 +1394,8 @@ function getActiveSakanList() {
       .filter(s => s.aktif)
       .sort((a, b) => a.urutan - b.urutan);
   }
-  // Fallback jika master dataSakan belum tersedia/disinkron, ekstrak dari riwayat klasemen
-  const klasemen = typeof store !== "undefined" && store.getKlasemen ? store.getKlasemen() : [];
+  // Fallback jika data master sakan belum tersedia/disinkron, ekstrak dari riwayat klasemen
+  const klasemen = store.getKlasemen();
   if (Array.isArray(klasemen) && klasemen.length > 0) {
     const unique = [...new Set(klasemen.map(k => String(k.sakan || '').trim()).filter(Boolean))];
     return unique.sort().map((nama, idx) => ({
@@ -1972,7 +1932,7 @@ function openJadwalModal(matchId = null) {
   skorSec.style.display = "none";
 
   if (matchId) {
-    const m = dataLiga.find(i => String(i.id) === String(matchId));
+    const m = store.getMatches().find(i => String(i.id) === String(matchId));
     if (!m) return;
     title.textContent = "Ubah Jadwal Pertandingan";
     idInput.value = m.id;
@@ -1992,7 +1952,7 @@ function openJadwalModal(matchId = null) {
     document.getElementById("mTimA").value = "";
     document.getElementById("mTimB").value = "";
   }
-    liveValidateMatchTeams();
+  liveValidateMatchTeams();
   document.getElementById("modalLiga").classList.add("show");
 }
 
@@ -2003,7 +1963,7 @@ function openScoreInputModal(matchId) {
   const idInput = document.getElementById("mMatchId");
   const skorSec = document.getElementById("mSkorSection");
 
-  const m = dataLiga.find(i => String(i.id) === String(matchId));
+  const m = store.getMatches().find(i => String(i.id) === String(matchId));
   if (!m) return;
 
   mode.value = "skor";
@@ -2120,11 +2080,10 @@ function eventStatus(t){const today=todayStr();if(t===today)return{cls:"today",l
 
 function renderEvent(){
   applyAccessNotes();
-  const list=[...dataEvent].sort((a,b)=>(String(a.tanggal||'')+String(a.waktu||'')).localeCompare(String(b.tanggal||'')+String(b.waktu||'')));
+  const list = store.getEvents().sort((a,b)=>(String(a.tanggal||'')+String(a.waktu||'')).localeCompare(String(b.tanggal||'')+String(b.waktu||'')));
   const el=document.getElementById("eventList");
   const ce=canEditEvent();
   if(!list.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--ink-faint);">Belum ada agenda atau kegiatan pesantren.</div>';return;}
-  const months=["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
   el.innerHTML=list.map((e)=>{
     let dNum = "–", dMonth = "–";
     let strDate = String(e.tanggal || "").trim();
@@ -2263,7 +2222,7 @@ function openEventModal(){
 }
 
 function openEditEventModal(id){
-  const e = dataEvent.find(i => String(i.id) === String(id));
+  const e = store.getEvents().find(i => String(i.id) === String(id));
   if (!e) return;
 
   const title = document.getElementById("modalEventTitle");
@@ -2306,9 +2265,11 @@ async function simpanEvent(){
   const idInput = document.getElementById("eEventId");
   const isEdit = Boolean(idInput && idInput.value);
   const eventId = isEdit ? idInput.value : Date.now().toString();
+  // Protokol foto:
+  // - fotoBase64: data URL base64 jika ada unggahan poster baru (diunggah ke Drive oleh backend).
+  // - foto: URL Drive poster lama (jika dipertahankan), atau "" jika sengaja dihapus/tanpa poster.
   const existingFoto = (document.getElementById("eExistingFoto") && document.getElementById("eExistingFoto").value) || "";
   const finalFoto = tempBase64Image || existingFoto || "";
-
   const payload = {
     id: eventId,
     kategori: kat,
@@ -2403,4 +2364,8 @@ document.getElementById("usernameInput").addEventListener("keypress",e=>{if(e.ke
 
   // 3. Sinkronkan dengan Cloud via Proxy Vercel
   await syncDataFromCloud();
+
+  // 4. Pasang listener pemeriksaan kadaluarsa sesi
+  window.addEventListener("focus", checkSessionExpiry);
+  setInterval(checkSessionExpiry, 5 * 60 * 1000);
 })();
