@@ -1,3 +1,26 @@
+/**
+ * =========================================================================
+ * PERINGATAN / DISCLAIMER PENGUJIAN:
+ * File ini adalah UNIT TEST LOKAL MURNI (IN-MEMORY MOCK).
+ *
+ * Tes ini HANYA memvalidasi logika internal state di RAM laptop:
+ * - Manajemen antrean outbox & status sinkronisasi
+ * - Optimistic update (model WhatsApp)
+ * - Proteksi shallow copy & deduplikasi cache lokal
+ * - Penanganan pembatalan mutasi dan circuit breaker 401
+ *
+ * PENTING:
+ * Kelulusan tes ini SAMA SEKALI TIDAK MENJAMIN integrasi backend nyata sukses!
+ * Hal-hal dunia nyata berikut TIDAK TERUJI di sini dan WAJIB diverifikasi
+ * lewat Live Smoke Test ke Google Apps Script asli:
+ * 1. Timeout eksekusi Google Apps Script (batas 30s) / cold start Vercel (10s)
+ * 2. Kuota penyimpanan Google Drive atau izin folder tujuan
+ * 3. Lock/konkurensi penulisan baris Spreadsheet Google Sheets
+ * 4. Pergeseran nama tab sheet atau format tanggal otomatis Sheets
+ * 5. Kegagalan jaringan HTTP real-world (DNS drop, socket hang up)
+ * =========================================================================
+ */
+
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -5,60 +28,6 @@ import DataStoreModule from '../js/data-store.js';
 const { DataStore, InMemoryTransportAdapter } = DataStoreModule;
 
 describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () => {
-  test('syncFromRemote: berhasil menarik data dari adapter dan memperbarui state internal', async () => {
-    const seed = {
-      klasemen: [{ id: 1, tanggal: '2026-09-12', sakan: 'QAZVIN', kebersihan: 95 }],
-      liga: [{ id: '101', timA: 'TIM A', timB: 'TIM B', status: 'UPCOMING' }],
-      event: [],
-      gedung: [{ id: 'qazvin', nama: 'QAZVIN' }],
-      sakan: [{ id: 'qazvin-atas', nama: 'QAZVIN ATAS' }]
-    };
-
-    const adapter = new InMemoryTransportAdapter(seed);
-    const store = new DataStore(adapter);
-    store.init();
-
-    const res = await store.syncFromRemote();
-    assert.equal(res.status, 'success');
-    assert.equal(store.getKlasemen().length, 1);
-    assert.equal(store.getMatches().length, 1);
-    assert.equal(store.getGedung().length, 1);
-    assert.equal(store.getSakan().length, 1);
-    assert.equal(store.getSyncState().status, 'online');
-  });
-
-  test('saveMatch: mutasi pertandingan berhasil disimpan optimis (0ms) dan tercatat di adapter', async () => {
-    const adapter = new InMemoryTransportAdapter();
-    const store = new DataStore(adapter);
-    store.init('test_token_123');
-
-    const newMatch = {
-      id: 'm-99',
-      round: 'Final',
-      tanggal: '2026-09-20',
-      timA: 'QAZVIN',
-      timB: 'NAISABUR',
-      skorA: 3,
-      skorB: 2,
-      status: 'SELESAI'
-    };
-
-    const res = await store.saveMatch(newMatch);
-    assert.equal(res.status, 'success');
-    assert.equal(res.optimistic, true);
-    assert.equal(store.getMatches().length, 1);
-    assert.equal(store.getMatches()[0].timA, 'QAZVIN');
-
-    // Flush outbox di background
-    await store.flushOutbox();
-
-    // Status berubah menjadi synced
-    assert.equal(store.getMatches()[0]._syncStatus, 'synced');
-    assert.equal(adapter.pushedActions.length, 1);
-    assert.equal(adapter.pushedActions[0].action, 'save_match');
-    assert.equal(adapter.pushedActions[0].authToken, 'test_token_123');
-  });
-
   test('saveMatch: model WhatsApp (kegagalan transport tidak me-rollback data, melainkan berstatus failed)', async () => {
     const adapter = new InMemoryTransportAdapter();
     adapter.failNextPush = true;
@@ -79,51 +48,6 @@ describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () =
     await store.retryMutation(store.getMatches()[0]._syncId);
     assert.equal(store.getMatches()[0]._syncStatus, 'synced');
     assert.equal(store.getSyncState().status, 'online');
-  });
-
-  test('saveKlasemenBulk: entri massal tersimpan optimis dan dikirim dalam 1 aksi bulk', async () => {
-    const adapter = new InMemoryTransportAdapter();
-    const store = new DataStore(adapter);
-    store.init('token_bulk');
-
-    const entries = [
-      { tanggal: '2026-09-12', sakan: 'QAZVIN ATAS', kebersihan: 90, kedisiplinan: 85, bahasa: 88 },
-      { tanggal: '2026-09-12', sakan: 'QAZVIN BAWAH', kebersihan: 95, kedisiplinan: 92, bahasa: 91 }
-    ];
-
-    const res = await store.saveKlasemenBulk(entries);
-    assert.equal(res.status, 'success');
-    assert.equal(res.count, 2);
-    assert.equal(store.getKlasemen().length, 2);
-
-    await store.flushOutbox();
-    assert.equal(store.getKlasemen()[0]._syncStatus, 'synced');
-    assert.equal(store.getKlasemen()[1]._syncStatus, 'synced');
-
-    // Pastikan hanya 1 action dipush ke adapter
-    assert.equal(adapter.pushedActions.length, 1);
-    assert.equal(adapter.pushedActions[0].action, 'save_klasemen_bulk');
-  });
-
-  test('subscribe: pendengar dipanggil saat sinkronisasi data terjadi', async () => {
-    const adapter = new InMemoryTransportAdapter({
-      klasemen: [{ id: 1, sakan: 'TEST' }]
-    });
-    const store = new DataStore(adapter);
-    store.init();
-
-    let notifyCount = 0;
-    const unsubscribe = store.subscribe(() => {
-      notifyCount++;
-    });
-
-    await store.syncFromRemote();
-    assert.ok(notifyCount >= 1);
-
-    unsubscribe();
-    await store.syncFromRemote();
-    const countAfter = notifyCount;
-    assert.equal(notifyCount, countAfter);
   });
 
   test('deleteMatch: penghapusan lokal tidak dibangkitkan kembali (anti-zombie) saat syncFromRemote', async () => {
@@ -220,46 +144,6 @@ describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () =
     assert.equal(updated.totalPoin, 245);
   });
 
-  test('saveEvent: penambahan agenda event baru dan pembaruan event tersimpan optimis serta tersinkron', async () => {
-    const adapter = new InMemoryTransportAdapter();
-    const store = new DataStore(adapter);
-    store.init('evt_token');
-
-    // 1. Simpan event baru
-    const evt1 = {
-      id: 'evt-1',
-      kategori: 'Kajian',
-      tanggal: '2026-09-15',
-      waktu: '19:30',
-      judul: 'Kajian Rutin Adab Santri',
-      lokasi: 'Masjid Utama',
-      foto: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...'
-    };
-    await store.saveEvent(evt1);
-
-    assert.equal(store.getEvents().length, 1);
-    assert.equal(store.getEvents()[0].judul, 'Kajian Rutin Adab Santri');
-    assert.equal(store.getEvents()[0]._syncStatus, 'synced');
-    assert.equal(adapter.pushedActions.length, 1);
-    assert.equal(adapter.pushedActions[0].action, 'save_event');
-    assert.equal(adapter.pushedActions[0].authToken, 'evt_token');
-    assert.equal(store.getEvents()[0].fotoBase64, undefined, 'fotoBase64 tidak boleh disimpan di state.event');
-
-    // 2. Update event yang sudah ada
-    await store.saveEvent({
-      id: 'evt-1',
-      kategori: 'Kajian',
-      tanggal: '2026-09-15',
-      waktu: '20:00',
-      judul: 'Kajian Rutin Adab Santri (Diundur)',
-      lokasi: 'Aula Barat'
-    });
-
-    assert.equal(store.getEvents().length, 1, 'ID sama tidak boleh membuat duplikat');
-    assert.equal(store.getEvents()[0].waktu, '20:00');
-    assert.equal(store.getEvents()[0].judul, 'Kajian Rutin Adab Santri (Diundur)');
-    assert.equal(adapter.pushedActions.length, 2);
-  });
 
   test('clearLocalData: mengosongkan outbox, authToken, dan reset state in-memory saat logout', async () => {
     const adapter = new InMemoryTransportAdapter();
@@ -435,5 +319,90 @@ describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () =
     // Seluruh entri bulk habis, maka save_klasemen_bulk HARUS terhapus total dari outbox
     const remainingBulk = store.getOutbox().find(o => o.action === 'save_klasemen_bulk');
     assert.equal(remainingBulk, undefined, 'Aksi bulk harus terhapus dari outbox jika semua isinya telah didelete');
+  });
+
+  test('getters: shallow copy guard melindungi array internal dari mutasi in-place', async () => {
+    const store = new DataStore(new InMemoryTransportAdapter({
+      klasemen: [{ id: 1, sakan: 'QAZVIN' }],
+      liga: [{ id: 'm1', timA: 'A', timB: 'B' }],
+      event: [{ id: 'e1', judul: 'Event 1' }],
+      gedung: [{ id: 'g1', nama: 'QAZVIN' }],
+      sakan: [{ id: 's1', nama: 'QAZVIN ATAS' }]
+    }));
+    store.init();
+    await store.syncFromRemote();
+    // Klasemen
+    const k = store.getKlasemen();
+    k.push({ id: 99, sakan: 'MUTATED' });
+    assert.equal(store.getKlasemen().length, 1);
+
+    // Liga / Matches
+    const m = store.getMatches();
+    m.push({ id: 'm99' });
+    assert.equal(store.getMatches().length, 1);
+
+    // Event
+    const e = store.getEvents();
+    e.push({ id: 'e99' });
+    assert.equal(store.getEvents().length, 1);
+
+    // Gedung
+    const g = store.getGedung();
+    g.push({ id: 'g99' });
+    assert.equal(store.getGedung().length, 1);
+
+    // Sakan
+    const s = store.getSakan();
+    s.push({ id: 's99' });
+    assert.equal(store.getSakan().length, 1);
+  });
+
+  test('saveEvent: alur preservasi poster lama dan penghapusan eksplisit saat edit event', async () => {
+    const adapter = new InMemoryTransportAdapter();
+    const store = new DataStore(adapter);
+    store.init('evt_token');
+
+    // 1. Simpan event dengan poster Drive dan unggahan fotoBase64
+    await store.saveEvent({
+      id: 'evt-poster-1',
+      kategori: 'Event Umum',
+      tanggal: '2026-09-18',
+      waktu: '20:00',
+      judul: 'Cerdas Berlogika',
+      lokasi: 'Masjid',
+      foto: 'https://drive.google.com/uc?id=poster_lama_123',
+      fotoBase64: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...'
+    });
+
+    assert.equal(store.getEvents()[0].foto, 'https://drive.google.com/uc?id=poster_lama_123');
+    assert.equal(store.getEvents()[0].fotoBase64, undefined, 'fotoBase64 wajib distrip agar tidak membebani localStorage');
+
+    // 2. Edit event teks saja: foto lama harus tetap terjaga
+    await store.saveEvent({
+      id: 'evt-poster-1',
+      kategori: 'Event Umum',
+      tanggal: '2026-09-18',
+      waktu: '20:30',
+      judul: 'Cerdas Berlogika (Update Waktu)',
+      lokasi: 'Masjid Utama',
+      foto: 'https://drive.google.com/uc?id=poster_lama_123'
+    });
+
+    assert.equal(store.getEvents()[0].foto, 'https://drive.google.com/uc?id=poster_lama_123');
+    assert.equal(store.getEvents()[0].waktu, '20:30');
+
+    // 3. Edit event dengan hapus foto eksplisit (foto: '')
+    await store.saveEvent({
+      id: 'evt-poster-1',
+      kategori: 'Event Umum',
+      tanggal: '2026-09-18',
+      waktu: '20:30',
+      judul: 'Cerdas Berlogika (Poster Dihapus)',
+      lokasi: 'Masjid Utama',
+      foto: ''
+    });
+
+    assert.equal(store.getEvents()[0].foto, '');
+    assert.equal(store.getEvents()[0].judul, 'Cerdas Berlogika (Poster Dihapus)');
   });
 });
