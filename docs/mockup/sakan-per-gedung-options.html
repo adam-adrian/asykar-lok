@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eksplorasi Display Sakan Per Gedung - Asykar</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      padding: 24px 16px 60px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .preview-header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .preview-header h1 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--ink);
+      margin: 0 0 4px 0;
+    }
+    .preview-header p {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+    .opt-header {
+      margin: 28px 0 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .opt-header h2 {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      color: var(--ink);
+      margin: 0;
+    }
+    .opt-badge {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      background: var(--ochre-subtle);
+      border: 1px solid var(--ochre-border);
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .opt-desc {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin: 4px 0 14px;
+      line-height: 1.45;
+    }
+
+    /* =========================================================
+       VARIAN A: GEDUNG CLUSTER CARDS (Kanvas Perkamen)
+       Kartu per gedung dengan sakan-sakan di dalamnya
+       ========================================================= */
+    .sakan-group-section {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .sakan-sec-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .sakan-sec-title {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 3px 0;
+    }
+    .sakan-sec-sub {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin: 0;
+      line-height: 1.35;
+    }
+
+    .gedung-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .gedung-cluster-card {
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .gedung-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .gedung-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .gedung-icon-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 1.5px solid var(--gold);
+      color: var(--gold-deep);
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gedung-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+    }
+    .gedung-meta {
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+
+    .gedung-sakan-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .sakan-chip {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: 999px;
+      padding: 4px 10px 4px 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all .15s ease;
+      text-decoration: none;
+    }
+    .sakan-chip:hover {
+      border-color: var(--gold);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(176,138,46,.1);
+    }
+    .chip-pos-tag {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      background: var(--ochre-subtle);
+      border: 1px solid var(--ochre-border);
+      padding: 1px 4px;
+      border-radius: 4px;
+      line-height: 1.1;
+    }
+    .chip-score {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* =========================================================
+       VARIAN B: COMPACT ROW-BASED GROUPING (Baris Gedung Kompak)
+       Gedung sebagai label baris dengan pil sakan horisontal
+       ========================================================= */
+    .sakan-row-section {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .gedung-row-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .gedung-row-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed var(--line-subtle);
+    }
+    .gedung-row-item:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .gedung-row-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .gedung-row-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .gedung-row-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .row-pill {
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      border-radius: 6px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      transition: all .15s ease;
+      min-width: 120px;
+    }
+    .row-pill:hover {
+      border-color: var(--gold);
+      background: var(--card);
+    }
+    .row-pill-score {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* =========================================================
+       VARIAN C: REFINED FOOTER BY GEDUNG (Footer Gelap Per Gedung)
+       Pilihan jika tetap ingin di footer gelap tapi terkelompok
+       ========================================================= */
+    .refined-footer-grouped {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 28px 18px 24px;
+      color: var(--text-inverse-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .refined-footer-head {
+      text-align: center;
+    }
+    .refined-footer-head h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-inverse);
+      margin: 0 0 4px 0;
+    }
+    .refined-footer-head p {
+      font-size: 12px;
+      color: var(--gold-light);
+      margin: 0 auto;
+      max-width: 380px;
+      line-height: 1.4;
+    }
+    .dark-gedung-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dark-gedung-box {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .dark-gedung-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dark-sakan-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .dark-sakan-pill {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--text-inverse);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .dark-sakan-pill:hover {
+      background: rgba(255,255,255,.16);
+      border-color: var(--gold-light);
+      transform: translateY(-1px);
+    }
+    .dark-pill-score {
+      font-size: 10.5px;
+      color: var(--gold-light);
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-header">
+    <h1>Eksplorasi Sakan Per Gedung</h1>
+    <p>Pengelompokan Asrama Berdasarkan Gedung Induk</p>
+  </div>
+
+  <!-- ==================== VARIAN A ==================== -->
+  <div class="opt-header">
+    <h2>Varian A: Cluster Card per Gedung (Kanvas Perkamen)</h2>
+    <span class="opt-badge">Rekomendasi Utama</span>
+  </div>
+  <div class="opt-desc">
+    Menampilkan kartu per gedung dengan sakan-sakan di bawahnya berupa chip interaktif. Memuat monogram gedung, nama sakan (Atas/Bawah/Lorong), dan skor rata-rata.
+  </div>
+
+  <div class="sakan-group-section">
+    <div class="sakan-sec-head">
+      <div>
+        <div class="sakan-sec-title">Direktori Gedung &amp; Sakan</div>
+        <div class="sakan-sec-sub">Terorganisir berdasarkan gedung asrama dan lantai</div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:11.5px; padding:4px 10px;">Lihat Klasemen</button>
+    </div>
+
+    <div class="gedung-grid">
+      <!-- Gedung Qazvin -->
+      <div class="gedung-cluster-card">
+        <div class="gedung-card-head">
+          <div class="gedung-title-wrap">
+            <div class="gedung-icon-dot">Q</div>
+            <span class="gedung-name">Gedung Qazvin</span>
+          </div>
+          <span class="gedung-meta">2 Sakan • Avg 90.8</span>
+        </div>
+        <div class="gedung-sakan-chips">
+          <div class="sakan-chip" title="Lihat rincian nilai Qazvin Atas">
+            <span class="chip-pos-tag">Lt. 2</span>
+            <span>Qazvin Atas</span>
+            <span class="chip-score">93.0</span>
+          </div>
+          <div class="sakan-chip" title="Lihat rincian nilai Qazvin Bawah">
+            <span class="chip-pos-tag">Lt. 1</span>
+            <span>Qazvin Bawah</span>
+            <span class="chip-score">88.5</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gedung Naisabur -->
+      <div class="gedung-cluster-card">
+        <div class="gedung-card-head">
+          <div class="gedung-title-wrap">
+            <div class="gedung-icon-dot">N</div>
+            <span class="gedung-name">Gedung Naisabur</span>
+          </div>
+          <span class="gedung-meta">2 Sakan • Avg 86.3</span>
+        </div>
+        <div class="gedung-sakan-chips">
+          <div class="sakan-chip" title="Lihat rincian nilai Naisabur Atas">
+            <span class="chip-pos-tag">Lt. 2</span>
+            <span>Naisabur Atas</span>
+            <span class="chip-score">87.5</span>
+          </div>
+          <div class="sakan-chip" title="Lihat rincian nilai Naisabur Bawah">
+            <span class="chip-pos-tag">Lt. 1</span>
+            <span>Naisabur Bawah</span>
+            <span class="chip-score">85.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gedung Hamadan -->
+      <div class="gedung-cluster-card">
+        <div class="gedung-card-head">
+          <div class="gedung-title-wrap">
+            <div class="gedung-icon-dot">H</div>
+            <span class="gedung-name">Gedung Hamadan</span>
+          </div>
+          <span class="gedung-meta">3 Sakan • Avg 83.1</span>
+        </div>
+        <div class="gedung-sakan-chips">
+          <div class="sakan-chip">
+            <span class="chip-pos-tag">Lt. 2</span>
+            <span>Hamadan Atas</span>
+            <span class="chip-score">84.0</span>
+          </div>
+          <div class="sakan-chip">
+            <span class="chip-pos-tag">Lt. 1</span>
+            <span>Hamadan Bawah</span>
+            <span class="chip-score">82.8</span>
+          </div>
+          <div class="sakan-chip">
+            <span class="chip-pos-tag">Lorong</span>
+            <span>Hamadan Lorong</span>
+            <span class="chip-score">82.5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 28px;"></div>
+
+  <!-- ==================== VARIAN B ==================== -->
+  <div class="opt-header">
+    <h2>Varian B: Row-Based Compact Grouping</h2>
+    <span class="opt-badge">Super Kompak</span>
+  </div>
+  <div class="opt-desc">
+    Gedung sebagai heading baris sederhana, sakan berjejer sebagai tombol mini horizontal. Sangat hemat ruang jika jumlah gedung banyak.
+  </div>
+
+  <div class="sakan-row-section">
+    <div class="sakan-sec-head">
+      <div>
+        <div class="sakan-sec-title">Daftar Sakan per Gedung</div>
+        <div class="sakan-sec-sub">Pilih sakan untuk langsung membuka buku nilai</div>
+      </div>
+    </div>
+
+    <div class="gedung-row-list">
+      <div class="gedung-row-item">
+        <div class="gedung-row-header">
+          <span class="gedung-row-title">🏛️ Gedung Qazvin</span>
+          <span class="gedung-meta">Avg 90.8</span>
+        </div>
+        <div class="gedung-row-pills">
+          <div class="row-pill">
+            <span>Qazvin Atas (Lt. 2)</span>
+            <span class="row-pill-score">93.0</span>
+          </div>
+          <div class="row-pill">
+            <span>Qazvin Bawah (Lt. 1)</span>
+            <span class="row-pill-score">88.5</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gedung-row-item">
+        <div class="gedung-row-header">
+          <span class="gedung-row-title">🏛️ Gedung Naisabur</span>
+          <span class="gedung-meta">Avg 86.3</span>
+        </div>
+        <div class="gedung-row-pills">
+          <div class="row-pill">
+            <span>Naisabur Atas (Lt. 2)</span>
+            <span class="row-pill-score">87.5</span>
+          </div>
+          <div class="row-pill">
+            <span>Naisabur Bawah (Lt. 1)</span>
+            <span class="row-pill-score">85.0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gedung-row-item">
+        <div class="gedung-row-header">
+          <span class="gedung-row-title">🏛️ Gedung Hamadan</span>
+          <span class="gedung-meta">Avg 83.1</span>
+        </div>
+        <div class="gedung-row-pills">
+          <div class="row-pill">
+            <span>Hamadan Atas</span>
+            <span class="row-pill-score">84.0</span>
+          </div>
+          <div class="row-pill">
+            <span>Hamadan Bawah</span>
+            <span class="row-pill-score">82.8</span>
+          </div>
+          <div class="row-pill">
+            <span>Hamadan Lorong</span>
+            <span class="row-pill-score">82.5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 28px;"></div>
+
+  <!-- ==================== VARIAN C ==================== -->
+  <div class="opt-header">
+    <h2>Varian C: Refined Dark Footer per Gedung</h2>
+    <span class="opt-badge">Footer Gelap Terpadu</span>
+  </div>
+  <div class="opt-desc">
+    Mempertahankan footer hijau gelap di dasar halaman, namun sakan di dalamnya dikelompokkan ke dalam kotak gedung semi-transparan.
+  </div>
+
+  <div class="refined-footer-grouped">
+    <div class="refined-footer-head">
+      <h3>Nama-Nama Bersejarah</h3>
+      <p>Terinspirasi dari kota peradaban Islam yang menaungi sakan-sakan santri.</p>
+    </div>
+
+    <div class="dark-gedung-cluster">
+      <div class="dark-gedung-box">
+        <div class="dark-gedung-title">🏛️ Gedung Qazvin</div>
+        <div class="dark-sakan-pills">
+          <div class="dark-sakan-pill">
+            <span>Qazvin Atas</span>
+            <span class="dark-pill-score">93.0</span>
+          </div>
+          <div class="dark-sakan-pill">
+            <span>Qazvin Bawah</span>
+            <span class="dark-pill-score">88.5</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-gedung-box">
+        <div class="dark-gedung-title">🏛️ Gedung Naisabur</div>
+        <div class="dark-sakan-pills">
+          <div class="dark-sakan-pill">
+            <span>Naisabur Atas</span>
+            <span class="dark-pill-score">87.5</span>
+          </div>
+          <div class="dark-sakan-pill">
+            <span>Naisabur Bawah</span>
+            <span class="dark-pill-score">85.0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dark-gedung-box">
+        <div class="dark-gedung-title">🏛️ Gedung Hamadan</div>
+        <div class="dark-sakan-pills">
+          <div class="dark-sakan-pill">
+            <span>Hamadan Atas</span>
+            <span class="dark-pill-score">84.0</span>
+          </div>
+          <div class="dark-sakan-pill">
+            <span>Hamadan Bawah</span>
+            <span class="dark-pill-score">82.8</span>
+          </div>
+          <div class="dark-sakan-pill">
+            <span>Hamadan Lorong</span>
+            <span class="dark-pill-score">82.5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

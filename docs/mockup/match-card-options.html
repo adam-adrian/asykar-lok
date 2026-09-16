@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eksplorasi Struktur Card Turnamen Beranda</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      padding: 24px 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .preview-header {
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+    }
+    .preview-header h1 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--ink);
+      margin: 0 0 4px 0;
+    }
+    .preview-header p {
+      font-size: 13px;
+      color: var(--ink-soft);
+      margin: 0;
+    }
+    .option-title {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 20px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .option-tag {
+      font-family: var(--font-sans);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--gold-subtle);
+      color: var(--gold-deep);
+    }
+    .option-desc {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    /* =========================================================
+       OPSI 1: HERO CENTER-PILLAR (FotMob / UEFA Style)
+       Waktu/Skor jadi pilar tengah yang terintegrasi, bukan di footer.
+       ========================================================= */
+    .card-opt1 {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+    }
+    .card-opt1-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+    }
+    .card-opt1-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-opt1-round {
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      padding: 2px 7px;
+      border-radius: var(--radius-sm);
+    }
+    .card-opt1-venue {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .card-opt1-arena {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      padding: 2px 0;
+    }
+    .card-opt1-team {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .card-opt1-team.right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+    .card-opt1-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+    .card-opt1-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .card-opt1-pillar {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      min-width: 64px;
+      text-align: center;
+    }
+    .card-opt1-pillar-time {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+    .card-opt1-pillar-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--ink-faint);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .card-opt1-pillar.score {
+      background: var(--ochre-subtle);
+      border-color: var(--ochre-border);
+    }
+    .card-opt1-pillar.score .card-opt1-pillar-time {
+      font-size: 16px;
+      color: var(--gold-deep);
+    }
+
+    /* =========================================================
+       OPSI 2: STACKED 2-ROW FIXTURE (Google Sports / Sofascore)
+       Nama sakan full width, anti patah-patah di layar sempit.
+       ========================================================= */
+    .card-opt2 {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+    }
+    .card-opt2-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--line-subtle);
+    }
+    .card-opt2-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .card-opt2-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 2px 0;
+    }
+    .card-opt2-team-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+    .card-opt2-avatar {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+    .card-opt2-team-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-opt2-score {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+      padding: 1px 8px;
+      border-radius: 4px;
+      background: var(--surface-subtle);
+    }
+    .card-opt2-score.winner {
+      background: var(--ochre-subtle);
+      color: var(--gold-deep);
+      border: 1px solid var(--ochre-border);
+    }
+
+    /* =========================================================
+       OPSI 3: DATE/TIME SPINE (Harmonisasi dengan Agenda Pesantren)
+       Visual rhythm selaras dengan box tanggal Agenda.
+       ========================================================= */
+    .card-opt3 {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      box-shadow: 0 1px 4px rgba(10,25,47,.02);
+    }
+    .card-opt3-spine {
+      width: 52px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      text-align: center;
+      padding: 4px;
+    }
+    .card-opt3-spine-time {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gold-deep);
+      line-height: 1.1;
+    }
+    .card-opt3-spine-date {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+    .card-opt3-spine.live {
+      background: var(--clay-subtle);
+      border-color: var(--clay);
+    }
+    .card-opt3-spine.live .card-opt3-spine-time {
+      color: var(--clay);
+    }
+    .card-opt3-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+    }
+    .card-opt3-eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--ink-faint);
+    }
+    .card-opt3-matchup {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .card-opt3-team {
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-opt3-team.right {
+      text-align: right;
+    }
+    .card-opt3-vs {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-faint);
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      padding: 1px 6px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="preview-header">
+    <h1>Eksplorasi Struktur Card Turnamen</h1>
+    <p>3 Model Struktur Baru untuk Widget Beranda (Asykar)</p>
+  </div>
+
+  <!-- ==================== OPSI 1 ==================== -->
+  <div class="option-title">
+    <span>Opsi A: Hero Center Pillar</span>
+    <span class="option-tag">Model FotMob / UEFA</span>
+  </div>
+  <div class="option-desc">
+    Waktu atau Skor diangkat ke pilar tengah, menggantikan kata "vs" yang pasif. Menghilangkan footer bawah yang berantakan karena waktu & lokasi langsung terpadu di eyebrow & center.
+  </div>
+
+  <!-- Contoh A1: Jadwal Mendatang (Nama Panjang) -->
+  <div class="card-opt1">
+    <div class="card-opt1-meta">
+      <div class="card-opt1-meta-left">
+        <span class="card-opt1-round">Semifinal</span>
+        <span>•</span>
+        <span class="card-opt1-venue">
+          <svg class="svg-icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          Lapangan Utama
+        </span>
+      </div>
+      <span class="dash-match-status-badge today">Hari Ini</span>
+    </div>
+    <div class="card-opt1-arena">
+      <div class="card-opt1-team">
+        <div class="card-opt1-badge">U</div>
+        <div class="card-opt1-name">Umar bin Khattab</div>
+      </div>
+      <div class="card-opt1-pillar">
+        <div class="card-opt1-pillar-time">15:30</div>
+        <div class="card-opt1-pillar-sub">WIB</div>
+      </div>
+      <div class="card-opt1-team right">
+        <div class="card-opt1-badge">A</div>
+        <div class="card-opt1-name">Ali bin Abi Thalib</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contoh A2: Hasil Selesai -->
+  <div class="card-opt1" style="margin-top:10px;">
+    <div class="card-opt1-meta">
+      <div class="card-opt1-meta-left">
+        <span class="card-opt1-round">Penyisihan</span>
+        <span>•</span>
+        <span class="card-opt1-venue">
+          <svg class="svg-icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          Lapangan Timur
+        </span>
+      </div>
+      <span class="dash-match-status-badge past">Selesai</span>
+    </div>
+    <div class="card-opt1-arena">
+      <div class="card-opt1-team">
+        <div class="card-opt1-badge">B</div>
+        <div class="card-opt1-name" style="font-weight:800;">Bukhara</div>
+      </div>
+      <div class="card-opt1-pillar score">
+        <div class="card-opt1-pillar-time">3 - 1</div>
+        <div class="card-opt1-pillar-sub">FT</div>
+      </div>
+      <div class="card-opt1-team right">
+        <div class="card-opt1-badge">T</div>
+        <div class="card-opt1-name" style="font-weight:500; opacity:0.75;">Tirmidz</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <!-- ==================== OPSI 2 ==================== -->
+  <div class="option-title">
+    <span>Opsi B: Stacked 2-Row Fixture</span>
+    <span class="option-tag">Model Sofascore / Google</span>
+  </div>
+  <div class="option-desc">
+    Tim ditumpuk baris vertikal. Memberikan ruang lebar 100% untuk nama tim yang panjang agar tidak terpotong atau tertekuk patah-patah di mobile.
+  </div>
+
+  <div class="card-opt2">
+    <div class="card-opt2-header">
+      <div>
+        <strong style="color:var(--ink); font-weight:700;">Penyisihan</strong> • Lapangan Utama
+      </div>
+      <span class="dash-match-status-badge today" style="font-size:10.5px; padding:1.5px 7px;">Hari Ini, 15:30</span>
+    </div>
+    <div class="card-opt2-rows">
+      <div class="card-opt2-row">
+        <div class="card-opt2-team-group">
+          <div class="card-opt2-avatar">Q</div>
+          <span class="card-opt2-team-name">Sakan Qazvin Atas</span>
+        </div>
+        <span class="card-opt2-score">–</span>
+      </div>
+      <div class="card-opt2-row">
+        <div class="card-opt2-team-group">
+          <div class="card-opt2-avatar">N</div>
+          <span class="card-opt2-team-name">Sakan Naisabur</span>
+        </div>
+        <span class="card-opt2-score">–</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 24px;"></div>
+
+  <!-- ==================== OPSI 3 ==================== -->
+  <div class="option-title">
+    <span>Opsi C: Date Spine Block</span>
+    <span class="option-tag">Model Harmoni Agenda</span>
+  </div>
+  <div class="option-desc">
+    Mengadopsi kotak tanggal/waktu di sisi kiri, identik dengan komponen Agenda Pesantren tepat di bawahnya. Menghasilkan ritme dashboard yang seragam.
+  </div>
+
+  <div class="card-opt3">
+    <div class="card-opt3-spine">
+      <div class="card-opt3-spine-time">15:30</div>
+      <div class="card-opt3-spine-date">14 Sep</div>
+    </div>
+    <div class="card-opt3-body">
+      <div class="card-opt3-eyebrow">
+        <span><strong>Penyisihan</strong> • Lap. Utama</span>
+        <span class="dash-match-status-badge today" style="font-size:10px; padding:1px 6px;">Hari Ini</span>
+      </div>
+      <div class="card-opt3-matchup">
+        <span class="card-opt3-team">Qazvin Atas</span>
+        <span class="card-opt3-vs">vs</span>
+        <span class="card-opt3-team right">Naisabur</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
