@@ -2101,33 +2101,36 @@ function renderEvent(){
     }
 
     const st=eventStatus(e.tanggal);
-    const badgeColor = "background:var(--parchment-dim);color:var(--ink-soft);";
     const katLabel = e.kategori || "Event Umum";
     const safeFoto = sanitizeImageUrl(e.foto);
     const photoTag = safeFoto ? `<img src="${safeFoto}" class="event-thumb-img js-lightbox-trigger" alt="Poster Kegiatan" title="Klik untuk perbesar" data-src="${safeFoto}">` : '';
 
     return `
       <div class="event-card">
-        <div class="event-date-box">
-          <div class="event-date-num">${dNum}</div>
-          <div class="event-date-month">${dMonth}</div>
-        </div>
-        <div style="flex:1;">
-          <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
-            <span style="font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; ${badgeColor}">${escapeHtml(katLabel)}</span>
-            <span style="font-size:12px;color:var(--ink-faint);">${svgIcon('clock', 12)} ${formatWaktu(e.waktu)} • ${svgIcon('map-pin', 12)} ${escapeHtml(e.lokasi||"–")}</span>
+        <div class="event-card-top">
+          <div class="event-date-box">
+            <div class="event-date-num">${dNum}</div>
+            <div class="event-date-month">${dMonth}</div>
           </div>
-          <strong style="font-size:15px; color:var(--ink);">${escapeHtml(e.judul)} ${renderSyncBadge(e._syncStatus, e._syncId, e._syncError)}</strong>
-          ${e.deskripsi?'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px;">'+escapeHtml(e.deskripsi)+'</div>':''}
+          <div class="event-card-body">
+            <div class="event-card-meta">
+              <span class="event-category-badge">${escapeHtml(katLabel)}</span>
+              <span class="event-meta-time-loc">${svgIcon('clock', 12)} ${formatWaktu(e.waktu)} • ${svgIcon('map-pin', 12)} ${escapeHtml(e.lokasi||"–")}</span>
+            </div>
+            <h4 class="event-card-title">${escapeHtml(e.judul)} ${renderSyncBadge(e._syncStatus, e._syncId, e._syncError)}</h4>
+            ${e.deskripsi?'<div class="event-card-desc">'+escapeHtml(e.deskripsi)+'</div>':''}
+          </div>
         </div>
         ${photoTag}
-        <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold-deep)":st.cls==="upcoming"?"var(--green-subtle)":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};border:1px solid ${st.cls==="upcoming"?"var(--green-border)":"transparent"};">${st.label}</span>
-        ${ce ? `
-          <div class="event-card-actions" style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
-            <button class="icon-btn" title="Ubah Event" onclick="openEditEventModal('${e.id}')">${svgIcon('edit', 14)}</button>
-            <button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent('${e.id}')">${svgIcon('trash', 14)}</button>
-          </div>
-        ` : ''}
+        <div class="event-card-footer">
+          <span class="event-status-badge status-${st.cls}">${st.label}</span>
+          ${ce ? `
+            <div class="event-card-actions">
+              <button class="icon-btn" title="Ubah Event" onclick="openEditEventModal('${e.id}')">${svgIcon('edit', 14)}</button>
+              <button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent('${e.id}')">${svgIcon('trash', 14)}</button>
+            </div>
+          ` : ''}
+        </div>
       </div>
     `;
   }).join("");
