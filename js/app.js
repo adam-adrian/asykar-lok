@@ -84,25 +84,47 @@ function saveData(key, data) {
     console.error('Gagal menulis localStorage:', e);
   }
 }
+const SESSION_MAX_AGE_MS = 6 * 60 * 60 * 1000; // 6 Jam batas usia sesi login admin
+
 function loadSession() {
   try {
     const s = sessionStorage.getItem(KEY_SESSION);
-    return s ? JSON.parse(s) : null;
+    if (!s) return null;
+    const session = JSON.parse(s);
+    if (session && session.timestamp) {
+      if (Date.now() - session.timestamp > SESSION_MAX_AGE_MS) {
+        clearSession();
+        return null;
+      }
+    }
+    return session;
   } catch (e) {
     return null;
   }
 }
-function saveSession() {
+function saveSession(isNewLogin = false) {
   try {
+    const prev = loadSession();
     sessionStorage.setItem(KEY_SESSION, JSON.stringify({
       user: currentUser,
       role: currentRole,
       label: currentLabel,
       token: currentAuthToken,
-      view: currentView
+      view: currentView,
+      timestamp: isNewLogin ? Date.now() : (prev && prev.timestamp) || Date.now()
     }));
   } catch (e) {}
 }
+function checkSessionExpiry() {
+  if (currentRole && currentRole !== "tamu") {
+    const s = loadSession();
+    if (!s) {
+      forceLogout("Sesi login telah berakhir (lebih dari 6 jam). Silakan masuk kembali.");
+    }
+  }
+}
+window.addEventListener("focus", checkSessionExpiry);
+setInterval(checkSessionExpiry, 5 * 60 * 1000);
 function clearSession() {
   try {
     sessionStorage.removeItem(KEY_SESSION);
@@ -403,6 +425,29 @@ function liveValidateSkor() {
     }
   }
 }
+
+function liveValidateMatchTeams() {
+  const a = document.getElementById("mTimA");
+  const b = document.getElementById("mTimB");
+  const hint = document.getElementById("hintTimMatch");
+  const btn = document.getElementById("btnSaveLiga");
+  if (!a || !b) return;
+
+  const valA = a.value.trim().toUpperCase();
+  const valB = b.value.trim().toUpperCase();
+
+  if (valA && valB && valA === valB) {
+    if (hint) hint.style.display = "block";
+    a.style.borderColor = "var(--clay)";
+    b.style.borderColor = "var(--clay)";
+    if (btn) btn.disabled = true;
+  } else {
+    if (hint) hint.style.display = "none";
+    a.style.borderColor = "";
+    b.style.borderColor = "";
+    if (btn) btn.disabled = false;
+  }
+}
 /* ===== CLOUD SYNC & API CALLS ===== */
 let syncHoldTimer = null;
 
@@ -575,7 +620,7 @@ async function login() {
       currentLabel = json.user.label || "Admin";
       currentAuthToken = json.token || "";
 
-      saveSession();
+      saveSession(true);
       store.setAuthToken(currentAuthToken);
       closeLoginModal();
       applyUserSessionUI();
@@ -1947,6 +1992,7 @@ function openJadwalModal(matchId = null) {
     document.getElementById("mTimA").value = "";
     document.getElementById("mTimB").value = "";
   }
+    liveValidateMatchTeams();
   document.getElementById("modalLiga").classList.add("show");
 }
 

@@ -467,9 +467,10 @@
     </div>
     <div class="field"><label>Lokasi / Lapangan</label><input type="text" id="mLokasi" placeholder="Contoh: Lapangan Utama" value="Lapangan Utama"></div>
     <div class="field-row">
-      <div class="field"><label>Tim A (Gedung)</label><select id="mTimA"></select></div>
-      <div class="field"><label>Tim B (Gedung)</label><select id="mTimB"></select></div>
+      <div class="field"><label>Tim A (Gedung)</label><select id="mTimA" onchange="liveValidateMatchTeams()"></select></div>
+      <div class="field"><label>Tim B (Gedung)</label><select id="mTimB" onchange="liveValidateMatchTeams()"></select></div>
     </div>
+    <span class="field-error-hint" id="hintTimMatch" style="display:none; color:var(--clay); font-size:11px; margin-top:-6px; margin-bottom:8px; font-weight:600;">* Tim A dan Tim B tidak boleh sama.</span>
 
     <!-- FIELD SKOR (Otomatis tampil saat input skor) -->
     <div id="mSkorSection" class="match-skor-section">
