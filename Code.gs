@@ -456,10 +456,13 @@ function doPost(e) {
         const folderId = getFolderId();
         if (payload.fotoBase64) {
           fotoUrl = uploadImageToDrive(payload.fotoBase64, "event_" + Date.now() + ".jpg", folderId);
+        } else if (payload.foto) {
+          fotoUrl = payload.foto;
+        } else if (payload.foto === "" || payload.foto === null) {
+          fotoUrl = "";
         } else if (rowIndex > -1) {
           fotoUrl = existingFoto;
         }
-
         if (rowIndex > -1) {
           // Batch write update event yang sudah ada
           sheet.getRange(rowIndex, 2, 1, 7).setValues([[
@@ -484,6 +487,7 @@ function doPost(e) {
             fotoUrl
           ]);
         }
+        return jsonOut({ status: "success", foto: fotoUrl });
       }
       else if (action === "delete_event") {
         deleteRowById(ss.getSheetByName("Event"), payload.id);

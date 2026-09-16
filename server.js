@@ -377,15 +377,24 @@ const server = http.createServer(async (req, res) => {
       if (action === 'save_event') {
         const id = payload.id || Date.now().toString();
         const existingIdx = db.event.findIndex(i => String(i.id) === String(id));
+        let foto = '';
+        if (payload.fotoBase64) {
+          foto = payload.fotoBase64;
+        } else if (payload.foto !== undefined && payload.foto !== null) {
+          foto = payload.foto;
+        } else if (existingIdx >= 0) {
+          foto = db.event[existingIdx].foto || '';
+        }
+
         const eventData = {
           id: id,
-          kategori: payload.kategori,
-          tanggal: payload.tanggal,
-          waktu: payload.waktu,
-          judul: payload.judul,
-          lokasi: payload.lokasi,
-          deskripsi: payload.deskripsi,
-          foto: payload.fotoBase64 || ''
+          kategori: payload.kategori || 'Event Umum',
+          tanggal: payload.tanggal || '',
+          waktu: payload.waktu || '',
+          judul: payload.judul || '',
+          lokasi: payload.lokasi || '',
+          deskripsi: payload.deskripsi || '',
+          foto: foto
         };
         if (existingIdx >= 0) {
           db.event[existingIdx] = eventData;
@@ -393,7 +402,7 @@ const server = http.createServer(async (req, res) => {
           db.event.push(eventData);
         }
         persistDb();
-        return sendJson(res, 200, { status: 'success', local: true });
+        return sendJson(res, 200, { status: 'success', local: true, foto: foto });
       }
 
       if (action === 'delete_event') {

@@ -2163,7 +2163,12 @@ function renderEvent(){
         </div>
         ${photoTag}
         <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:${st.cls==="today"?"var(--gold-deep)":st.cls==="upcoming"?"var(--green-subtle)":"var(--parchment-dim)"};color:${st.cls==="today"?"#fff":st.cls==="upcoming"?"var(--green-ok)":"var(--ink-faint)"};border:1px solid ${st.cls==="upcoming"?"var(--green-border)":"transparent"};">${st.label}</span>
-        ${ce?'<button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent(\''+e.id+'\')">'+svgIcon('trash', 14)+'</button>':''}
+        ${ce ? `
+          <div class="event-card-actions" style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+            <button class="icon-btn" title="Ubah Event" onclick="openEditEventModal('${e.id}')">${svgIcon('edit', 14)}</button>
+            <button class="icon-btn danger" title="Hapus Event" onclick="hapusEvent('${e.id}')">${svgIcon('trash', 14)}</button>
+          </div>
+        ` : ''}
       </div>
     `;
   }).join("");
@@ -2207,11 +2212,18 @@ function handleImagePreview(e){
   };
   reader.readAsDataURL(file);
 }
-function clearImageUpload(){
+function clearImageUpload(clearExisting = true){
   tempBase64Image = "";
-  document.getElementById("eFotoFile").value = "";
-  document.getElementById("imgPreview").src = "";
-  document.getElementById("imgPreviewWrapper").style.display = "none";
+  const fileInput = document.getElementById("eFotoFile");
+  if (fileInput) fileInput.value = "";
+  const preview = document.getElementById("imgPreview");
+  if (preview) preview.src = "";
+  const wrapper = document.getElementById("imgPreviewWrapper");
+  if (wrapper) wrapper.style.display = "none";
+  if (clearExisting) {
+    const existFoto = document.getElementById("eExistingFoto");
+    if (existFoto) existFoto.value = "";
+  }
 }
 
 function openLightbox(src) {
@@ -2233,34 +2245,79 @@ function closeLightbox() {
 }
 
 function openEventModal(){
-  document.getElementById("eKategori").value="Event Umum";
-  document.getElementById("eTanggal").value=todayStr();
-  document.getElementById("eWaktu").value="";
-  document.getElementById("eJudul").value="";
-  document.getElementById("eLokasi").value="";
-  document.getElementById("eDeskripsi").value="";
-  clearImageUpload();
+  const title = document.getElementById("modalEventTitle");
+  if (title) title.textContent = "Tambah Agenda Event";
+  const idInput = document.getElementById("eEventId");
+  if (idInput) idInput.value = "";
+  const existFoto = document.getElementById("eExistingFoto");
+  if (existFoto) existFoto.value = "";
+
+  document.getElementById("eKategori").value = "Event Umum";
+  document.getElementById("eTanggal").value = todayStr();
+  document.getElementById("eWaktu").value = "";
+  document.getElementById("eJudul").value = "";
+  document.getElementById("eLokasi").value = "";
+  document.getElementById("eDeskripsi").value = "";
+  clearImageUpload(true);
+  document.getElementById("modalEvent").classList.add("show");
+}
+
+function openEditEventModal(id){
+  const e = dataEvent.find(i => String(i.id) === String(id));
+  if (!e) return;
+
+  const title = document.getElementById("modalEventTitle");
+  if (title) title.textContent = "Ubah Agenda Event";
+  const idInput = document.getElementById("eEventId");
+  if (idInput) idInput.value = String(e.id);
+  const existFoto = document.getElementById("eExistingFoto");
+  if (existFoto) existFoto.value = e.foto || "";
+
+  document.getElementById("eKategori").value = e.kategori || "Event Umum";
+  document.getElementById("eTanggal").value = e.tanggal || todayStr();
+  document.getElementById("eWaktu").value = e.waktu || "";
+  document.getElementById("eJudul").value = e.judul || "";
+  document.getElementById("eLokasi").value = e.lokasi || "";
+  document.getElementById("eDeskripsi").value = e.deskripsi || "";
+
+  clearImageUpload(false);
+  if (e.foto) {
+    const preview = document.getElementById("imgPreview");
+    const wrapper = document.getElementById("imgPreviewWrapper");
+    if (preview && wrapper) {
+      preview.src = e.foto;
+      wrapper.style.display = "block";
+    }
+  }
   document.getElementById("modalEvent").classList.add("show");
 }
 
 async function simpanEvent(){
-  const kat=document.getElementById("eKategori").value;
-  const rawT=document.getElementById("eTanggal").value, w=document.getElementById("eWaktu").value;
-  const t=normalizeDateStr(rawT);
-  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).",true);return;}
-  const j=document.getElementById("eJudul").value.trim(), l=document.getElementById("eLokasi").value.trim(), d=document.getElementById("eDeskripsi").value.trim();
-  if(!j){showToast("Judul kegiatan wajib diisi.",true);return;}
-  
-  const newId = Date.now().toString();
+  const kat = document.getElementById("eKategori").value;
+  const rawT = document.getElementById("eTanggal").value;
+  const w = document.getElementById("eWaktu").value;
+  const t = normalizeDateStr(rawT);
+  if(!t){showToast("Format tanggal tidak valid (YYYY-MM-DD).", true); return;}
+  const j = document.getElementById("eJudul").value.trim();
+  const l = document.getElementById("eLokasi").value.trim();
+  const d = document.getElementById("eDeskripsi").value.trim();
+  if(!j){showToast("Judul kegiatan wajib diisi.", true); return;}
+
+  const idInput = document.getElementById("eEventId");
+  const isEdit = Boolean(idInput && idInput.value);
+  const eventId = isEdit ? idInput.value : Date.now().toString();
+  const existingFoto = (document.getElementById("eExistingFoto") && document.getElementById("eExistingFoto").value) || "";
+  const finalFoto = tempBase64Image || existingFoto || "";
+
   const payload = {
-    id: newId,
+    id: eventId,
     kategori: kat,
     tanggal: t,
     waktu: w,
     judul: j,
     lokasi: l,
     deskripsi: d,
-    foto: tempBase64Image || "",
+    foto: finalFoto,
     fotoBase64: tempBase64Image || ""
   };
 
@@ -2275,7 +2332,7 @@ async function simpanEvent(){
   // WhatsApp-style Optimistic local commit (0ms)
   await store.saveEvent(payload);
   renderEvent();
-  showToast("Agenda event tersimpan secara lokal. Sedang disinkronkan...");
+  showToast(isEdit ? "Perubahan event tersimpan." : "Agenda event tersimpan.");
 }
 
 async function hapusEvent(id){
