@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup Evaluasi Hero Beranda - League Of Kindness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600;700&family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #16302A;
+      --ink-soft: #26473E;
+      --ink-faint: #566E65;
+      
+      --canvas: #F6F1E3;
+      --surface: #FFFEFB;
+      --surface-float: #FFFFFF;
+      --surface-subtle: #FAF7EF;
+      --surface-inset: #F2ECE0;
+      
+      --parchment: #F6F1E3;
+      --parchment-dim: #ECE3CC;
+      --card: #FFFEFB;
+      
+      --line: #DFD5B8;
+      --line-subtle: #EBE3CE;
+      
+      --text-inverse: #FFFFFF;
+      --text-inverse-muted: #E2ECE7;
+      
+      --gold: #B08A2E;
+      --gold-light: #D9B65C;
+      --gold-deep: #8D6513;
+      --gold-subtle: rgba(176,138,46,.08);
+      
+      --green-ok: #367052;
+      --green-subtle: #E8F0EA;
+      --green-border: #C7DCCB;
+      
+      --clay: #A9503A;
+      --clay-subtle: #FBEDE8;
+      --clay-border: #F0D3C6;
+      
+      --radius: 14px;
+      --radius-sm: 8px;
+      --ease: cubic-bezier(.16,1,.3,1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #111e1b;
+      color: #e2ece7;
+      padding: 30px 20px 80px;
+      line-height: 1.5;
+    }
+
+    h1, h2, h3, .serif { font-family: 'Fraunces', serif; }
+
+    .control-header {
+      max-width: 1240px;
+      margin: 0 auto 30px;
+      background: #193831;
+      border: 1px solid #285449;
+      border-radius: 16px;
+      padding: 24px 28px;
+    }
+    .control-header h1 {
+      font-size: 24px;
+      color: #f6f1e3;
+      margin-bottom: 8px;
+    }
+    .control-header p {
+      font-size: 14px;
+      color: #a3c2b8;
+      max-width: 860px;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #0f2420;
+      border: 1px solid #285449;
+      color: #a3c2b8;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .tab-btn:hover {
+      background: #1f4239;
+      color: #fff;
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      border-color: var(--gold-light);
+      color: #111e1b;
+      font-weight: 700;
+    }
+
+    /* PREVIEW CONTAINER (CANVAS KANONIK ASYKAR) */
+    .mockup-stage {
+      max-width: 1240px;
+      margin: 0 auto 50px;
+      background: var(--parchment);
+      color: var(--ink);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
+      overflow: hidden;
+      border: 1px solid var(--line);
+    }
+    .stage-header {
+      background: #0d1b18;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #24423b;
+      color: #a3c2b8;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+    .stage-badge {
+      background: var(--gold-deep);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .stage-canvas {
+      padding: 32px 36px 44px;
+    }
+
+    /* TOPBAR SIMULATOR */
+    .sim-topbar {
+      background: var(--ink);
+      color: var(--text-inverse);
+      padding: 10px 20px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 12px rgba(22,48,42,.08);
+    }
+    .sim-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sim-logo {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold-light);
+    }
+    .sim-brand {
+      font-family: 'Fraunces', serif;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .sim-nav-pills {
+      display: flex;
+      gap: 6px;
+      background: rgba(255,255,255,.08);
+      padding: 4px 6px;
+      border-radius: 999px;
+    }
+    .sim-nav-pill {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      color: var(--text-inverse-muted);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .sim-nav-pill.active {
+      background: var(--gold-deep);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* COMMON HERO ELEMENTS */
+    .hero-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(22px, 3.2vw, 29px);
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+    .hero-title span { color: var(--gold-deep); }
+    .hero-sub {
+      color: var(--ink-faint);
+      font-size: 13.5px;
+      display: inline-flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .hero-ar {
+      font-family: 'Amiri', serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold-deep);
+    }
+    .hero-dot {
+      color: var(--line);
+      font-weight: 700;
+      margin: 0 2px;
+    }
+    .btn-sync {
+      padding: 8px 18px;
+      font-size: 12.5px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      color: var(--ink-soft);
+      background: var(--surface);
+      font-weight: 600;
+      box-shadow: 0 1px 4px rgba(22,48,42,.04);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* =========================================================================
+       OPSI 1: REFINED FLOATING CARD (WADAH HALUS BERPERMUKAAN PARCHMENT)
+       ========================================================================= */
+    .hero-opt-1 {
+      background: var(--surface);
+      border: 1px solid var(--line-subtle);
+      border-radius: 16px;
+      padding: 26px 30px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 2px 8px rgba(22,48,42,.03);
+    }
+
+    /* =========================================================================
+       OPSI 2: EDITORIAL MASTHEAD (BORDER BAWAH SAJA, KANVAS TERBUKA)
+       ========================================================================= */
+    .hero-opt-2 {
+      background: transparent;
+      border: none;
+      border-bottom: 1.5px solid var(--line);
+      padding: 4px 2px 22px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+    }
+
+    /* =========================================================================
+       OPSI 3: CONTEXTUAL ADAB & STATUS CARD (WADAH BERBOBOT SPIRITUAL/PESANTREN)
+       ========================================================================= */
+    .hero-opt-3 {
+      background: linear-gradient(135deg, var(--surface) 0%, #FAF6ED 100%);
+      border: 1px solid var(--line-subtle);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 28px;
+      box-shadow: 0 2px 8px rgba(22,48,42,.03);
+      position: relative;
+    }
+    .hero-opt-3-quote {
+      background: rgba(176,138,46,.06);
+      border: 1px solid rgba(176,138,46,.18);
+      border-radius: 12px;
+      padding: 12px 16px;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+    .quote-badge {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gold-deep);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .quote-ar {
+      font-family: 'Amiri', serif;
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.4;
+      direction: rtl;
+    }
+    .quote-id {
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      font-style: italic;
+      line-height: 1.3;
+    }
+    .hero-opt-3-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* SIMULASI METRICS STRIP (SAMA DI SEMUA OPSI) */
+    .sim-metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: var(--surface);
+      border: 1px solid var(--line-subtle);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 4px rgba(22,48,42,.02);
+    }
+    .sim-metric-cell {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-right: 1px solid var(--line-subtle);
+    }
+    .sim-metric-cell:last-child { border-right: none; }
+    .sim-metric-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--gold-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold-deep);
+      font-size: 16px;
+    }
+    .sim-metric-lbl {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-faint);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .sim-metric-val {
+      font-size: 15.5px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-top: 2px;
+    }
+
+    /* EXPLANATION PANEL */
+    .eval-card {
+      background: #172a25;
+      border-top: 1px solid #285449;
+      padding: 22px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      font-size: 13px;
+    }
+    .eval-col h4 {
+      color: var(--gold-light);
+      font-size: 13.5px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .eval-col ul {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .eval-col li {
+      color: #c7dccd;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .eval-col li::before {
+      content: "•";
+      color: var(--gold);
+      font-weight: bold;
+    }
+
+    .svg-inline {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="control-header">
+    <h1>Eksplorasi Format Hero Beranda</h1>
+    <p>Halaman ini menyajikan 3 alternatif bentuk visual untuk seksi Hero Beranda Asykar di atas kanvas kanonik manuskrip, lengkap dengan simulasi Topbar dan Quick Metrics Strip di bawahnya agar kamu bisa merasakan proporsi dan kepadatan ruangnya secara riil.</p>
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="showOption('all')">Lihat Ketiganya (Bandingkan)</button>
+      <button class="tab-btn" onclick="showOption('opt1')">Opsi 1: Refined Floating Card</button>
+      <button class="tab-btn" onclick="showOption('opt2')">Opsi 2: Editorial Masthead</button>
+      <button class="tab-btn" onclick="showOption('opt3')">Opsi 3: Contextual Adab Card</button>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       SHOWCASE 1: REFINED FLOATING CARD
+       ========================================================================= -->
+  <section class="mockup-stage" id="stage-opt1">
+    <div class="stage-header">
+      <span>OPSI 1: REFINED FLOATING CARD (WADAH HALUS BERBINGKAI)</span>
+      <span class="stage-badge">Klasik & Terdefinisi</span>
+    </div>
+    <div class="stage-canvas">
+      
+      <!-- Topbar Simulator -->
+      <div class="sim-topbar">
+        <div class="sim-topbar-left">
+          <div class="sim-logo">LK</div>
+          <div class="sim-brand">League Of Kindness</div>
+        </div>
+        <div class="sim-nav-pills">
+          <span class="sim-nav-pill active">Beranda</span>
+          <span class="sim-nav-pill">Klasemen</span>
+          <span class="sim-nav-pill">Turnamen Bola</span>
+          <span class="sim-nav-pill">Jadwal Event</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-inverse-muted);">● Cloud Sync</div>
+      </div>
+
+      <!-- Hero Opsi 1 -->
+      <div class="hero-opt-1">
+        <div>
+          <h2 class="hero-title">Ahlan wa Sahlan di <span>Liga Kebaikan</span></h2>
+          <div class="hero-sub">
+            <span class="hero-ar" dir="rtl">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</span>
+            <span class="hero-dot">·</span>
+            <span>Senin, 14 September 2026</span>
+            <span class="hero-dot">·</span>
+            <span>Pusat Informasi &amp; Catatan Kehormatan Adab</span>
+          </div>
+        </div>
+        <div>
+          <button class="btn-sync">
+            <svg class="svg-inline" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+            <span>Segarkan Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="sim-metrics-strip">
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">🏠</div>
+          <div>
+            <div class="sim-metric-lbl">Sakan Terdaftar</div>
+            <div class="sim-metric-val">3 Sakan</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">👑</div>
+          <div>
+            <div class="sim-metric-lbl">Pemimpin Kebaikan</div>
+            <div class="sim-metric-val">QAZVIN ATAS (93)</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">⚽</div>
+          <div>
+            <div class="sim-metric-lbl">Laga Turnamen</div>
+            <div class="sim-metric-val">Tanding Hari Ini</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">📅</div>
+          <div>
+            <div class="sim-metric-lbl">Agenda Terdekat</div>
+            <div class="sim-metric-val">Ada Hari Ini</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="eval-card">
+      <div class="eval-col">
+        <h4>Kelebihan</h4>
+        <ul>
+          <li>Membingkai seluruh seksi salam dan aksi tombol ke dalam satu "panggung" hangat.</li>
+          <li>Ruang kosong di tengah otomatis terbaca sebagai nafas internal kartu, bukan "halaman bolong".</li>
+          <li>Kompak dan sangat akrab bagi pengguna pesantren/umum.</li>
+        </ul>
+      </div>
+      <div class="eval-col">
+        <h4>Catatan Desain</h4>
+        <ul>
+          <li>Menggunakan wadah berbingkai (border 4 sisi), sehingga ada 2 kartu besar berdampingan vertikal dengan strip metrik.</li>
+          <li>Perlu border halus (`var(--line-subtle)`) agar tidak terlalu tebal mengambang.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       SHOWCASE 2: EDITORIAL MASTHEAD (GARIS BAWAH MANUSKRIP)
+       ========================================================================= -->
+  <section class="mockup-stage" id="stage-opt2">
+    <div class="stage-header">
+      <span>OPSI 2: EDITORIAL MASTHEAD (BATAS BAWAH MANUSKRIP)</span>
+      <span class="stage-badge">Klasik & Ringan</span>
+    </div>
+    <div class="stage-canvas">
+      
+      <!-- Topbar Simulator -->
+      <div class="sim-topbar">
+        <div class="sim-topbar-left">
+          <div class="sim-logo">LK</div>
+          <div class="sim-brand">League Of Kindness</div>
+        </div>
+        <div class="sim-nav-pills">
+          <span class="sim-nav-pill active">Beranda</span>
+          <span class="sim-nav-pill">Klasemen</span>
+          <span class="sim-nav-pill">Turnamen Bola</span>
+          <span class="sim-nav-pill">Jadwal Event</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-inverse-muted);">● Cloud Sync</div>
+      </div>
+
+      <!-- Hero Opsi 2 -->
+      <div class="hero-opt-2">
+        <div>
+          <h2 class="hero-title" style="font-size:31px;">Ahlan wa Sahlan di <span>Liga Kebaikan</span></h2>
+          <div class="hero-sub">
+            <span class="hero-ar" dir="rtl">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</span>
+            <span class="hero-dot">·</span>
+            <span>Senin, 14 September 2026</span>
+            <span class="hero-dot">·</span>
+            <span>Pusat Informasi &amp; Catatan Kehormatan Adab</span>
+          </div>
+        </div>
+        <div>
+          <button class="btn-sync" style="background:transparent; border-color:var(--line);">
+            <svg class="svg-inline" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+            <span>Segarkan Data</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="sim-metrics-strip">
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">🏠</div>
+          <div>
+            <div class="sim-metric-lbl">Sakan Terdaftar</div>
+            <div class="sim-metric-val">3 Sakan</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">👑</div>
+          <div>
+            <div class="sim-metric-lbl">Pemimpin Kebaikan</div>
+            <div class="sim-metric-val">QAZVIN ATAS (93)</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">⚽</div>
+          <div>
+            <div class="sim-metric-lbl">Laga Turnamen</div>
+            <div class="sim-metric-val">Tanding Hari Ini</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">📅</div>
+          <div>
+            <div class="sim-metric-lbl">Agenda Terdekat</div>
+            <div class="sim-metric-val">Ada Hari Ini</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="eval-card">
+      <div class="eval-col">
+        <h4>Kelebihan</h4>
+        <ul>
+          <li>Bebas dari kurungan kotak 4 sisi; terasa seperti tajuk surat kabar atau kepala manuskrip prestisius.</li>
+          <li>Garis batas bawah memberikan jangkar spasial (*spatial anchor*), mengunci hubungan antara teks dan tombol di atas satu garis pijak.</li>
+          <li>Sangat ringan (*airy*) dan elegan di layar lebar.</li>
+        </ul>
+      </div>
+      <div class="eval-col">
+        <h4>Catatan Desain</h4>
+        <ul>
+          <li>Membutuhkan kontras tipografi Fraunces yang sedikit lebih dominan (28–31px) agar judul kokoh berdiri sendiri di atas garis.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- =========================================================================
+       SHOWCASE 3: CONTEXTUAL ADAB & STATUS CARD
+       ========================================================================= -->
+  <section class="mockup-stage" id="stage-opt3">
+    <div class="stage-header">
+      <span>OPSI 3: CONTEXTUAL ADAB & STATUS CARD (WADAH BERISI NILAI PESANTREN)</span>
+      <span class="stage-badge">Paling Bernyawa</span>
+    </div>
+    <div class="stage-canvas">
+      
+      <!-- Topbar Simulator -->
+      <div class="sim-topbar">
+        <div class="sim-topbar-left">
+          <div class="sim-logo">LK</div>
+          <div class="sim-brand">League Of Kindness</div>
+        </div>
+        <div class="sim-nav-pills">
+          <span class="sim-nav-pill active">Beranda</span>
+          <span class="sim-nav-pill">Klasemen</span>
+          <span class="sim-nav-pill">Turnamen Bola</span>
+          <span class="sim-nav-pill">Jadwal Event</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-inverse-muted);">● Cloud Sync</div>
+      </div>
+
+      <!-- Hero Opsi 3 -->
+      <div class="hero-opt-3">
+        <div>
+          <h2 class="hero-title">Ahlan wa Sahlan di <span>Liga Kebaikan</span></h2>
+          <div class="hero-sub" style="margin-bottom:14px;">
+            <span class="hero-ar" dir="rtl">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللهِ</span>
+            <span class="hero-dot">·</span>
+            <span>Senin, 14 September 2026</span>
+          </div>
+          <div>
+            <button class="btn-sync">
+              <svg class="svg-inline" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></svg>
+              <span>Segarkan Data</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Micro-Widget Adab Pesantren Pengisi Ruang Kosong -->
+        <div class="hero-opt-3-quote">
+          <div class="quote-badge">
+            <span>✨</span> Mutiara Adab Pekan Ini
+          </div>
+          <div class="quote-ar">
+            «أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ»
+          </div>
+          <div class="quote-id">
+            "Manusia yang paling dicintai Allah adalah yang paling bermanfaat bagi sesama." (HR. Thabrani)
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="sim-metrics-strip">
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">🏠</div>
+          <div>
+            <div class="sim-metric-lbl">Sakan Terdaftar</div>
+            <div class="sim-metric-val">3 Sakan</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">👑</div>
+          <div>
+            <div class="sim-metric-lbl">Pemimpin Kebaikan</div>
+            <div class="sim-metric-val">QAZVIN ATAS (93)</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">⚽</div>
+          <div>
+            <div class="sim-metric-lbl">Laga Turnamen</div>
+            <div class="sim-metric-val">Tanding Hari Ini</div>
+          </div>
+        </div>
+        <div class="sim-metric-cell">
+          <div class="sim-metric-icon">📅</div>
+          <div>
+            <div class="sim-metric-lbl">Agenda Terdekat</div>
+            <div class="sim-metric-val">Ada Hari Ini</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <div class="eval-card">
+      <div class="eval-col">
+        <h4>Kelebihan</h4>
+        <ul>
+          <li>Mengubah ruang kosong ~500px menjadi **konten bernilai adab/pesantren** yang menyentuh hati santri.</li>
+          <li>Menghubungkan aplikasi pencatatan nilai dengan nilai ruhiyah dan filosofi kebaikan.</li>
+          <li>Keseimbangan visual simetris sempurna antara sapaan di kiri dan mutiara adab di kanan.</li>
+        </ul>
+      </div>
+      <div class="eval-col">
+        <h4>Catatan Desain</h4>
+        <ul>
+          <li>Membutuhkan kurasi teks hadits/kata mutiara pendek yang bisa dirotasi (atau statis per pekan).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function showOption(opt) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      const s1 = document.getElementById('stage-opt1');
+      const s2 = document.getElementById('stage-opt2');
+      const s3 = document.getElementById('stage-opt3');
+
+      if (opt === 'all') {
+        s1.style.display = 'block';
+        s2.style.display = 'block';
+        s3.style.display = 'block';
+        event.target.classList.add('active');
+      } else if (opt === 'opt1') {
+        s1.style.display = 'block';
+        s2.style.display = 'none';
+        s3.style.display = 'none';
+        event.target.classList.add('active');
+      } else if (opt === 'opt2') {
+        s1.style.display = 'none';
+        s2.style.display = 'block';
+        s3.style.display = 'none';
+        event.target.classList.add('active');
+      } else if (opt === 'opt3') {
+        s1.style.display = 'none';
+        s2.style.display = 'none';
+        s3.style.display = 'block';
+        event.target.classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>

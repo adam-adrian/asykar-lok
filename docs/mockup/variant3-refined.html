@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refinemen Varian 3: Visual Balancing & Spacing</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <style>
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      padding: 20px 16px;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .test-section-title {
+      font-family: var(--font-serif);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 4px 0;
+    }
+    .test-section-sub {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-bottom: 20px;
+    }
+
+    /* Target Varian 3 Refined Card */
+    .dash-match-card-v3 {
+      background: var(--card);
+      border: 1px solid var(--line-subtle);
+      border-radius: var(--radius);
+      padding: 14px 16px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(10,25,47,.03);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .dash-match-card-v3:hover {
+      border-color: var(--line);
+      box-shadow: 0 4px 12px rgba(10,25,47,.05);
+    }
+    .dash-match-card-v3.live {
+      border-color: rgba(239,68,68,0.3);
+      background: linear-gradient(to bottom, var(--card), var(--clay-subtle));
+    }
+
+    /* Eyebrow */
+    .dash-match-card-v3 .match-eyebrow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .dash-match-card-v3 .match-round-pill {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      padding: 2px 7.5px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      letter-spacing: 0.01em;
+    }
+    .dash-match-card-v3 .match-status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      line-height: 1.3;
+    }
+    .dash-match-card-v3 .match-status-badge.today {
+      background: var(--gold-deep);
+      color: #fff;
+    }
+    .dash-match-card-v3 .match-status-badge.upcoming {
+      background: var(--green-subtle);
+      color: var(--green-ok);
+      border: 1px solid var(--green-border);
+    }
+    .dash-match-card-v3 .match-status-badge.past {
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      color: var(--ink-faint);
+    }
+    .dash-match-card-v3 .match-status-badge.live {
+      background: var(--clay);
+      color: #fff;
+    }
+
+    /* 3-Column 2-Row Arena: Keeps Team A, Pillar, and Team B on exact same horizontal centerline */
+    .dash-match-card-v3 .match-arena {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      grid-template-rows: auto auto;
+      align-items: center;
+      gap: 8px 10px;
+      padding: 2px 0 2px;
+    }
+
+    /* Team Columns */
+    .dash-match-card-v3 .match-team-col {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      grid-row: 1;
+    }
+    .dash-match-card-v3 .match-team-col.right {
+      flex-direction: row-reverse;
+      text-align: right;
+      grid-column: 3;
+    }
+    .dash-match-card-v3 .match-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px rgba(10,25,47,.04);
+      user-select: none;
+    }
+    .dash-match-card-v3 .match-avatar.winner-av {
+      background: var(--ochre-subtle);
+      border-color: var(--gold);
+      color: var(--gold-deep);
+    }
+    .dash-match-card-v3 .match-team-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      word-break: break-word;
+    }
+    .dash-match-card-v3 .match-team-name.winner {
+      font-weight: 800;
+      color: var(--ink);
+    }
+    .dash-match-card-v3 .match-team-name.loser {
+      font-weight: 500;
+      color: var(--ink-faint);
+      opacity: 0.75;
+    }
+
+    /* Center Anchor Pillar (Grid Column 2, Row 1) */
+    .dash-match-card-v3 .match-center-pillar {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: center;
+      flex-shrink: 0;
+      min-width: 68px;
+      text-align: center;
+    }
+    .dash-match-card-v3 .match-time-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: var(--surface-subtle);
+      border: 1px solid var(--line-subtle);
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: 0 1px 2px rgba(10,25,47,.02);
+    }
+    .dash-match-card-v3 .match-time-val {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+    .dash-match-card-v3 .match-time-lbl {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: var(--ink-faint);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      line-height: 1;
+    }
+    .dash-match-card-v3 .match-score-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 10px;
+      border-radius: 8px;
+      background: var(--ochre-subtle);
+      border: 1px solid var(--ochre-border);
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: 0 1px 2px rgba(10,25,47,.02);
+    }
+    .dash-match-card-v3 .match-score-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold-deep);
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.02em;
+    }
+    .dash-match-card-v3 .match-score-lbl {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--gold-deep);
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      line-height: 1;
+      margin-top: 1px;
+    }
+    .dash-match-card-v3.live .match-score-pill {
+      background: var(--clay-subtle);
+      border-color: rgba(239,68,68,0.35);
+    }
+    .dash-match-card-v3.live .match-score-val {
+      color: var(--clay);
+    }
+    .dash-match-card-v3.live .match-score-lbl {
+      color: var(--clay);
+    }
+
+    /* Sub-Venue Styling Under Pillar (Grid Column 2, Row 2) */
+    .dash-match-card-v3 .match-venue-sub {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-faint);
+      max-width: 130px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.2;
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+    .dash-match-card-v3 .match-venue-sub .svg-icon {
+      width: 11.5px;
+      height: 11.5px;
+      color: var(--ink-faint);
+      opacity: 0.85;
+      flex-shrink: 0;
+    }
+
+    .state-heading {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-faint);
+      margin: 18px 0 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="test-section-title">Refinemen Varian 3 (Sub-label di Bawah Pillar)</div>
+  <div class="test-section-sub">Pengujian Spacing, Proporsi &amp; Visual Balancing untuk 3 Status Laga</div>
+
+  <!-- STATE 1: JADWAL HARI INI (NAMA SEDANG) -->
+  <div class="state-heading">1. Jadwal Hari Ini (Kickoff Time)</div>
+  <div class="dash-match-card-v3">
+    <div class="match-eyebrow">
+      <span class="match-round-pill">Penyisihan</span>
+      <span class="match-status-badge today">Hari Ini</span>
+    </div>
+    <div class="match-arena">
+      <div class="match-team-col">
+        <div class="match-avatar">Q</div>
+        <div class="match-team-name">Qazvin Atas</div>
+      </div>
+      <div class="match-center-pillar">
+        <div class="match-time-pill">
+          <div class="match-time-val">15:30</div>
+          <div class="match-time-lbl">WIB</div>
+        </div>
+      </div>
+      <div class="match-venue-sub" title="Lapangan Utama">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Lapangan Utama</span>
+      </div>
+      <div class="match-team-col right">
+        <div class="match-avatar">N</div>
+        <div class="match-team-name">Naisabur</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE 2: JADWAL MENDATANG DENGAN NAMA PANJANG -->
+  <div class="state-heading">2. Jadwal Mendatang (Stress-test Nama Panjang)</div>
+  <div class="dash-match-card-v3">
+    <div class="match-eyebrow">
+      <span class="match-round-pill">Semifinal</span>
+      <span class="match-status-badge upcoming">16 Sep</span>
+    </div>
+    <div class="match-arena">
+      <div class="match-team-col">
+        <div class="match-avatar">U</div>
+        <div class="match-team-name">Umar bin Khattab</div>
+      </div>
+      <div class="match-center-pillar">
+        <div class="match-time-pill">
+          <div class="match-time-val">15:30</div>
+          <div class="match-time-lbl">16 SEP</div>
+        </div>
+      </div>
+      <div class="match-venue-sub" title="Lapangan Timur">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Lapangan Timur</span>
+      </div>
+      <div class="match-team-col right">
+        <div class="match-avatar">A</div>
+        <div class="match-team-name">Ali bin Abi Thalib</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE 3: SEDANG MAIN (LIVE SCORE) -->
+  <div class="state-heading">3. Sedang Main (Live Score)</div>
+  <div class="dash-match-card-v3 live">
+    <div class="match-eyebrow">
+      <span class="match-round-pill">
+        <span class="dash-live-dot" style="margin-right:2px;"></span>
+        Final
+      </span>
+      <span class="match-status-badge live">
+        <span class="dash-live-dot" style="background:#fff; margin-right:2px;"></span>
+        Sedang Main
+      </span>
+    </div>
+    <div class="match-arena">
+      <div class="match-team-col">
+        <div class="match-avatar">Q</div>
+        <div class="match-team-name">Qazvin Atas</div>
+      </div>
+      <div class="match-center-pillar">
+        <div class="match-score-pill">
+          <div class="match-score-val">1 - 0</div>
+          <div class="match-score-lbl">LIVE 42'</div>
+        </div>
+      </div>
+      <div class="match-venue-sub" title="Lapangan Utama">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Lapangan Utama</span>
+      </div>
+      <div class="match-team-col right">
+        <div class="match-avatar">B</div>
+        <div class="match-team-name">Bukhara</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE 4: HASIL SELESAI -->
+  <div class="state-heading">4. Hasil Selesai (Winner Highlight)</div>
+  <div class="dash-match-card-v3">
+    <div class="match-eyebrow">
+      <span class="match-round-pill">Penyisihan</span>
+      <span class="match-status-badge past">Selesai</span>
+    </div>
+    <div class="match-arena">
+      <div class="match-team-col">
+        <div class="match-avatar winner-av">B</div>
+        <div class="match-team-name winner">Bukhara</div>
+      </div>
+      <div class="match-center-pillar">
+        <div class="match-score-pill">
+          <div class="match-score-val">3 - 1</div>
+          <div class="match-score-lbl">FT</div>
+        </div>
+      </div>
+      <div class="match-venue-sub" title="Lapangan Barat">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Lapangan Barat</span>
+      </div>
+      <div class="match-team-col right">
+        <div class="match-avatar">T</div>
+        <div class="match-team-name loser">Tirmidz</div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,6 +1,5 @@
 // api/sync.js - Vercel Serverless Function Proxy
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -18,7 +17,17 @@ export default async function handler(req, res) {
         status: 'success',
         local: true,
         message: 'GOOGLE_SCRIPT_URL belum diset di Vercel. Berjalan dalam mode lokal.',
-        data: { klasemen: [], liga: [], event: [] }
+        data: {
+          klasemen: [],
+          liga: [],
+          event: [],
+          gedung: [
+            { id: "qazvin", nama: "QAZVIN", urutan: 1, aktif: true }
+          ],
+          sakan: [
+            { id: "qazvin-atas", nama: "QAZVIN ATAS", gedung: "QAZVIN", urutan: 1, aktif: true }
+          ]
+        }
       });
     } else {
       return res.status(200).json({
@@ -32,7 +41,11 @@ export default async function handler(req, res) {
   try {
     // 1. GET Request: Ambil data publik dari Google Sheets
     if (req.method === 'GET') {
-      const response = await fetch(GOOGLE_SCRIPT_URL, { method: 'GET' });
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000)
+      });
       const data = await response.json();
       return res.status(200).json(data);
     }
@@ -54,11 +67,15 @@ export default async function handler(req, res) {
       const response = await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ ...body, token })
+        body: JSON.stringify({ ...body, token }),
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000)
       });
       const data = await response.json();
-      const code = data && data.code;
-      const httpStatus = code === 'unauthorized' ? 401 : code === 'forbidden' ? 403 : 200;
+      const code = (data && data.code) || '';
+      const isUnauthorized = code === 'ERR_UNAUTHORIZED' || code === 'unauthorized';
+      const isForbidden = code === 'ERR_FORBIDDEN' || code === 'forbidden';
+      const httpStatus = isUnauthorized ? 401 : isForbidden ? 403 : (data && data.status === 'error' ? 400 : 200);
       return res.status(httpStatus).json(data);
     }
 

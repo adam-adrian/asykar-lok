@@ -1,0 +1,56 @@
+Kamu adalah Design Director & Principal UI/UX Architect kelas dunia yang menguasai skill 'Impeccable' (.agents/skills/impeccable/).
+Target Proyek: Asykar / League of Kindness (/home/neikami/Proyek/asykar)
+Berkas Utama:
+- index.html
+- css/style.css
+- js/app.js
+- Panduan Impeccable: .agents/skills/impeccable/reference/craft-floor.md, .agents/skills/impeccable/reference/critique.md, .agents/skills/impeccable/reference/operate.md, .agents/skills/impeccable/reference/distill.md, .agents/skills/impeccable/reference/layout.md
+
+=== KONTEKS & KRITIK UTAMA DARI PENGGUNA (AKAMI) ===
+Audit visual sebelumnya hanya fokus pada warna dan shadow kosmetik (tambah glow, tebalin border) dan ternyata TIDAK MEMBANTU.
+Akami menegaskan:
+"masalah utamanya nggak cuma warna, tapi juga di style tampilan kita yg terlalu generic. nested card dsb. yah gitulah"
+
+Tampilan saat ini terasa seperti template admin / dashboard bootstrap generik yang cuma ditempeli warna cream dan font Fraunces. Semuanya dimasukkan ke dalam kartu:
+- Kartu di dalam kartu (nested card prison).
+- 4 kartu metrik identik berjajar (the hero-metric template).
+- 3 kartu widget beranda yang seragam (Klasemen, Turnamen, Agenda) yang strukturnya kaku seperti admin dashboard.
+- Tabel ledger klasemen yang dimasukkan ke dalam kotak card.
+- Ketiadaan "authored character" yang mencerminkan sebuah liga kebaikan pesantren yang megah dan terhormat.
+
+=== TUGAS AUDIT KESELURUHAN (IMPECCABLE CRITIQUE & STRUCTURAL REDESIGN) ===
+Gunakan lensa Impeccable (terutama prinsip craft-floor.md, critique.md, distill.md, dan operate.md) untuk melakukan audit menyeluruh yang jujur, tajam, objektif, dan berorientasi arsitektural. Jangan basa-basi dan jangan sycophant.
+
+Laporan auditmu HARUS mencakup:
+
+1. DIAGNOSIS DESIGN SPECIFICITY & GENERIC PATTERN (The "Template Trap"):
+   - Mengapa UI ini terasa seperti template admin generik? Tunjukkan di mana saja letak penyakit visualnya:
+     * Nested cards (kartu di dalam kartu di dalam container).
+     * The hero-metric template (angka besar, label kecil, icon box).
+     * 3-column identical widget scaffold.
+     * Eyebrow/kicker di atas heading yang dilarang di craft-floor.
+     * Hairline border 1px yang seragam membungkus setiap elemen.
+   - Evaluasi apakah layout ini "authored for League of Kindness" atau "category-interchangeable dashboard template".
+
+2. AUDIT PER LAYAR / FITUR UTAMA:
+   - Beranda (Dashboard): Evaluasi hero greeting, metric strip, 3 kolom widget. Bagaimana seharusnya data ini disusun tanpa terjebak format kotak-kotak kartu seragam?
+   - Klasemen Kebaikan (#klasemen): Evaluasi filter bar, 4 stat box, podium 3 teratas, dan ledger table. Bagaimana mengubah kesan "tabel database/Excel di dalam kotak" menjadi perkamen catatan adab & kebaikan yang otentik dan prestisius?
+   - Turnamen Bola (#liga): Evaluasi bagan pohon gugur (bracket tree), match box, champion showcase. Bagaimana alur visual pertandingan seharusnya bernapas?
+   - Jadwal & Dokumentasi Agenda (#event): Evaluasi card list dan modal form.
+   - Modal Dialogs: Mengapa begitu banyak task dialihkan ke modal dan bagaimana menertibkan cognitive load-nya?
+
+3. HEURISTICS & COGNITIVE LOAD SCORING (Lensa Impeccable Critique):
+   - Berikan tabel skor Nielsen's 10 Heuristics (0-4 per kriteria).
+   - Analisis Cognitive Load: visual noise dari border berlapis, lack of negative space, chunking yang terdistorsi oleh nested card.
+
+4. CETAK BIRU REKONSTRUKSI ARSITEKTUR VISUAL (Escape the Nested Card Prison):
+   - Jangan tawarkan sekadar tweak warna atau shadow 1 baris. Berikan konsep arsitektur layout baru:
+     * Bagaimana menyusun konten dengan "continuous surface", asymmetric rhythm, whitespace, dan tipografi alih-alih membungkus semua hal dalam kartu ber-border?
+     * Bagaimana menstrukturkan Beranda agar ada focal hierarchy yang jelas (apa yang heroik, apa yang sekunder, apa yang pelengkap)?
+     * Bagaimana desain Klasemen yang elegan dan nyaman dibaca santri/pembina tanpa rasa kaku spreadsheet?
+   - Berikan wireframe tekstual / mockup struktur HTML & CSS baru untuk komponen-komponen kritis tersebut.
+
+5. ROADMAP EKSEKUSI SURGICAL & SISTEMATIS:
+   - Rencana aksi bertahap: mana yang bisa dibersihkan segera (distill & un-nest), mana yang butuh perombakan layout, dan bagaimana menjaga fungsionalitas JavaScript app.js tetap berjalan mulus 100%.
+
+Tulis laporanmu dengan bahasa Indonesia yang lugas, tajam, cerdas, seperti Senior Design Director ke Principal Engineer. Simpan hasil audit lengkap ke file `scripts/impeccable-audit-opus.md` atau keluarkan secara terstruktur dan komprehensif.

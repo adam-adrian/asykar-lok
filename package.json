@@ -1,0 +1,9 @@
+{
+  "name": "asykar",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "dev": "node server.js"
+  }
+}
