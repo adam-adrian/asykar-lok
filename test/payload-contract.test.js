@@ -283,4 +283,32 @@ describe('Contract Testing: DataStore Outbox Payloads vs Code.gs doPost Expectat
     assert.ok(proxyEnvelope.token.length > 0, 'Code.gs:165 - Token wajib ada untuk setiap aksi mutasi');
   });
 
+  test('Kontrak save_match: validasi anti-draw menolak skor imbang di sistem gugur', () => {
+    assert.throws(() => {
+      CODE_GS_CONTRACT.save_match({
+        id: 'm-draw',
+        round: 'Final',
+        tanggal: '2026-09-20',
+        waktu: '16:00',
+        lokasi: 'Lapangan Utama',
+        timA: 'QAZVIN',
+        timB: 'NAISABUR',
+        skorA: 2,
+        skorB: 2,
+        status: 'SELESAI'
+      });
+    }, /Sistem gugur tidak boleh seri/);
+  });
+
+  test('Kontrak save_klasemen: validasi skor menolak nilai di luar rentang 0-100', () => {
+    assert.throws(() => {
+      CODE_GS_CONTRACT.save_klasemen({
+        tanggal: '2026-09-20',
+        sakan: 'QAZVIN ATAS',
+        kebersihan: 150,
+        kedisiplinan: 90,
+        bahasa: 85
+      });
+    }, /kebersihan harus 0-100 jika diisi/);
+  });
 });

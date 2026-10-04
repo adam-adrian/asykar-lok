@@ -247,23 +247,27 @@ function doPost(e) {
         
         for (let i = 1; i < rows.length; i++) {
           const rowDate = formatDateStr(rows[i][1], ss);
-          if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
+          if (rowDate === payload.tanggal && String(rows[i][2] || "").trim().toUpperCase() === String(payload.sakan || "").trim().toUpperCase()) {
             rowIndex = i + 1;
             break;
           }
         }
         
-        const totalPoin = (Number(payload.kebersihan) || 0) + (Number(payload.kedisiplinan) || 0) + (Number(payload.bahasa) || 0);
-        
         if (rowIndex > 0) {
-          // Batch write 1x call untuk performa tinggi
+          const existingRow = rows[rowIndex - 1];
+          const valKeb = payload.kebersihan !== undefined ? payload.kebersihan : existingRow[3];
+          const valKed = payload.kedisiplinan !== undefined ? payload.kedisiplinan : existingRow[4];
+          const valBah = payload.bahasa !== undefined ? payload.bahasa : existingRow[5];
+          const totalPoin = (Number(valKeb) || 0) + (Number(valKed) || 0) + (Number(valBah) || 0);
+
           sheet.getRange(rowIndex, 4, 1, 4).setValues([[
-            payload.kebersihan != null ? payload.kebersihan : "",
-            payload.kedisiplinan != null ? payload.kedisiplinan : "",
-            payload.bahasa != null ? payload.bahasa : "",
+            valKeb != null ? valKeb : "",
+            valKed != null ? valKed : "",
+            valBah != null ? valBah : "",
             totalPoin
           ]]);
         } else {
+          const totalPoin = (Number(payload.kebersihan) || 0) + (Number(payload.kedisiplinan) || 0) + (Number(payload.bahasa) || 0);
           sheet.appendRow([
             Date.now().toString(),
             payload.tanggal,
@@ -310,15 +314,20 @@ function doPost(e) {
           const item = entries[k];
           const t = item.tanggal;
           const s = item.sakan;
-          const totalPoin = (Number(item.kebersihan) || 0) + (Number(item.kedisiplinan) || 0) + (Number(item.bahasa) || 0);
+          const totalPoinInput = (Number(item.kebersihan) || 0) + (Number(item.kedisiplinan) || 0) + (Number(item.bahasa) || 0);
           const lookupKey = t + "_" + String(s || "").trim().toUpperCase();
           const targetRow = rowMap[lookupKey];
 
           if (targetRow) {
+            const existingRow = rows[targetRow - 1];
+            const valKeb = item.kebersihan !== undefined ? item.kebersihan : existingRow[3];
+            const valKed = item.kedisiplinan !== undefined ? item.kedisiplinan : existingRow[4];
+            const valBah = item.bahasa !== undefined ? item.bahasa : existingRow[5];
+            const totalPoin = (Number(valKeb) || 0) + (Number(valKed) || 0) + (Number(valBah) || 0);
             sheet.getRange(targetRow, 4, 1, 4).setValues([[
-              item.kebersihan != null ? item.kebersihan : "",
-              item.kedisiplinan != null ? item.kedisiplinan : "",
-              item.bahasa != null ? item.bahasa : "",
+              valKeb != null ? valKeb : "",
+              valKed != null ? valKed : "",
+              valBah != null ? valBah : "",
               totalPoin
             ]]);
           } else {
@@ -329,7 +338,7 @@ function doPost(e) {
               item.kebersihan != null ? item.kebersihan : "",
               item.kedisiplinan != null ? item.kedisiplinan : "",
               item.bahasa != null ? item.bahasa : "",
-              totalPoin
+              totalPoinInput
             ]);
             rowMap[lookupKey] = sheet.getLastRow();
           }
@@ -341,7 +350,7 @@ function doPost(e) {
           const rows = sheet.getDataRange().getValues();
           for (let i = 1; i < rows.length; i++) {
             const rowDate = formatDateStr(rows[i][1], ss);
-            if (rowDate === payload.tanggal && String(rows[i][2]).toUpperCase() === String(payload.sakan).toUpperCase()) {
+            if (rowDate === payload.tanggal && String(rows[i][2] || "").trim().toUpperCase() === String(payload.sakan || "").trim().toUpperCase()) {
               sheet.deleteRow(i + 1);
               break;
             }

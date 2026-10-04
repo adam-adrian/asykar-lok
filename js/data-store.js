@@ -81,8 +81,9 @@
       this.pushedActions = [];
       this.failNextPull = false;
       this.failNextPush = false;
+      this.unauthorizedNextPush = false;
+      this.throwNextPush = false;
     }
-
     async pull() {
       if (this.failNextPull) {
         throw new Error('Simulasi kegagalan koneksi jaringan.');
@@ -95,6 +96,12 @@
     }
 
     async push(action, payload, authToken = '') {
+      if (this.unauthorizedNextPush) {
+        return { status: 'error', code: 'ERR_UNAUTHORIZED', message: 'Sesi login telah berakhir.' };
+      }
+      if (this.throwNextPush) {
+        throw new Error('Jaringan terputus.');
+      }
       if (this.failNextPush) {
         return { status: 'error', message: 'Simulasi kegagalan push remote.' };
       }
@@ -144,7 +151,7 @@
       this.isSyncing = false;
       this.isDrainingOutbox = false;
       this.outbox = [];
-
+      this.onUnauthorized = null;
       // Internal State (Single source of truth in memory)
       this.state = {
         klasemen: [],
@@ -321,7 +328,6 @@
       while (true) {
         const item = this.outbox.find(o => o.status === 'pending');
         if (!item) break;
-
         try {
           const res = await this.adapter.push(item.action, item.payload, this.authToken);
           if (res && res.status === 'success') {
@@ -339,6 +345,9 @@
             safeStorageSet(STORAGE_KEYS.OUTBOX, this.outbox);
 
             if (isUnauthorized) {
+              if (typeof this.onUnauthorized === 'function') {
+                this.onUnauthorized();
+              }
               break;
             }
           }
@@ -349,6 +358,7 @@
           item.retryCount = (item.retryCount || 0) + 1;
           this._markEntitySyncStatus(item.entity, item.payload, item.id, 'failed', errMsg);
           safeStorageSet(STORAGE_KEYS.OUTBOX, this.outbox);
+          break;
         }
       }
 

@@ -405,4 +405,38 @@ describe('DataStore with InMemoryTransportAdapter (Storage & Remote Seam)', () =
     assert.equal(store.getEvents()[0].foto, '');
     assert.equal(store.getEvents()[0].judul, 'Cerdas Berlogika (Poster Dihapus)');
   });
+
+  test('outbox: onUnauthorized callback dipanggil saat menerima ERR_UNAUTHORIZED', async () => {
+    const adapter = new InMemoryTransportAdapter();
+    adapter.unauthorizedNextPush = true;
+    const store = new DataStore(adapter);
+    store.init('expired_token');
+
+    let unauthorizedFired = false;
+    store.onUnauthorized = () => {
+      unauthorizedFired = true;
+    };
+
+    await store.saveMatch({ id: 'm-unauth', timA: 'A', timB: 'B' });
+    await store.flushOutbox();
+
+    assert.equal(unauthorizedFired, true, 'Callback onUnauthorized harus dipanggil saat 401');
+    assert.equal(store.getMatches()[0]._syncStatus, 'failed');
+  });
+
+  test('outbox: network error melempar exception dan menandai item outbox berstatus failed', async () => {
+    const adapter = new InMemoryTransportAdapter();
+    adapter.throwNextPush = true;
+    const store = new DataStore(adapter);
+    store.init();
+
+    await store.saveMatch({ id: 'm-net-1', timA: 'A', timB: 'B' });
+    await store.flushOutbox();
+
+    const outbox = store.getOutbox();
+    assert.equal(outbox.length, 1);
+    assert.equal(outbox[0].status, 'failed');
+    assert.equal(outbox[0].error, 'Jaringan terputus.');
+    assert.equal(store.getSyncState().status, 'error');
+  });
 });

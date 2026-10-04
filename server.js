@@ -76,6 +76,11 @@ function initDb() {
 
 const db = initDb();
 
+function isScoreValid(val) {
+  if (val === null || val === undefined || val === '') return true;
+  const num = Number(val);
+  return !isNaN(num) && num >= 0 && num <= 100;
+}
 function persistDb() {
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
@@ -284,9 +289,16 @@ const server = http.createServer(async (req, res) => {
       const payload = body.payload || {};
 
       if (action === 'save_klasemen') {
+        if (!isScoreValid(payload.kebersihan) || !isScoreValid(payload.kedisiplinan) || !isScoreValid(payload.bahasa)) {
+          return sendJson(res, 400, {
+            status: 'error',
+            code: 'ERR_OUT_OF_RANGE',
+            message: 'Nilai poin kebersihan, kedisiplinan, dan bahasa harus berada di antara 0 sampai 100.'
+          });
+        }
         const t = payload.tanggal;
         const s = payload.sakan;
-        let existing = db.klasemen.find(i => i.tanggal === t && String(i.sakan).toUpperCase() === String(s).toUpperCase());
+        let existing = db.klasemen.find(i => i.tanggal === t && String(i.sakan || '').trim().toUpperCase() === String(s || '').trim().toUpperCase());
         const totalPoin = (Number(payload.kebersihan) || 0) + (Number(payload.kedisiplinan) || 0) + (Number(payload.bahasa) || 0);
 
         if (existing) {
@@ -345,8 +357,27 @@ const server = http.createServer(async (req, res) => {
       }
 
       if (action === 'save_match') {
+        if (payload.skorA !== "" && payload.skorA != null && payload.skorB !== "" && payload.skorB != null) {
+          const sa = Number(payload.skorA);
+          const sb = Number(payload.skorB);
+          if (isNaN(sa) || isNaN(sb) || sa < 0 || sb < 0 || sa > 999 || sb > 999) {
+            return sendJson(res, 400, {
+              status: 'error',
+              code: 'ERR_OUT_OF_RANGE',
+              message: 'Skor harus berupa angka bilangan bulat antara 0 sampai 999.'
+            });
+          }
+          if (sa === sb) {
+            return sendJson(res, 400, {
+              status: 'error',
+              code: 'ERR_ANTI_DRAW',
+              message: 'Sistem gugur tidak boleh seri. Harus ada pemenang.'
+            });
+          }
+        }
         const id = payload.id || Date.now().toString();
         const existingIdx = db.liga.findIndex(i => String(i.id) === String(id));
+        const matchStatus = payload.status || (payload.skorA !== "" && payload.skorA != null && payload.skorB !== "" && payload.skorB != null ? 'SELESAI' : 'UPCOMING');
         const matchData = {
           id: id,
           round: payload.round,
@@ -357,7 +388,7 @@ const server = http.createServer(async (req, res) => {
           timB: payload.timB,
           skorA: payload.skorA,
           skorB: payload.skorB,
-          status: payload.status || 'UPCOMING'
+          status: matchStatus
         };
         if (existingIdx >= 0) {
           db.liga[existingIdx] = matchData;

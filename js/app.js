@@ -27,7 +27,9 @@ const AUTH_URL = "/api/login";
 // Instansiasi DataStore tunggal (Tingkat 1)
 const store = new DataStoreModule.DataStore(new DataStoreModule.HttpTransportAdapter(API_URL));
 window.store = store;
-
+store.onUnauthorized = () => {
+  forceLogout("Sesi login telah berakhir. Silakan masuk kembali.");
+};
 // Observer reaktif terkalibrasi untuk status sinkronisasi pasif
 store.subscribe(snap => {
   updateSyncStatus(snap.sync.status, snap.sync.label);
@@ -159,9 +161,13 @@ function formatTanggal(t, includeDay = true){
   return str;
 }
 function escapeHtml(str) {
-  const d = document.createElement('div');
-  d.textContent = str == null ? '' : str;
-  return d.innerHTML;
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 function sanitizeImageUrl(url) {
   if (!url) return '';
@@ -487,23 +493,6 @@ async function syncDataFromCloud(isManual = false){
   }
 }
 
-async function sendToCloud(action, payload){
-  try {
-    const res = await store.adapter.push(action, payload, currentAuthToken);
-    const isUnauthorized = res && (res.code === "ERR_UNAUTHORIZED" || res.code === "unauthorized");
-    if(isUnauthorized){
-      updateSyncStatus("local", "Sesi berakhir");
-      forceLogout("Sesi berakhir. Silakan masuk kembali.");
-      return res;
-    }
-    updateSyncStatus("online", res.local ? "Mode Lokal" : "Cloud Terhubung");
-    return res;
-  } catch(err) {
-    console.error("Cloud Error:", err);
-    updateSyncStatus("local", "Gagal Simpan");
-    return { status: "error", message: "Gagal terhubung ke server." };
-  }
-}
 
 /* ===== AUTENTIKASI SERVERLESS ===== */
 function canEditField(f) {
@@ -1289,9 +1278,10 @@ function renderKlasemen(){
       const bahStr = item.bahasa == null ? '<span class="pill empty">–</span>' : '<span class="pill">' + item.bahasa + '</span>';
       const avgStr = item.rowAvg == null ? '<span class="pill empty">–</span>' : '<span class="pill total">' + item.rowAvg.toFixed(1) + '</span>';
 
-      const sakanEsc = item.sakan.replace(/'/g, "\\'");
       const syncBadge = renderSyncBadge(item._syncStatus, item._syncId, item._syncError);
-      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(formatTitleCase(item.sakan)) + (syncBadge ? ' ' + syncBadge : '') + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" onclick="editKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" onclick="hapusKlasemen(\'' + item.tanggal + '\',\'' + sakanEsc + '\')">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
+      const escTgl = escapeHtml(item.tanggal);
+      const escSak = escapeHtml(item.sakan);
+      return '<tr><td class="center"><span class="rank-num">' + item.rank + '</span></td><td>' + formatTanggal(item.tanggal) + '</td><td class="sakan-name">' + escapeHtml(formatTitleCase(item.sakan)) + (syncBadge ? ' ' + syncBadge : '') + '</td><td class="center">' + kebStr + '</td><td class="center">' + kedStr + '</td><td class="center">' + bahStr + '</td><td class="center">' + avgStr + '</td>' + (isAdmin ? '<td class="center"><div class="row-actions"><button class="icon-btn" title="Edit" data-tanggal="' + escTgl + '" data-sakan="' + escSak + '" onclick="editKlasemen(this.dataset.tanggal, this.dataset.sakan)">' + svgIcon('edit', 14) + '</button>' + (canDeleteKlasemen() ? '<button class="icon-btn danger" title="Hapus" data-tanggal="' + escTgl + '" data-sakan="' + escSak + '" onclick="hapusKlasemen(this.dataset.tanggal, this.dataset.sakan)">' + svgIcon('trash', 14) + '</button>' : '') + '</div></td>' : '') + '</tr>';
     }).join("");
   }
   
@@ -1421,7 +1411,7 @@ function renderSakanPills() {
     const nameFormatted = formatTitleCase(g.nama);
     const initial = nameFormatted.charAt(0).toUpperCase();
     return `
-      <div class="pub-pill" onclick="filterKlasemenByGedung('${escapeHtml(g.nama)}')" title="Lihat klasemen asrama di Gedung ${escapeHtml(nameFormatted)}">
+      <div class="pub-pill" data-gedung="${escapeHtml(g.nama)}" onclick="filterKlasemenByGedung(this.dataset.gedung)" title="Lihat klasemen asrama di Gedung ${escapeHtml(nameFormatted)}">
         <span class="pub-pill-dot">${initial}</span>
         <span>${escapeHtml(nameFormatted)}</span>
       </div>
@@ -1546,14 +1536,20 @@ async function simpanKlasemen(){
   }
 
   const btn = document.getElementById("btnSaveKlasemen");
-  btn.disabled = true;
+  if (btn) {
+    if (btn.disabled) return;
+    btn.disabled = true;
+  }
 
-  // WhatsApp-style Optimistic local commit (0ms)
-  await store.saveKlasemen(validation.value);
-  btn.disabled = false;
-  closeModal("modalKlasemen");
-  renderKlasemen();
-  showToast("Nilai tersimpan secara lokal. Sedang disinkronkan...");
+  try {
+    // WhatsApp-style Optimistic local commit (0ms)
+    await store.saveKlasemen(validation.value);
+    closeModal("modalKlasemen");
+    renderKlasemen();
+    showToast("Nilai tersimpan secara lokal. Sedang disinkronkan...");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 /* ===== INPUT MASSAL HARIAN (1B VERSI A) ===== */
@@ -1690,15 +1686,20 @@ async function simpanKlasemenBulk() {
 
   if (errNote) errNote.style.display = "none";
   const btn = document.getElementById("btnSaveBulkKlasemen");
-  btn.disabled = true;
+  if (btn) {
+    if (btn.disabled) return;
+    btn.disabled = true;
+  }
 
-  // WhatsApp-style Optimistic local bulk commit (0ms)
-  await store.saveKlasemenBulk(validation.validEntries);
-
-  btn.disabled = false;
-  closeModal("modalKlasemenBulk");
-  renderKlasemen();
-  showToast(`${validation.validEntries.length} sakan tersimpan secara lokal. Sedang disinkronkan...`);
+  try {
+    // WhatsApp-style Optimistic local bulk commit (0ms)
+    await store.saveKlasemenBulk(validation.validEntries);
+    closeModal("modalKlasemenBulk");
+    renderKlasemen();
+    showToast(`${validation.validEntries.length} sakan tersimpan secara lokal. Sedang disinkronkan...`);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 async function hapusKlasemen(t,s){
@@ -2032,10 +2033,13 @@ async function simpanMatch() {
   }
 
   const btn = document.getElementById("btnSaveLiga");
-  btn.disabled = true;
-  btn.innerHTML = `${svgIcon('loader', 14, 'svg-spinner')} Menyimpan...`;
+  if (btn) {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = `${svgIcon('loader', 14, 'svg-spinner')} Menyimpan...`;
+  }
 
-  const targetId = matchId || Date.now().toString();
+  const targetId = matchId || ('match_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
   const matchObj = {
     id: targetId,
     round: round,
@@ -2049,19 +2053,22 @@ async function simpanMatch() {
     status: status
   };
 
-  btn.disabled = false;
-  btn.textContent = "Simpan";
-  closeModal("modalLiga");
-
-  // WhatsApp-style Optimistic local commit (0ms)
-  await store.saveMatch(matchObj);
-  renderligaMenu();
-  if (mode === "skor") {
-    switchLigaTab("hasil");
+  try {
+    closeModal("modalLiga");
+    // WhatsApp-style Optimistic local commit (0ms)
+    await store.saveMatch(matchObj);
+    renderligaMenu();
+    if (mode === "skor") {
+      switchLigaTab("hasil");
+    }
+    showToast(mode === "skor" ? "Skor tersimpan secara lokal. Sedang disinkronkan..." : "Jadwal tersimpan secara lokal. Sedang disinkronkan...");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Simpan";
+    }
   }
-  showToast(mode === "skor" ? "Skor tersimpan secara lokal. Sedang disinkronkan..." : "Jadwal tersimpan secara lokal. Sedang disinkronkan...");
 }
-
 async function hapusMatch(id) {
   if (!confirm("Hapus data pertandingan ini?")) return;
   const res = await store.deleteMatch(id);
@@ -2267,7 +2274,7 @@ async function simpanEvent(){
 
   const idInput = document.getElementById("eEventId");
   const isEdit = Boolean(idInput && idInput.value);
-  const eventId = isEdit ? idInput.value : Date.now().toString();
+  const eventId = isEdit ? idInput.value : ('evt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
   // Protokol foto:
   // - fotoBase64: data URL base64 jika ada unggahan poster baru (diunggah ke Drive oleh backend).
   // - foto: URL Drive poster lama (jika dipertahankan), atau "" jika sengaja dihapus/tanpa poster.
@@ -2287,18 +2294,25 @@ async function simpanEvent(){
 
   const btn = document.getElementById("btnSaveEvent");
   if (btn) {
-    btn.disabled = false;
-    btn.textContent = "Simpan";
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = `${svgIcon('loader', 14, 'svg-spinner')} Menyimpan...`;
   }
-  closeModal("modalEvent");
-  clearImageUpload();
 
-  // WhatsApp-style Optimistic local commit (0ms)
-  await store.saveEvent(payload);
-  renderEvent();
-  showToast(isEdit ? "Perubahan event tersimpan." : "Agenda event tersimpan.");
+  try {
+    closeModal("modalEvent");
+    clearImageUpload();
+    // WhatsApp-style Optimistic local commit (0ms)
+    await store.saveEvent(payload);
+    renderEvent();
+    showToast(isEdit ? "Perubahan event tersimpan." : "Agenda event tersimpan.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Simpan";
+    }
+  }
 }
-
 async function hapusEvent(id){
   if(!confirm("Hapus agenda/event ini?"))return;
   const res = await store.deleteEvent(id);
